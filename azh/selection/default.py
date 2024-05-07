@@ -22,6 +22,8 @@ from columnflow.production.processes import process_ids
 
 from azh.selection.jet_selection import jet_selection
 from azh.selection.lepton_selection import lepton_selection
+from columnflow.production.categories import category_ids
+from azh.config.categories import add_categories_production
 
 
 np = maybe_import("numpy")
@@ -31,13 +33,13 @@ ak = maybe_import("awkward")
 @selector(
     uses={
         process_ids, attach_coffea_behavior,
-        mc_weight,  # not opened per default but always required in Cutflow tasks
+        mc_weight, category_ids, # not opened per default but always required in Cutflow tasks
         jet_selection, lepton_selection,  # azh_selection,
         increment_stats,
     },
     produces={
         process_ids, attach_coffea_behavior,
-        mc_weight,
+        mc_weight, category_ids,
         jet_selection, lepton_selection,  # azh_selection,
         increment_stats,
     },
@@ -72,6 +74,14 @@ def default(
 
     # # TODO Implement selection
     # # lepton selection
+    print("Leptons before selection")
+    print(results)
+    for l in range (10):
+        print(l)
+        print(events.Muon[l])
+        print(events.Electron[l])
+        # print(events.category_ids[l])
+
     events, results_lepton = self[lepton_selection](events, **kwargs)
     results += results_lepton
 
@@ -93,7 +103,7 @@ def default(
     events = self[process_ids](events, **kwargs)
 
     # build categories
-    # events = self[category_ids](events, results=results, **kwargs)
+    events = self[category_ids](events, **kwargs)
 
     # produce relevant columns
     # events = self[cutflow_features](events, results.objects, **kwargs)
@@ -103,6 +113,18 @@ def default(
     results.event = reduce(and_, results.steps.values())
     results.event = ak.fill_none(results.event, False)
     print(results.event)
+    print(events)
+    print("Leptons:")
+    for l in range (50):
+        print(l)
+        print(results.event[l])
+        print(events.Muon[l])
+        print(events.Muon[l].pt)
+        print(events.Muon[l].eta)
+        print(events.Electron[l])
+        print(events.Electron[l].pt)
+        print(events.Electron[l].eta)
+        print(events.category_ids[l])
 
     weight_map = {
         "num_events": Ellipsis,
@@ -140,6 +162,12 @@ def default(
 
     return events, results
 
+@default.init
+def default_init(self: Selector) -> None:
+    # add production categories to config
+    if not self.config_inst.get_aux("has_categories_sel", False):
+        add_categories_production(self.config_inst)
+        self.config_inst.x.has_categories_sel = True
 
 # @default.init
 # def default_init(self: Selector) -> None:

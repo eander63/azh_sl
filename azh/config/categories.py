@@ -49,6 +49,7 @@ def add_categories_selection(config: od.Config) -> None:
     add_incl_cat(config)
 
 
+
 # def add_categories(config: od.Config) -> None:
 #     @categorizer(uses={"event"})
 #     def cat_incl(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
@@ -104,3 +105,39 @@ def add_categories_production(config: od.Config) -> None:
 
     cat_2mu = config.get_category("2mu")
     cat_2mu.selection = "catid_2mu"
+
+@call_once_on_config()
+def add_categories_mz(config: od.Config) -> None:
+    """
+    Adds categories to a *config*, that are typically produced in `ProduceColumns`.
+    """
+
+    #
+    # switch existing categories to different production module
+    #
+    print("Adding Categories in SR and CR")
+    cat_SR = config.add_category(  # noqa
+        name="SR",
+        id=300,
+        selection="catid_SR",
+        label="Signal region",
+    )
+
+    cat_CR= config.add_category(  # noqa
+        name="CR",
+        id=400,
+        selection="catid_CR",
+        label="Control region",
+    )
+
+
+# category_groups = {
+#     "lepton": [
+#         config.get_category(name)
+#         for name in ["2e", "2mu"]
+#     ],
+#     "mz": [
+#         config.get_category(name)
+#         for name in ["SR", "CR"]
+#     ]
+# }

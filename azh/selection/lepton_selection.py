@@ -13,7 +13,7 @@ ak = maybe_import("awkward")
         "Electron.pt", "Electron.eta",
         "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId",
     },
-    produces={"cutflow.n_ele", "cutflow.n_muo"},
+    produces={"cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose", "cutflow.n_muo_loose"},
     exposed=True,
 )
 def lepton_selection(

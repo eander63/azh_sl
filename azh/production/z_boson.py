@@ -23,9 +23,10 @@ def z_boson(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
     print("Leptons for z ", events.Leptons)
     for l in range(3):
+        print(l)
         print(events.Leptons[l])
-        print(events.Leptons[:, 0][l])
-        print(events.Leptons[:, 1][l])
+        print(events.Leptons[:, 0])
+        print(events.Leptons[:, 1])
     z = events.Leptons[:, 0] + events.Leptons[:, 1]
     print(z)
     print(z.mass)

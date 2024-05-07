@@ -126,10 +126,10 @@ def add_config(
     # (used during plotting)
     cfg.x.category_groups = {
         "default": ["incl"],
-        "leptons_selection": ["catid_selection_2e","catid_selection_2mu"],
-        "leptons": ["catid_2e","catid_2mu"],
-        "sm": ["sm"],
-        "fe": ["fe"],
+        # "leptons_selection": ["catid_selection_2e","catid_selection_2mu"],
+        # "leptons": ["catid_2e","catid_2mu"],
+        # "m_z": ["sm"],
+        # "fe": ["fe"],
     }
 
     # variable groups for conveniently looping over certain variables
@@ -455,14 +455,14 @@ def add_config(
     cfg.x.keep_columns = DotDict.wrap({
         "cf.SelectEvents": {"mc_weight"},
         "cf.MergeSelectionMasks": {
-            "mc_weight", "normalization_weight", "process_id", "category_ids",
+            "mc_weight", "normalization_weight", "process_id", "category_ids", "cutflow.*",
         },
     })
 
     cfg.x.keep_columns["cf.ReduceEvents"] = (
         {
             # general event information
-            "run", "luminosityBlock", "event",
+            "run", "luminosityBlock", "event", "cutflow.*",
             # columns added during selection, required in general
             "mc_weight", "PV.npvs", "process_id", "category_ids", "deterministic_seed",
             # weight-related columns

@@ -45,7 +45,9 @@ def choose_lepton(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     print("Category Id", events.category_ids)
     print((ak.pad_none(events.category_ids,2) == 30)[:,0])
     print(muon)
+    print(electron)
     print(ak.mask(muon, (ak.pad_none(events.category_ids,2) == 40)[:,0]))
+    print(ak.mask(electron, (ak.pad_none(events.category_ids,2) == 30)[:,0]))
     print("leptons", leptons)
     for l in range(30):
         print(l)
@@ -56,7 +58,7 @@ def choose_lepton(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     for l in range(30):
         print(l)
         print((ak.pad_none(events.category_ids,2) == 40)[l,0])
-    for l in range(30):
+    for l in range(3):
         print(l)
         print(leptons[l])
 

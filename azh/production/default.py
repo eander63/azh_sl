@@ -15,6 +15,7 @@ from azh.production.z_boson import z_boson
 from azh.production.prepare_objects import prepare_objects
 from azh.production.leptons import choose_lepton
 from azh.production.weights import event_weights
+from azh.config.categories import add_categories_mz
 
 
 ak = maybe_import("awkward")
@@ -27,7 +28,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
     uses={
         category_ids, normalization_weights,
         event_weights, z_boson, choose_lepton,
-        prepare_objects,
+        prepare_objects
     },
     produces={
         category_ids, normalization_weights,
@@ -51,10 +52,18 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = self[choose_lepton](events, **kwargs)
     events = self[prepare_objects](events, **kwargs)
     events = self[z_boson](events, **kwargs)
+    events = self[category_ids](events, **kwargs)
 
 
     # deterministoc seeds
     # events = self[category_ids](events, **kwargs)
-    print(events)
+    print(events.category_ids)
 
     return events
+
+@default.init
+def default_init(self: Producer) -> None:
+    # add production categories to config
+    if not self.config_inst.get_aux("has_categories_production", False):
+        add_categories_mz(self.config_inst)
+        self.config_inst.x.has_categories_production = True

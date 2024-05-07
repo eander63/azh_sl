@@ -10,10 +10,10 @@ ak = maybe_import("awkward")
 @selector(
 
     uses={
-        "Electron.pt", "Electron.eta",
+        "Electron.pt", "Electron.eta", "Electron.mvaFall17V2Iso_WP80", "Electron.mvaFall17V2Iso_WP90", 
         "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId",
     },
-    produces={"cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose", "cutflow.n_muo_loose"},
+    produces={"cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose", "cutflow.n_muo_loose", "cutflow.n_ele_high", "cutflow.n_muo_high"},
     exposed=True,
 )
 def lepton_selection(
@@ -31,6 +31,12 @@ def lepton_selection(
         (events.Muon.tightId)
     )
 
+    muo_mask_high = (
+        (events.Muon.pt > 35) &
+        (abs(events.Muon.eta) < 2.4) &
+        (events.Muon.tightId)
+    )
+
     muo_mask_loose = (
         (events.Muon.pt > 20) &
         (abs(events.Muon.eta) < 2.4) &
@@ -40,21 +46,32 @@ def lepton_selection(
     # mask for electrons
     ele_mask = (
         (events.Electron.pt > 20) &
-        (abs(events.Electron.eta) < 2.4)
+        (abs(events.Electron.eta) < 2.4) &
+        (events.Electron.mvaFall17V2Iso_WP80)
+    )
+
+    ele_mask_high = (
+        (events.Electron.pt > 35) &
+        (abs(events.Electron.eta) < 2.4) &
+        (events.Electron.mvaFall17V2Iso_WP80)
     )
 
     ele_mask_loose = (
         (events.Electron.pt > 20) &
-        (abs(events.Electron.eta) < 2.4)
+        (abs(events.Electron.eta) < 2.4) &
+        (events.Electron.mvaFall17V2Iso_WP90)
     )
 
     events = set_ak_column(events, "cutflow.n_ele", ak.sum(ele_mask, axis=1))
     events = set_ak_column(events, "cutflow.n_muo", ak.sum(muo_mask, axis=1))
     events = set_ak_column(events, "cutflow.n_ele_loose", ak.sum(ele_mask_loose, axis=1))
     events = set_ak_column(events, "cutflow.n_muo_loose", ak.sum(muo_mask_loose, axis=1))
+    events = set_ak_column(events, "cutflow.n_ele_high", ak.sum(ele_mask_high, axis=1))
+    events = set_ak_column(events, "cutflow.n_muo_high", ak.sum(muo_mask_high, axis=1))
 
     # select only events with no leptons
-    lep_sel = ((events.cutflow.n_ele == 2) & (events.cutflow.n_ele_loose == 2) & (events.cutflow.n_muo_loose == 0)) | ((events.cutflow.n_muo == 2) & (events.cutflow.n_muo_loose == 2) & (events.cutflow.n_ele_loose == 0))
+    lep_sel = (((events.cutflow.n_ele == 2) & (events.cutflow.n_ele_high > 0 ) & (events.cutflow.n_ele_loose == 2) & (events.cutflow.n_muo_loose == 0)) | 
+    ((events.cutflow.n_muo == 2) & (events.cutflow.n_muo_high > 0 ) & (events.cutflow.n_muo_loose == 2) & (events.cutflow.n_ele_loose == 0)))
 
     ele_indices = masked_sorted_indices(ele_mask, events.Electron.pt)
     muo_indices = masked_sorted_indices(muo_mask, events.Muon.pt)

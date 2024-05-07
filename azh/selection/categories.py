@@ -40,12 +40,12 @@ def catid_selection_2mu(
 
 @categorizer(uses={"Electron.pt", "Muon.pt", "cutflow.*"}, call_force=True)
 def catid_2e(self: Categorizer, events: ak.Array,  **kwargs) -> tuple[ak.Array, ak.Array]:
-    mask = ((events.cutflow.n_ele  == 2) & (events.cutflow.n_muo_loose  == 0) & (events.cutflow.n_ele_loose == 2))
-    print("ele mask", mask)
+    mask = ((events.cutflow.n_ele  == 2) & (events.cutflow.n_ele_high  > 0) & (events.cutflow.n_muo_loose  == 0) & (events.cutflow.n_ele_loose == 2))
+    print("ele mask", mask) 
     return events, mask
 
 
 @categorizer(uses={"Electron.pt", "Muon.pt", "cutflow.*"}, call_force=True)
 def catid_2mu(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    mask = ((events.cutflow.n_ele_loose  == 0) & (events.cutflow.n_muo  == 2) & (events.cutflow.n_muo_loose == 2))
+    mask = ((events.cutflow.n_ele_loose  == 0) & (events.cutflow.n_muo_high  > 0) & (events.cutflow.n_muo  == 2) & (events.cutflow.n_muo_loose == 2))
     return events, mask

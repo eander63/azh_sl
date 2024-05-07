@@ -2,8 +2,6 @@
 
 from columnflow.util import maybe_import
 from functools import wraps
-from typing import Hashable, Iterable, Callable
-import law
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
@@ -15,6 +13,7 @@ def masked_sorted_indices(mask: ak.Array, sort_var: ak.Array, ascending: bool = 
     """
     indices = ak.argsort(sort_var, axis=-1, ascending=ascending)
     return indices[mask[indices]]
+
 
 def call_once_on_config(include_hash=False):
     """

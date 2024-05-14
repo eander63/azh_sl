@@ -37,7 +37,7 @@ custom_collections = {
     # but all columns required by the main Selector/Producer will be considered
     uses={
         attach_coffea_behavior, "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
-        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Leptons.pt", "Leptons.eta", "Leptons.phi", "Leptons.mass",
+        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Leptons.pt", "Leptons.eta", "Leptons.phi", "Leptons.mass", "Jet", "BJet",
         choose_lepton,
     },
     # no produces since we do not want to permanently produce columns

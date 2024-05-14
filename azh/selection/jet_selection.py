@@ -10,7 +10,7 @@ ak = maybe_import("awkward")
 
 
 @selector(
-    uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.puId"},
+    uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.puId", "Jet.btagDeepFlavB"},
     exposed=True,
 )
 def jet_selection(
@@ -35,15 +35,20 @@ def jet_selection(
         (events.Jet.pt > 30) &
         (abs(events.Jet.eta) < 2.4) &
         # IDs in NanoAOD https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD
-        (events.Jet.jetId == 6)  # &  # 2: fail tight LepVeto and 6: pass tightLepVeto
-        # ((events.Jet.puId == 7) | (events.Jet.pt > 50))  # pass all IDs (l, m and t) only for jets with pt < 50 GeV
+        (events.Jet.jetId == 6)  &  # 2: fail tight LepVeto and 6: pass tightLepVeto
+        ((events.Jet.puId == 7) | (events.Jet.pt > 50))  # pass all IDs (l, m and t) only for jets with pt < 50 GeV
     )
     jet_sel = ak.num(events.Jet[jet_mask]) >= 5
 
+    # btagging
+    wp_med = self.config_inst.x.btag_working_points.deepjet.medium
+    bjet_mask = jet_mask & (events.Jet.btagDeepFlavB >= wp_med)
+    
+
     jet_indices = masked_sorted_indices(jet_mask, events.Jet.pt)
+    bjet_indices = masked_sorted_indices(bjet_mask, events.Jet.pt)
     jet_sel = ak.fill_none(jet_sel, False)
     jet_mask = ak.fill_none(jet_mask, False)
-    print("Jet Selection:", jet_sel)
     # build and return selection results plus new columns
     return events, SelectionResult(
         steps={
@@ -52,6 +57,7 @@ def jet_selection(
         objects={
             "Jet": {
                 "Jet": jet_indices,
+                "BJet": bjet_indices,
             },
         },
         aux={

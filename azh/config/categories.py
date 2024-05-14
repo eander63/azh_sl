@@ -47,6 +47,7 @@ def skip_fn(categories: dict[str, od.Category]):
 def add_categories_selection(config: od.Config) -> None:
     add_lepton_categories(config)
     add_incl_cat(config)
+    # add_categories_bjets(config)
 
 
 
@@ -130,6 +131,35 @@ def add_categories_mz(config: od.Config) -> None:
         label="Control region",
     )
 
+@call_once_on_config()
+def add_categories_bjets(config: od.Config) -> None:
+    """
+    Adds categories to a *config*, that are typically produced in `ProduceColumns`.
+    """
+
+    #
+    # switch existing categories to different production module
+    #
+    cat_SR = config.add_category(  # noqa
+        name="2bjets",
+        id=1000,
+        selection="catid_2bjets",
+        label=">=2 B-Jets",
+    )
+
+    cat_CR= config.add_category(  # noqa
+        name="1bjets",
+        id=2000,
+        selection="catid_1bjets",
+        label="1 B-Jets",
+    )
+
+    cat_CR= config.add_category(  # noqa
+        name="0bjets",
+        id=3000,
+        selection="catid_0bjets",
+        label="0 B-Jets",
+    )
 
 # category_groups = {
 #     "lepton": [

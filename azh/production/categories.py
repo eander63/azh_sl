@@ -36,3 +36,18 @@ def catid_CR(
     mask = ( events.m_z <  np.full_like(events.m_z, z_mass - mass_window)) | ( events.m_z >  np.full_like(events.m_z, z_mass + mass_window))
     print("CR: ",mask)
     return events, mask
+
+@categorizer(uses={"BJet"}, call_force=True)
+def catid_2bjets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    mask = (ak.num(events.BJet, axis=-1) >= 2)
+    return events, mask
+
+@categorizer(uses={"BJet"}, call_force=True)
+def catid_1bjets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    mask = (ak.num(events.BJet, axis=-1) == 1)
+    return events, mask
+
+@categorizer(uses={"BJet"}, call_force=True)
+def catid_0bjets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    mask = (ak.num(events.BJet, axis=-1) == 0)
+    return events, mask

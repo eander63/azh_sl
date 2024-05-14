@@ -16,6 +16,7 @@ from azh.production.prepare_objects import prepare_objects
 from azh.production.leptons import choose_lepton
 from azh.production.weights import event_weights
 from azh.config.categories import add_categories_mz
+from azh.config.categories import add_categories_bjets
 
 
 ak = maybe_import("awkward")
@@ -53,7 +54,13 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = self[prepare_objects](events, **kwargs)
     events = self[z_boson](events, **kwargs)
     events = self[category_ids](events, **kwargs)
-
+    from IPython import embed;
+    embed()
+    print(events)
+    print(events.Muon)
+    print(events.Jet)
+    # print(events.Jet.BJet)
+    print(events.BJet.pt)
 
     # deterministoc seeds
     # events = self[category_ids](events, **kwargs)
@@ -66,4 +73,6 @@ def default_init(self: Producer) -> None:
     # add production categories to config
     if not self.config_inst.get_aux("has_categories_production", False):
         add_categories_mz(self.config_inst)
+        add_categories_bjets(self.config_inst)
         self.config_inst.x.has_categories_production = True
+

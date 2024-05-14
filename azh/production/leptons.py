@@ -42,25 +42,24 @@ def choose_lepton(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         ak.mask(muon, (ak.pad_none(events.category_ids,2) == 40)[:,0]),
         ak.mask(electron, (ak.pad_none(events.category_ids,2) == 30)[:,0]),
     ], axis=1)
+    
     print("Category Id", events.category_ids)
     print((ak.pad_none(events.category_ids,2) == 30)[:,0])
     print(muon)
-    print(electron)
     print(ak.mask(muon, (ak.pad_none(events.category_ids,2) == 40)[:,0]))
-    print(ak.mask(electron, (ak.pad_none(events.category_ids,2) == 30)[:,0]))
-    print("leptons", leptons)
-    for l in range(30):
-        print(l)
-        for m in range(len(muon[l])):
-            print("muon:", muon[l][m])
-        for m in range(len(electron[l])):
-            print("electron:",electron[l][m])
-    for l in range(30):
-        print(l)
-        print((ak.pad_none(events.category_ids,2) == 40)[l,0])
-    for l in range(3):
-        print(l)
-        print(leptons[l])
+    # print("leptons", leptons)
+    # for l in range(30):
+    #     print(l)
+    #     for m in range(len(muon[l])-1):
+    #         print("muon:", muon[l][m])
+    #     for m in range(len(electron[l])):
+    #         print("electron:",electron[l][m])
+    # for l in range(30):
+    #     print(l)
+    #     print((ak.pad_none(events.category_ids,2) == 40)[l,0])
+    # for l in range(30):
+    #     print(l)
+    #     print(leptons[l])
 
     # attach lorentz vector behavior to lepton
     leptons = ak.with_name(leptons, "PtEtaPhiMLorentzVector")

@@ -112,19 +112,6 @@ def default(
     # Make sure all nans are present, otherwise next tasks fail
     results.event = reduce(and_, results.steps.values())
     results.event = ak.fill_none(results.event, False)
-    print(results.event)
-    print(events)
-    print("Leptons:")
-    for l in range (50):
-        print(l)
-        print(results.event[l])
-        print(events.Muon[l])
-        print(events.Muon[l].pt)
-        print(events.Muon[l].eta)
-        print(events.Electron[l])
-        print(events.Electron[l].pt)
-        print(events.Electron[l].eta)
-        print(events.category_ids[l])
 
     weight_map = {
         "num_events": Ellipsis,

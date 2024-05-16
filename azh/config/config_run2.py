@@ -473,12 +473,12 @@ def add_config(
             f"{jet_obj}.{field}"
             for jet_obj in ["Jet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx"]
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB"]
         )| set(  # BJets
             f"{jet_obj}.{field}"
             for jet_obj in ["BJet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass"]
+            for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB"]
         ) | set(  # Muons
             f"{mu_obj}.{field}"
             for mu_obj in ["Muon"]

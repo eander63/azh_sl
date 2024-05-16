@@ -12,6 +12,7 @@ from columnflow.util import maybe_import
 
 # from azh.production.azh_quantities import azh_quantities
 from azh.production.z_boson import z_boson
+from azh.production.higgs_reco import higgs_reco
 from azh.production.prepare_objects import prepare_objects
 from azh.production.leptons import choose_lepton
 from azh.production.weights import event_weights
@@ -28,13 +29,13 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 @producer(
     uses={
         category_ids, normalization_weights,
-        event_weights, z_boson, choose_lepton,
+        event_weights, z_boson, higgs_reco, choose_lepton,
         prepare_objects
     },
     produces={
         category_ids, normalization_weights,
         event_weights, z_boson, choose_lepton,
-        prepare_objects,
+        prepare_objects, higgs_reco
     },
 )
 def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -53,14 +54,8 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = self[choose_lepton](events, **kwargs)
     events = self[prepare_objects](events, **kwargs)
     events = self[z_boson](events, **kwargs)
+    events = self[higgs_reco](events, **kwargs)
     events = self[category_ids](events, **kwargs)
-    from IPython import embed;
-    embed()
-    print(events)
-    print(events.Muon)
-    print(events.Jet)
-    # print(events.Jet.BJet)
-    print(events.BJet.pt)
 
     # deterministoc seeds
     # events = self[category_ids](events, **kwargs)

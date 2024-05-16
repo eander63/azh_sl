@@ -12,7 +12,7 @@ ak = maybe_import("awkward")
         choose_lepton,
     },
     produces={
-        "m_z",
+        "m_z", "pt_z",
     },
 )
 def z_boson(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -26,6 +26,8 @@ def z_boson(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     #     print(events.Leptons[:, 1])
     z = events.Leptons[:, 0] + events.Leptons[:, 1]
     print(z)
+    print(z.pt)
     print(z.mass)
     events = set_ak_column(events, "m_z", z.mass)
+    events = set_ak_column(events, "pt_z", z.pt)
     return events

@@ -29,6 +29,16 @@ custom_collections = {
         "check_attr": "metric_table",
         "skip_fields": "*Idx*G",
     },
+    "Jet": {
+        "type_name": "Jet",  # is there some other collection?
+        "check_attr": "metric_table",
+        "skip_fields": "*Idx*G",
+    },
+    "BJet": {
+        "type_name": "Jet",  # is there some other collection?
+        "check_attr": "metric_table",
+        "skip_fields": "*Idx*G",
+    },
 }
 
 

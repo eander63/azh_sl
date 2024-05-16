@@ -96,6 +96,13 @@ def add_variables(config: od.Config) -> None:
         unit="GeV",
         x_title="Invariant mass of two leptons",
     )
+    config.add_variable(
+        name="m_h",
+        expression="m_h",
+        binning=(50, 0, 1000),
+        unit="GeV",
+        x_title="Invariant mass of the reconstructed H",
+    )
 
     # Jets (3 pt-leading jets)
     for i in range(3):

@@ -68,14 +68,41 @@ def add_config(
     # add datasets we need to study
     process_names = [
         "tt",
+        "ttv",
+        "st",
+        "w_lnu",
         "dy",
+        "vv",
     ]
     for process_name in process_names:
         cfg.add_process(procs.get(process_name))
 
     dataset_names = [
+        #TT
         "tt_sl_powheg",
-        # "st_tchannel_t_powheg",
+        "tt_dl_powheg",
+        "tt_fh_powheg",
+        #TTV
+        "ttz_llnunu_m10_amcatnlo",
+        "ttz_qq_amcatnlo",
+        "ttw_nlu_amcatnlo",
+        "ttw_qq_amcatnlo",
+        # ST
+        "st_tchannel_t_powheg",
+        "st_tchannel_tbar_powheg",
+        "st_twchannel_t_powheg",
+        "st_twchannel_tbar_powheg",
+        "st_schannel_lep_amcatnlo",
+        #WJets
+        "w_lnu_ht70To100_madgraph",
+        "w_lnu_ht100To200_madgraph",
+        "w_lnu_ht200To400_madgraph",
+        "w_lnu_ht400To600_madgraph",
+        "w_lnu_ht600To800_madgraph",
+        "w_lnu_ht800To1200_madgraph",
+        "w_lnu_ht1200To2500_madgraph",
+        "w_lnu_ht2500_madgraph",
+        #DY
         "dy_lep_m50_ht70to100_madgraph",
         "dy_lep_m50_ht100to200_madgraph",
         "dy_lep_m50_ht200to400_madgraph",
@@ -84,6 +111,10 @@ def add_config(
         "dy_lep_m50_ht800to1200_madgraph",
         "dy_lep_m50_ht1200to2500_madgraph",
         "dy_lep_m50_ht2500_madgraph", 
+        #VV
+        "zz_pythia",
+        "wz_pythia",
+        "ww_pythia",
     ]
     for dataset_name in dataset_names:
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))

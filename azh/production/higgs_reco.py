@@ -13,7 +13,7 @@ ak = maybe_import("awkward")
         "Jet", "BJet"
     },
     produces={
-        "m_h", 
+        "m_h", "m_a", "del_m" 
     },
 )
 def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -35,14 +35,41 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     light_jets = jets[light_jets_mask]
 
     sorted_bjets = ak.pad_none(sorted_bjets,2,axis=1)
-    light_jets = ak.pad_none(light_jets,5,axis=1)
+    light_jets = ak.pad_none(light_jets,6,axis=1)
+    sorted_jets = ak.pad_none(sorted_jets,6,axis=1)
 
-    h = ak.where((ak.num(events.BJet, axis=-1) >= 2),sorted_bjets[:, 0]+sorted_bjets[:, 1]+light_jets[:,0]+light_jets[:,1]+light_jets[:,2],
+    h = ak.where((ak.num(events.Jet, axis=-1) == 5), ak.where((ak.num(events.BJet, axis=-1) > 2),sorted_jets[:, 0]+sorted_jets[:, 1]+sorted_jets[:,2]+sorted_jets[:,3]+sorted_jets[:,4],
+        ak.where((ak.num(events.BJet, axis=-1) == 2),sorted_bjets[:, 0]+sorted_bjets[:, 1]+light_jets[:,0]+light_jets[:,1]+light_jets[:,2],
         ak.where((ak.num(events.BJet, axis=-1) == 1),sorted_bjets[:, 0]+light_jets[:,0]+light_jets[:,1]+light_jets[:,2]+light_jets[:,3],
-        light_jets[:,0]+light_jets[:,1]+light_jets[:,2]+light_jets[:,3]+light_jets[:,4]))
+        light_jets[:,0]+light_jets[:,1]+light_jets[:,2]+light_jets[:,3]+light_jets[:,4]))),
+        ak.where((ak.num(events.BJet, axis=-1) > 2),sorted_jets[:, 0]+sorted_jets[:, 1]+sorted_jets[:,2]+sorted_jets[:,3]+sorted_jets[:,4]+sorted_jets[:,5],
+        ak.where((ak.num(events.BJet, axis=-1) == 2),sorted_bjets[:, 0]+sorted_bjets[:, 1]+light_jets[:,0]+light_jets[:,1]+light_jets[:,2]+light_jets[:,3],
+        ak.where((ak.num(events.BJet, axis=-1) == 1),sorted_bjets[:, 0]+light_jets[:,0]+light_jets[:,1]+light_jets[:,2]+light_jets[:,3]+light_jets[:,4],
+        light_jets[:,0]+light_jets[:,1]+light_jets[:,2]+light_jets[:,3]+light_jets[:,4]+light_jets[:,5]))))
 
+    m_h = h.mass
+    # print(h)
+    # for i in range(100):
+        # print("Now at", i)
+        # print((ak.num(events.BJet, axis=-1))[i])
+        # print("Bjets:")
+        # for j in sorted_bjets[i]:
+        #     print(j)
+        # print("light jets:")
+        # for j in light_jets[i]:
+        #     print(j)
+    #     print(h[i])
+    # print(h.mass)
 
-    print(h)
-    print(h.mass)
     events = set_ak_column(events, "m_h", h.mass)
+
+    z = events.Leptons[:, 0] + events.Leptons[:, 1]
+    m_z = z.mass
+
+    a = z + h
+    m_a = a.mass
+    del_m = m_a - m_h
+    events = set_ak_column(events, "m_a", m_a)
+    events = set_ak_column(events, "del_m", del_m)
+    print(a)
     return events

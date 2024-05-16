@@ -99,11 +99,24 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="m_h",
         expression="m_h",
-        binning=(50, 0, 1000),
+        binning=(60, 0, 1200),
         unit="GeV",
         x_title="Invariant mass of the reconstructed H",
     )
-
+    config.add_variable(
+        name="m_a",
+        expression="m_a",
+        binning=(70, 0, 1400),
+        unit="GeV",
+        x_title="Invariant mass of the reconstructed A",
+    )
+    config.add_variable(
+        name="del_m",
+        expression="del_m",
+        binning=(60, 0, 600),
+        unit="GeV",
+        x_title="Mass difference between H and A",
+    )
     # Jets (3 pt-leading jets)
     for i in range(3):
         config.add_variable(

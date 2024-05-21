@@ -27,7 +27,10 @@ def z_boson(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     z = events.Leptons[:, 0] + events.Leptons[:, 1]
     print(z)
     print(z.pt)
-    print(z.mass)
-    events = set_ak_column(events, "m_z", z.mass)
+    mass_z = z.mass
+    print(mass_z)
+    mass_z = ak.where(np.isfinite(mass_z),mass_z, ak.full_like(mass_z, None) )
+    print(mass_z)
+    events = set_ak_column(events, "m_z", mass_z)
     events = set_ak_column(events, "pt_z", z.pt)
     return events

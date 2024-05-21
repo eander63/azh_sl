@@ -39,14 +39,14 @@ def choose_lepton(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # from IPython import embed;
     # embed()
     leptons = ak.concatenate([
-        ak.mask(muon, (ak.pad_none(events.category_ids,2) == 40)[:,0]),
-        ak.mask(electron, (ak.pad_none(events.category_ids,2) == 30)[:,0]),
+        ak.mask(muon, (ak.pad_none(events.category_ids,2) == 20)[:,0]),
+        ak.mask(electron, (ak.pad_none(events.category_ids,2) == 10)[:,0]),
     ], axis=1)
     
     print("Category Id", events.category_ids)
-    print((ak.pad_none(events.category_ids,2) == 30)[:,0])
+    print((ak.pad_none(events.category_ids,2) == 10)[:,0])
     print(muon)
-    print(ak.mask(muon, (ak.pad_none(events.category_ids,2) == 40)[:,0]))
+    print(ak.mask(muon, (ak.pad_none(events.category_ids,2) == 20)[:,0]))
     # print("leptons", leptons)
     # for l in range(30):
     #     print(l)

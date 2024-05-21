@@ -12,6 +12,7 @@ import law
 
 from columnflow.util import maybe_import
 from columnflow.categorization import Categorizer, categorizer
+from columnflow.config_util import create_category_combinations
 from azh.util import call_once_on_config
 
 
@@ -79,14 +80,14 @@ def add_lepton_categories(config: od.Config) -> None:
 
     cat_2e = config.add_category(  # noqa
         name="2e",
-        id=30,
+        id=10,
         selection="catid_selection_2e",
         label="2 Electron",
     )
 
     cat_2mu = config.add_category(  # noqa
         name="2mu",
-        id=40,
+        id=20,
         selection="catid_selection_2mu",
         label="2 Muon",
     )
@@ -107,6 +108,8 @@ def add_categories_production(config: od.Config) -> None:
     cat_2mu = config.get_category("2mu")
     cat_2mu.selection = "catid_2mu"
 
+
+
 @call_once_on_config()
 def add_categories_mz(config: od.Config) -> None:
     """
@@ -119,14 +122,14 @@ def add_categories_mz(config: od.Config) -> None:
     print("Adding Categories in SR and CR")
     cat_SR = config.add_category(  # noqa
         name="SR",
-        id=300,
+        id=100,
         selection="catid_SR",
         label="Signal region",
     )
 
     cat_CR= config.add_category(  # noqa
         name="CR",
-        id=400,
+        id=200,
         selection="catid_CR",
         label="Control region",
     )
@@ -142,7 +145,7 @@ def add_categories_bjets(config: od.Config) -> None:
     #
     cat_SR = config.add_category(  # noqa
         name="2bjets",
-        id=1000,
+        id=3000,
         selection="catid_2bjets",
         label=">=2 B-Jets",
     )
@@ -156,10 +159,25 @@ def add_categories_bjets(config: od.Config) -> None:
 
     cat_CR= config.add_category(  # noqa
         name="0bjets",
-        id=3000,
+        id=1000,
         selection="catid_0bjets",
         label="0 B-Jets",
     )
+    category_groups = {
+        "lepton": [
+            config.get_category(name)
+            for name in ["2e", "2mu"]
+        ],
+        "z_mass": [
+            config.get_category(name)
+            for name in ["SR", "CR"]
+        ],
+        "b_jets": [
+            config.get_category(name)
+            for name in ["2bjets", "1bjets","0bjets"]
+        ],
+    }
+    create_category_combinations(config, category_groups, name_fn, kwargs_fn)
 
 # category_groups = {
 #     "lepton": [
@@ -171,3 +189,4 @@ def add_categories_bjets(config: od.Config) -> None:
 #         for name in ["SR", "CR"]
 #     ]
 # }
+

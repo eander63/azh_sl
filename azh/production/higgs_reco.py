@@ -48,7 +48,7 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         light_jets[:,0]+light_jets[:,1]+light_jets[:,2]+light_jets[:,3]+light_jets[:,4]+light_jets[:,5]))))
 
     mass_h = h.mass
-    mass_h = ak.where(np.isfinite(mass_h),mass_h, ak.full_like(mass_h, None) )
+    mass_h = ak.where(np.isfinite(mass_h),mass_h, ak.full_like(mass_h, 0) )
     # print(h)
     # for i in range(100):
         # print("Now at", i)
@@ -66,10 +66,10 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
     z = events.Leptons[:, 0] + events.Leptons[:, 1]
     mass_z = z.mass
-    mass_z = ak.where(np.isfinite(mass_z),mass_z, ak.full_like(mass_z, None) )
+    mass_z = ak.where(np.isfinite(mass_z),mass_z, ak.full_like(mass_z, 0) )
     a = z + h
     mass_a = a.mass
-    mass_a = ak.where(np.isfinite(mass_a),mass_a, ak.full_like(mass_a, None) )
+    mass_a = ak.where(np.isfinite(mass_a),mass_a, ak.full_like(mass_a, 0) )
     del_m = mass_a - mass_h
     events = set_ak_column(events, "m_a", mass_a)
     events = set_ak_column(events, "del_m", del_m)

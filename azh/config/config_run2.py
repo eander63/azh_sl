@@ -63,7 +63,18 @@ def add_config(
     # add processes we are interested in
 
     # set color of some processes
-    # stylize_processes(cfg)
+    # set color of some processes
+    colors = {
+        "data": "#000000",  # black
+        "tt": "#E04F21",  # red
+        "ttv": "#5E8FFC",  # blue
+        "w_lnu": "#82FF28",  # green
+        "higgs": "#984ea3",  # purple
+        "st": "#3E00FB",  # dark purple
+        "dy": "#FBFF36",  # yellow
+        "vv": "#B900FC",  # pink
+        "other": "#999999",  # grey
+    }
 
     # add datasets we need to study
     process_names = [
@@ -74,8 +85,12 @@ def add_config(
         "dy",
         "vv",
     ]
+
+
     for process_name in process_names:
         cfg.add_process(procs.get(process_name))
+        cfg.get_process(process_name).color1 = colors.get(process_name, "#aaaaaa")
+        cfg.get_process(process_name).color2 = colors.get(process_name, "#000000")
 
     dataset_names = [
         #TT

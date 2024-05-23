@@ -51,3 +51,13 @@ def catid_1bjets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Arra
 def catid_0bjets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     mask = (ak.num(events.BJet, axis=-1) == 0)
     return events, mask
+
+@categorizer(uses={"Jet"}, call_force=True)
+def catid_6jets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    mask = (ak.num(events.Jet, axis=-1) >= 6)
+    return events, mask
+
+@categorizer(uses={"Jet"}, call_force=True)
+def catid_5jets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    mask = (ak.num(events.Jet, axis=-1) == 5)
+    return events, mask

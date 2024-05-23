@@ -18,6 +18,7 @@ from azh.production.leptons import choose_lepton
 from azh.production.weights import event_weights
 from azh.config.categories import add_categories_mz
 from azh.config.categories import add_categories_bjets
+from azh.config.categories import add_categories_njets
 
 
 ak = maybe_import("awkward")
@@ -69,5 +70,6 @@ def default_init(self: Producer) -> None:
     if not self.config_inst.get_aux("has_categories_production", False):
         add_categories_mz(self.config_inst)
         add_categories_bjets(self.config_inst)
+        add_categories_njets(self.config_inst)
         self.config_inst.x.has_categories_production = True
 

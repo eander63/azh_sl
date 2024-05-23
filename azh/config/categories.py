@@ -163,6 +163,29 @@ def add_categories_bjets(config: od.Config) -> None:
         selection="catid_0bjets",
         label="0 B-Jets",
     )
+@call_once_on_config()
+def add_categories_njets(config: od.Config) -> None:
+    """
+    Adds categories to a *config*, that are typically produced in `ProduceColumns`.
+    """
+
+    #
+    # switch existing categories to different production module
+    #
+    cat_SR = config.add_category(  # noqa
+        name="5jets",
+        id=10000,
+        selection="catid_5jets",
+        label="5 Jets",
+    )
+
+    cat_CR= config.add_category(  # noqa
+        name="6jets",
+        id=20000,
+        selection="catid_6jets",
+        label="6 or more Jets",
+    )
+
     category_groups = {
         "lepton": [
             config.get_category(name)
@@ -175,6 +198,10 @@ def add_categories_bjets(config: od.Config) -> None:
         "b_jets": [
             config.get_category(name)
             for name in ["2bjets", "1bjets","0bjets"]
+        ],
+        "jets": [
+            config.get_category(name)
+            for name in ["5jets", "6jets"]
         ],
     }
     create_category_combinations(config, category_groups, name_fn, kwargs_fn)

@@ -84,6 +84,7 @@ def add_config(
         "w_lnu",
         "dy",
         "vv",
+        "data"
     ]
 
 
@@ -130,6 +131,28 @@ def add_config(
         "zz_pythia",
         "wz_pythia",
         "ww_pythia",
+
+        #Data
+        #Double Muon
+        "data_doublemu_b",
+        "data_doublemu_c",
+        "data_doublemu_d",
+        "data_doublemu_e",
+        "data_doublemu_f",
+        "data_doublemu_g",
+        "data_doublemu_h",
+        #Double EG
+        "data_doubleeg_b",
+        "data_doubleeg_c",
+        "data_doubleeg_d",
+        "data_doubleeg_e",
+        "data_doubleeg_f",
+        #Muon EG
+        "data_mueg_b",
+        "data_mueg_c",
+        "data_mueg_d",
+        "data_mueg_e",
+        "data_mueg_f",
     ]
     for dataset_name in dataset_names:
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))

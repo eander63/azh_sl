@@ -13,7 +13,7 @@ ak = maybe_import("awkward")
         "Jet", "BJet"
     },
     produces={
-        "m_h", "m_a", "del_m" 
+        "m_h", "m_a", "del_m","n_jets", "n_bjets" 
     },
 )
 def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -62,7 +62,11 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     #     print(h[i])
     # print(h.mass)
 
+    n_jets = ak.num(events.Jet, axis=-1)
+    n_bjets = ak.num(events.BJet, axis=-1)
     events = set_ak_column(events, "m_h", mass_h)
+    events = set_ak_column(events, "n_jets", n_jets)
+    events = set_ak_column(events, "n_bjets", n_bjets)
 
     z = events.Leptons[:, 0] + events.Leptons[:, 1]
     mass_z = z.mass

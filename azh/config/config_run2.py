@@ -176,6 +176,11 @@ def add_config(
     cfg.x.default_inference_model = "example"
     cfg.x.default_categories = ["cat_incl"]
     cfg.x.default_variables = ["jet1_pt"]
+    # cfg.x.default_selector_steps = "default"
+    # cfg.x.selector_step_groups = {
+    # "default": ["Lepton","Jet"],
+    # "cutflow": ["Lepton","Jet"],
+    # }
 
     # process groups for conveniently looping over certain processs
     # (used in wrapper_factory and during plotting)
@@ -597,80 +602,7 @@ def add_config(
     #         dataset.x.event_weights["normalized_muf_weight"] = get_shifts("muf")
     #         dataset.x.event_weights["normalized_pdf_weight"] = get_shifts("pdf")
 
-    # Trigger selection
-    # TODO: SingleJet triggers for AK8 and some special cases in UL16 & UL17
-    # cfg.x.triggers = DotDict.wrap({
-    #     "dijet": {
-    #         "central": [
-    #             "DiPFJetAve40",
-    #             "DiPFJetAve60",
-    #             "DiPFJetAve80",
-    #             "DiPFJetAve140",
-    #             "DiPFJetAve200",
-    #             "DiPFJetAve260",
-    #             "DiPFJetAve320",
-    #             "DiPFJetAve400",
-    #             "DiPFJetAve500",
-    #         ],
-    #         "forward": [
-    #             "DiPFJetAve60_HFJEC",
-    #             "DiPFJetAve80_HFJEC",
-    #             "DiPFJetAve100_HFJEC",
-    #             "DiPFJetAve160_HFJEC",
-    #             "DiPFJetAve220_HFJEC",
-    #             "DiPFJetAve300_HFJEC",
-    #         ],
-    #     },
-    #     # TODO: single jet only for AK4 so far
-    #     #       Needed for AK8
-    #     "singlejet": {
-    #         "central": [
-    #             "PFJet40",
-    #             "PFJet60",
-    #             "PFJet80",
-    #             "PFJet140",
-    #             "PFJet200",
-    #             "PFJet260",
-    #             "PFJet320",
-    #             "PFJet400",
-    #             "PFJet500",
-    #         ],
-    #     },
-    # })
 
-    # cfg.x.trigger_thresholds = DotDict.wrap({
-    #     "dijet": {
-    #         "central": (
-    #             [59, 85, 104, 170, 236, 302, 370, 460, 575]
-    #             if campaign.x.year == 2016
-    #             else
-    #             [70, 87, 111, 180, 247, 310, 373, 457, 562]
-    #             if campaign.x.year == 2017
-    #             else
-    #             [66, 93, 118, 189, 257, 325, 391, 478, 585]
-    #             if campaign.x.year == 2018
-    #             else None
-    #         ),
-    #         "forward": (
-    #             [86, 110, 132, 204, 279, 373]
-    #             if campaign.x.year == 2016
-    #             else
-    #             [73, 93, 113, 176, 239, 318]
-    #             if campaign.x.year == 2017
-    #             else
-    #             [93, 116, 142, 210, 279, 379]
-    #             if campaign.x.year == 2018
-    #             else None
-    #         ),
-    #     },
-    #     "singlejet": {
-    #         "central": (
-    #             [70, 87, 111, 180, 247, 310, 373, 457, 562]
-    #             if campaign.x.year == 2017
-    #             else None
-    #         ),
-    #     },
-    # })
 
     # dev_version = "v0"
     # prod_version = "prod1"

@@ -89,6 +89,23 @@ def add_variables(config: od.Config) -> None:
         unit="GeV",
         x_title="$p_{T}$ of all jets",
     )
+
+    config.add_variable(
+        name="n_jets",
+        expression="n_jets",
+        binning=(12, -0.5, 11.5),
+        unit="GeV",
+        x_title="Number of jets",
+    )
+
+    config.add_variable(
+        name="n_bjets",
+        expression="n_bjets",
+        binning=(5, -0.5, 4.5),
+        unit="GeV",
+        x_title="Number of bjets",
+    )
+
     config.add_variable(
         name="m_z",
         expression="m_z",

@@ -11,9 +11,12 @@ ak = maybe_import("awkward")
 
     uses={
         "Electron.pt", "Electron.eta", "Electron.mvaFall17V2Iso_WP80", "Electron.mvaFall17V2Iso_WP90", 
-        "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId",
+        "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId", "Muon.tkIsoId"
     },
-    produces={"cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose", "cutflow.n_muo_loose", "cutflow.n_ele_high", "cutflow.n_muo_high"},
+    produces={"cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose", "cutflow.n_muo_loose", "cutflow.n_ele_high", "cutflow.n_muo_high",
+        "cutflow.muon1_pt", "cutflow.muon1_eta",  "cutflow.muon2_pt", "cutflow.muon2_eta",
+        "cutflow.electron1_pt", "cutflow.electron1_eta","cutflow.electron2_pt", "cutflow.electron2_eta",
+        },
     exposed=True,
 )
 def lepton_selection(
@@ -28,19 +31,23 @@ def lepton_selection(
     muo_mask = (
         (events.Muon.pt > 20) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.tightId)
+        (events.Muon.tightId) &
+        (events.Muon.tkIsoId == 2)
     )
 
     muo_mask_high = (
         (events.Muon.pt > 35) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.tightId)
+        (events.Muon.tightId) &
+        (events.Muon.tkIsoId == 2)
     )
 
     muo_mask_loose = (
         (events.Muon.pt > 20) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.looseId)
+        (events.Muon.looseId) &
+        ((events.Muon.tkIsoId == 1) |
+        (events.Muon.tkIsoId == 2))
     )
 
     # mask for electrons
@@ -62,6 +69,25 @@ def lepton_selection(
         (events.Electron.mvaFall17V2Iso_WP90)
     )
 
+    ele_test = (
+        (events.Electron.pt > 20)
+        &
+        (abs(events.Electron.eta) < 2.4)
+        &
+        (events.Electron.mvaFall17V2Iso_WP80)
+    )
+    muo_test = (
+        (events.Muon.pt > 20 )
+        &
+        (abs(events.Muon.eta) < 2.4)
+        &
+        (events.Muon.tightId)
+        &
+        (events.Muon.tkIsoId == 2)
+    )
+    events = set_ak_column(events, "cutflow.n_ele_test", ak.sum(ele_test, axis=1))
+    events = set_ak_column(events, "cutflow.n_muo_test", ak.sum(muo_test, axis=1))
+
     events = set_ak_column(events, "cutflow.n_ele", ak.sum(ele_mask, axis=1))
     events = set_ak_column(events, "cutflow.n_muo", ak.sum(muo_mask, axis=1))
     events = set_ak_column(events, "cutflow.n_ele_loose", ak.sum(ele_mask_loose, axis=1))
@@ -69,10 +95,69 @@ def lepton_selection(
     events = set_ak_column(events, "cutflow.n_ele_high", ak.sum(ele_mask_high, axis=1))
     events = set_ak_column(events, "cutflow.n_muo_high", ak.sum(muo_mask_high, axis=1))
 
-    # select only events with no leptons
+    # select only events with exactly 2 leptons
     lep_sel = (((events.cutflow.n_ele == 2) & (events.cutflow.n_ele_high > 0 ) & (events.cutflow.n_ele_loose == 2) & (events.cutflow.n_muo_loose == 0)) | 
     ((events.cutflow.n_muo == 2) & (events.cutflow.n_muo_high > 0 ) & (events.cutflow.n_muo_loose == 2) & (events.cutflow.n_ele_loose == 0)))
 
+    i = 0
+    j = 0
+    # print(events.Electron.pt>20)
+    # print((abs(events.Electron.eta) < 2.4))
+    # print( (events.Electron.pt > 20) &(abs(events.Electron.eta) < 2.4))
+    # for n in range(100):
+    #     if (events.cutflow.n_ele_test[n]>1 or events.cutflow.n_muo_test[n]>1):
+    #         print(n)
+    #         print((events.cutflow.n_ele[n] == 2) & (events.cutflow.n_ele_high[n] > 0 ) & (events.cutflow.n_ele_loose[n] == 2) & (events.cutflow.n_muo_loose[n] == 0))
+    #         print((events.cutflow.n_muo[n] == 2) & (events.cutflow.n_muo_high[n] > 0 ) & (events.cutflow.n_muo_loose[n] == 2) & (events.cutflow.n_ele_loose[n] == 0))
+    #         print("Ele:")
+    #         print(events.Electron.pt[n])
+    #         print(events.Electron.eta[n])
+    #         print(events.Electron.mvaFall17V2Iso_WP80[n])
+    #         print("Muo")
+    #         print(events.Muon.pt[n])
+    #         print(events.Muon.eta[n])
+    #         print(events.Muon.tightId[n])
+    #         print(events.Muon.tkIsoId[n])
+    #         if events.cutflow.n_ele_test[n]>1:
+    #             # print("An Electron!")
+    #             i = i + 1
+    #         if events.cutflow.n_muo_test[n]>1:
+    #             # print("A Muon!")
+    #             j = j + 1
+    # print("Number of Ele surviving",i)
+    # print("Number of Muo surviving",j)
+
+    for n in range(len(events.cutflow.n_ele_test)):
+        if (lep_sel[n]):
+            # print(n)
+            # print("Ele:")
+            # print(events.Electron.pt[n])
+            # print(events.Electron.eta[n])
+            # print(events.Electron.mvaFall17V2Iso_WP80[n])
+            # print("Muo")
+            # print(events.Muon.pt[n])
+            # print(events.Muon.eta[n])
+            # print(events.Muon.tightId[n])
+            if ((events.cutflow.n_ele[n] == 2) & (events.cutflow.n_ele_high[n] > 0 ) & (events.cutflow.n_ele_loose[n] == 2) & (events.cutflow.n_muo_loose[n] == 0)) :
+                # print("An Electron!")
+                i = i + 1
+            if ((events.cutflow.n_muo[n] == 2) & (events.cutflow.n_muo_high[n] > 0 ) & (events.cutflow.n_muo_loose[n] == 2) & (events.cutflow.n_ele_loose[n] == 0)):
+                # print("A Muon!")
+                j = j + 1
+    print("Number of Ele surviving",i)
+    print("Number of Muo surviving",j)
+    # for n in range(len(events.cutflow.n_ele)):
+    #     # print(events.cutflow.n_ele[n])
+    #     if (events.cutflow.n_ele[n]>1 or events.cutflow.n_muo[n]>1):
+    #         print(n)
+    #         print("N_ele:",events.cutflow.n_ele[n])
+    #         print("N_muo:",events.cutflow.n_muo[n])
+    #         print(events.Electron.pt[n])
+    #         print(events.Electron.eta[n])
+    #         print(events.Electron.mvaFall17V2Iso_WP80[n])
+    #         print(events.Muon.pt[n])
+    #         print(events.Muon.eta[n])
+    #         print(events.Muon.tightId[n])
     ele_indices = masked_sorted_indices(ele_mask, events.Electron.pt)
     muo_indices = masked_sorted_indices(muo_mask, events.Muon.pt)
 
@@ -82,7 +167,16 @@ def lepton_selection(
     lep_sel = ak.fill_none(lep_sel, False)
 
 
-    print("Lepton selection:", lep_sel)
+    ele = events.Electron[ele_indices]
+    padded_ele = ak.pad_none(ele, 2)
+    muo = events.Muon[muo_indices]
+    padded_muo = ak.pad_none(muo, 2)
+    for i in range(2):
+        events = set_ak_column(events, f"cutflow.electron{i+1}_pt", ak.where((ak.is_none(padded_ele.pt[:,{i}][:,0])),-100,padded_ele.pt[:,{i}][:,0]))
+        events = set_ak_column(events, f"cutflow.electron{i+1}_eta",ak.where((ak.is_none(padded_ele.eta[:,{i}][:,0])),-100,padded_ele.eta[:,{i}][:,0]))
+        events = set_ak_column(events, f"cutflow.muon{i+1}_pt", ak.where((ak.is_none(padded_muo.pt[:,{i}][:,0])),-100,padded_muo.pt[:,{i}][:,0]))
+        events = set_ak_column(events, f"cutflow.muon{i+1}_eta", ak.where((ak.is_none(padded_muo.eta[:,{i}][:,0])),-100,padded_muo.eta[:,{i}][:,0]))
+
     # build and return selection results plus new columns
     return events, SelectionResult(
         steps={

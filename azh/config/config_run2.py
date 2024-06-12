@@ -18,7 +18,7 @@ import functools
 from azh.config.analysis_azh import analysis_azh
 from azh.config.categories import add_categories_selection
 from azh.config.variables import add_variables
-from azh.config.cutflow_variables import add_cutflow_variables
+# from azh.config.cutflow_variables import add_cutflow_variables
 from columnflow.config_util import (
     get_root_processes_from_campaign, add_shift_aliases, get_shifts_from_sources, add_category,
     verify_config_processes,
@@ -139,8 +139,8 @@ def add_config(
         "data_doublemu_d",
         "data_doublemu_e",
         "data_doublemu_f",
-        "data_doublemu_g",
-        "data_doublemu_h",
+        # "data_doublemu_g",
+        # "data_doublemu_h",
         #Double EG
         "data_doubleeg_b",
         "data_doubleeg_c",
@@ -168,9 +168,10 @@ def add_config(
         #     dataset.x.is_qcd = True
 
     # default calibrator, selector, producer, ml model and inference model
-    cfg.x.default_calibrator = "example"
+    cfg.x.default_calibrator = "skip_jecunc"
     cfg.x.default_selector = "default"
     cfg.x.default_producer = "default"
+    cfg.x.default_weight_producer = "all_weights"
     # cfg.x.default_ml_model = "default"
     # cfg.x.default_ml_model = None
     cfg.x.default_inference_model = "example"
@@ -645,7 +646,7 @@ def add_config(
 
     add_variables(cfg)
     add_categories_selection(cfg)
-    add_cutflow_variables(cfg)
+    # add_cutflow_variables(cfg)
 
     # only produce cutflow features when number of dataset_files is limited (used in selection module)
     cfg.x.do_cutflow_features = bool(limit_dataset_files) and limit_dataset_files <= 10

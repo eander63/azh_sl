@@ -190,3 +190,97 @@ def add_variables(config: od.Config) -> None:
             binning=(40, -3.2, 3.2),
             x_title=r"Lepton %i $\phi$" % (i + 1),
         )
+
+# Cutflow Variables
+    config.add_variable(
+        name="cf_n_jet",
+        expression="cutflow.n_jet",
+        binning=(11, -0.5, 10.5),
+        x_title=r"Number of jets ($p_{T}$ > 30 GeV, $|\eta| < 2.4$)",
+    )
+    config.add_variable(
+        name="cf_n_bjet",
+        expression="cutflow.n_bjet",
+        binning=(11, -0.5, 10.5),
+        x_title=r"Number of b-taggeg jets ($p_{T}$ > 30 GeV, $|\eta| < 2.4$)",
+    )
+    config.add_variable(
+        name="cf_n_ele",
+        expression="cutflow.n_ele",
+        binning=(5, -0.5, 4.5),
+        x_title=r"Number of electrons ($p_{T}$ > 20 GeV, $|\eta| < 2.4$ + tight Iso)",
+    )
+    config.add_variable(
+        name="cf_n_ele_loose",
+        expression="cutflow.n_ele_loose",
+        binning=(5, -0.5, 4.5),
+        x_title=r"Number of loose electrons ($p_{T}$ > 20 GeV, $|\eta| < 2.4$ + loose Iso) ",
+    )
+    config.add_variable(
+        name="cf_n_ele_high",
+        expression="cutflow.n_ele_high",
+        binning=(5, -0.5, 4.5),
+        x_title=r"Number of electrons ($p_{T}$ > 35 GeV, $|\eta| < 2.4$ + tight Iso)",
+    )
+    config.add_variable(
+        name="cf_n_muo",
+        expression="cutflow.n_muo",
+        binning=(5, -0.5, 4.5),
+        x_title=r"Number of muons ($p_{T}$ > 20 GeV, $|\eta| < 2.4$ + tight Id)",
+    )
+    config.add_variable(
+        name="cf_n_muo_loose",
+        expression="cutflow.n_muo_loose",
+        binning=(5, -0.5, 4.5),
+        x_title=r"Number of muons ($p_{T}$ > 20 GeV, $|\eta| < 2.4$ + loose Id)",
+    )
+    config.add_variable(
+        name="cf_n_muo_high",
+        expression="cutflow.n_muo_high",
+        binning=(5, -0.5, 4.5),
+        x_title=r"Number of muons ($p_{T}$ > 35 GeV, $|\eta| < 2.4$ + tight Id)",
+    )
+
+    for obj in ["Electron", "Muon"]:
+        config.add_variable(
+            name=f"cf_{obj.lower()}1_pt",
+            expression=f"cutflow.{obj.lower()}1_pt",
+            binning=(40, 0., 400.),
+            unit="GeV",
+            x_title=rf"{obj}1 $p_{{T}}$",
+        )
+        config.add_variable(
+            name=f"cf_{obj.lower()}1_eta",
+            expression=f"cutflow.{obj.lower()}1_eta",
+            binning=(50, -2.5, 2.5),
+            x_title=rf"{obj}1 $\eta$",
+        )
+        config.add_variable(
+            name=f"cf_{obj.lower()}2_pt",
+            expression=f"cutflow.{obj.lower()}2_pt",
+            binning=(40, 0., 400.),
+            unit="GeV",
+            x_title=rf"{obj}2 $p_{{T}}$",
+        )
+        config.add_variable(
+            name=f"cf_{obj.lower()}2_eta",
+            expression=f"cutflow.{obj.lower()}2_eta",
+            binning=(50, -2.5, 2.5),
+            x_title=rf"{obj}2 $\eta$",
+        )
+
+    for i in range(4):
+        config.add_variable(
+            name=f"cf_jet{i+1}_pt",
+            expression=f"cutflow.jet{i+1}_pt",
+            binning=(40, 0., 400.),
+            unit="GeV",
+            x_title=rf"jet {i+1} $p_{{T}}$",
+        )
+
+        config.add_variable(
+            name=f"cf_jet{i+1}_eta",
+            expression=f"cutflow.jet{i+1}_eta",
+            binning=(50, -2.5, 2.5),
+            x_title=rf"jet {i+1} $\eta$",
+        )

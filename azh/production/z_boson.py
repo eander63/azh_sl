@@ -18,15 +18,9 @@ ak = maybe_import("awkward")
 def z_boson(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # leptons = events.Lepton
     # leptons = ak.pad_none(leptons,3)
-    # print("Leptons for z ", events.Leptons)
-    # for l in range(3):
-    #     print(l)
-    #     print(events.Leptons[l])
-    #     print(events.Leptons[:, 0])
-    #     print(events.Leptons[:, 1])
     z = events.Leptons[:, 0] + events.Leptons[:, 1]
     mass_z = z.mass
-    mass_z = ak.where(np.isfinite(mass_z),mass_z, ak.full_like(mass_z, 0) )
+    mass_z = ak.where(np.isfinite(mass_z), mass_z, ak.full_like(mass_z, 0))
     events = set_ak_column(events, "m_z", mass_z)
     events = set_ak_column(events, "pt_z", z.pt)
     return events

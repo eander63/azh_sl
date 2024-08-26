@@ -9,7 +9,7 @@ import law
 from columnflow.production import Producer, producer
 from columnflow.selection import SelectionResult
 from columnflow.util import maybe_import
-from columnflow.columnar_util import set_ak_column, optional_column
+# from columnflow.columnar_util import set_ak_column, optional_column
 from columnflow.production.util import attach_coffea_behavior
 # from columnflow.production.util import attach_coffea_behavior
 
@@ -47,7 +47,8 @@ custom_collections = {
     # but all columns required by the main Selector/Producer will be considered
     uses={
         attach_coffea_behavior, "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
-        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Leptons.pt", "Leptons.eta", "Leptons.phi", "Leptons.mass", "Jet", "BJet",
+        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Leptons.pt", "Leptons.eta", "Leptons.phi",
+        "Leptons.mass", "Jet", "BJet",
         choose_lepton,
     },
     # no produces since we do not want to permanently produce columns
@@ -60,6 +61,5 @@ def prepare_objects(self: Producer, events: ak.Array, results: SelectionResult =
 
     # coffea behavior for relevant objects
     events = self[attach_coffea_behavior](events, collections=custom_collections, **kwargs)
-
 
     return events

@@ -97,7 +97,6 @@ def normalized_weight_factory(
     def normalized_weight_setup(self: Producer, reqs: dict, inputs: dict, reader_targets: InsertableDict) -> None:
         # load the selection stats
         stats = inputs["selection_stats"]["collection"][0]["stats"].load(formatter="json")
-        # print("stats:", stats)
         # get the unique process ids in that dataset
         key = "sum_mc_weight_per_process"
         self.unique_process_ids = list(map(int, stats[key].keys()))
@@ -106,11 +105,10 @@ def normalized_weight_factory(
         def numerator_per_pid(pid):
             key = "sum_mc_weight_per_process"
             return stats[key].get(str(pid), 0.0)
-        from IPython import embed; embed()
         def denominator_per_pid(weight_name, pid):
             key = f"sum_mc_weight_{weight_name}_per_process"
             return stats[key].get(str(pid), 0.0)
-    
+
         # extract the ratio per weight and pid
         self.ratio_per_pid = {
             weight_name: {

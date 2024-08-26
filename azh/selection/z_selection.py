@@ -69,7 +69,7 @@ def z_selection(
     events = set_ak_column(events, "cutflow.n_ele_high", ak.sum(ele_mask_high, axis=1))
     events = set_ak_column(events, "cutflow.n_muo_high", ak.sum(muo_mask_high, axis=1))
 
-    m_z = 90
+    m_z = 91.188
 
 
     loose_leptons = ak.concatenate([
@@ -80,7 +80,7 @@ def z_selection(
     lepton_pairs = ak.combinations(loose_leptons, 2)
     l1, l2 = ak.unzip(lepton_pairs)
     lepton_pairs["m_inv"] = (l1 + l2).mass
-    z_sel = ak.any((abs(lepton_pairs.m_inv - m_z ) <= 10), axis=1)
+    z_sel = ak.any((abs(lepton_pairs.m_inv - m_z ) <= 5), axis=1)
 
 
     # build and return selection results plus new columns

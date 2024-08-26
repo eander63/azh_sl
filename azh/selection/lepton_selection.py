@@ -10,8 +10,8 @@ ak = maybe_import("awkward")
 @selector(
 
     uses={
-        "Electron.pt", "Electron.eta", "Electron.mvaFall17V2Iso_WP80", "Electron.mvaFall17V2Iso_WP90", 
-        "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId", "Muon.tkIsoId"
+        "Electron.pt", "Electron.eta", "Electron.mvaFall17V2Iso_WP80", "Electron.mvaFall17V2Iso_WP90", "Electron.charge",
+        "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId", "Muon.tkIsoId", "Muon.charge",
     },
     produces={"cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose", "cutflow.n_muo_loose", "cutflow.n_ele_high", "cutflow.n_muo_high",
         "cutflow.muon1_pt", "cutflow.muon1_eta",  "cutflow.muon2_pt", "cutflow.muon2_eta",
@@ -171,6 +171,19 @@ def lepton_selection(
     padded_ele = ak.pad_none(ele, 2)
     muo = events.Muon[muo_indices]
     padded_muo = ak.pad_none(muo, 2)
+    # for i in range(10000):
+    #     if lep_sel[i] and not ((ak.fill_none((padded_muo.charge[:,0] != padded_muo.charge[:,1]),False) | ak.fill_none((padded_ele.charge[:,0] != padded_ele.charge[:,1]),False))[i]):
+    #         print(i)
+    #         print(padded_muo.charge[:,0])
+    #         print(padded_muo.charge[:,0][i])
+    #         print(padded_muo.charge[:,1][i])       
+    #         print(padded_ele.charge[:,0][i])
+    #         print(padded_ele.charge[:,1][i])
+    #         print(ak.fill_none((padded_muo.charge[:,0] != padded_muo.charge[:,1]),False)[i])
+    #         print((padded_ele.charge[:,0] != padded_ele.charge[:,1])[i])
+    #         print(lep_sel[i])
+    os_sel = (ak.fill_none((padded_muo.charge[:,0] != padded_muo.charge[:,1]),False) | ak.fill_none((padded_ele.charge[:,0] != padded_ele.charge[:,1]),False))
+    lep_sel = lep_sel & os_sel
     for i in range(2):
         events = set_ak_column(events, f"cutflow.electron{i+1}_pt", ak.where((ak.is_none(padded_ele.pt[:,{i}][:,0])),-100,padded_ele.pt[:,{i}][:,0]))
         events = set_ak_column(events, f"cutflow.electron{i+1}_eta",ak.where((ak.is_none(padded_ele.eta[:,{i}][:,0])),-100,padded_ele.eta[:,{i}][:,0]))

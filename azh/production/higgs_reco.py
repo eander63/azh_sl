@@ -19,7 +19,7 @@ ak = maybe_import("awkward")
 def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     jets = events.Jet
     bjets = events.BJet
-    print("Jets", jets)
+    # print("Jets", jets)
     # for l in range(3):
     #     print(l)
     #     print(events.Leptons[l])
@@ -77,5 +77,5 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     del_m = mass_a - mass_h
     events = set_ak_column(events, "m_a", mass_a)
     events = set_ak_column(events, "del_m", del_m)
-    print(a)
+    # print(a)
     return events

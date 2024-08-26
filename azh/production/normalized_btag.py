@@ -78,7 +78,7 @@ def normalized_btag_weights_requires(self: Producer, reqs: dict) -> None:
 def normalized_btag_weights_setup(self: Producer, reqs: dict, inputs: dict, reader_targets: InsertableDict) -> None:
     # load the selection stats
     stats = inputs["selection_stats"]["collection"][0]["stats"].load(formatter="json")
-    print("stats", stats)
+    # print("stats", stats)
     # get the unique process ids in that dataset
     key = "sum_mc_weight_selected_no_bjet_per_process_and_njet"
     self.unique_process_ids = list(map(int, stats[key].keys()))

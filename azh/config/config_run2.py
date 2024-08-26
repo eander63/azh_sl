@@ -84,7 +84,8 @@ def add_config(
         "w_lnu",
         "dy",
         "vv",
-        "data"
+        "data",
+        "azh"
     ]
 
 
@@ -153,15 +154,282 @@ def add_config(
         "data_mueg_d",
         "data_mueg_e",
         "data_mueg_f",
+
+        # Signal
+        #AZH
+        "azh_htt_zll_a1000_h330_amcatnlo",
+        "azh_htt_zll_a1000_h350_amcatnlo",
+        "azh_htt_zll_a1000_h400_amcatnlo",
+        "azh_htt_zll_a1000_h450_amcatnlo",
+        "azh_htt_zll_a1000_h500_amcatnlo",
+        "azh_htt_zll_a1000_h550_amcatnlo",
+        "azh_htt_zll_a1000_h600_amcatnlo",
+        "azh_htt_zll_a1000_h650_amcatnlo",
+        "azh_htt_zll_a1000_h700_amcatnlo",
+        "azh_htt_zll_a1000_h750_amcatnlo",
+        "azh_htt_zll_a1000_h800_amcatnlo",
+        "azh_htt_zll_a1000_h850_amcatnlo",
+        "azh_htt_zll_a1000_h900_amcatnlo",
+        "azh_htt_zll_a1050_h330_amcatnlo",
+        "azh_htt_zll_a1050_h350_amcatnlo",
+        "azh_htt_zll_a1050_h400_amcatnlo",
+        "azh_htt_zll_a1050_h450_amcatnlo",
+        "azh_htt_zll_a1050_h500_amcatnlo",
+        "azh_htt_zll_a1050_h550_amcatnlo",
+        "azh_htt_zll_a1050_h600_amcatnlo",
+        "azh_htt_zll_a1050_h700_amcatnlo",
+        "azh_htt_zll_a1050_h750_amcatnlo",
+        "azh_htt_zll_a1050_h800_amcatnlo",
+        "azh_htt_zll_a1050_h850_amcatnlo",
+        "azh_htt_zll_a1050_h900_amcatnlo",
+        "azh_htt_zll_a1050_h950_amcatnlo",
+        "azh_htt_zll_a1100_h1000_amcatnlo",
+        "azh_htt_zll_a1100_h330_amcatnlo",
+        "azh_htt_zll_a1100_h350_amcatnlo",
+        "azh_htt_zll_a1100_h400_amcatnlo",
+        "azh_htt_zll_a1100_h450_amcatnlo",
+        "azh_htt_zll_a1100_h500_amcatnlo",
+        "azh_htt_zll_a1100_h550_amcatnlo",
+        "azh_htt_zll_a1100_h600_amcatnlo",
+        "azh_htt_zll_a1100_h650_amcatnlo",
+        "azh_htt_zll_a1100_h700_amcatnlo",
+        "azh_htt_zll_a1100_h750_amcatnlo",
+        "azh_htt_zll_a1100_h800_amcatnlo",
+        "azh_htt_zll_a1100_h850_amcatnlo",
+        "azh_htt_zll_a1100_h900_amcatnlo",
+        "azh_htt_zll_a1100_h950_amcatnlo",
+        "azh_htt_zll_a1150_h1050_amcatnlo",
+        "azh_htt_zll_a1150_h330_amcatnlo",
+        "azh_htt_zll_a1150_h350_amcatnlo",
+        "azh_htt_zll_a1150_h450_amcatnlo",
+        "azh_htt_zll_a1150_h550_amcatnlo",
+        "azh_htt_zll_a1150_h650_amcatnlo",
+        "azh_htt_zll_a1150_h750_amcatnlo",
+        "azh_htt_zll_a1150_h850_amcatnlo",
+        "azh_htt_zll_a1150_h950_amcatnlo",
+        "azh_htt_zll_a1200_h1000_amcatnlo",
+        "azh_htt_zll_a1200_h1100_amcatnlo",
+        "azh_htt_zll_a1200_h330_amcatnlo",
+        "azh_htt_zll_a1200_h350_amcatnlo",
+        "azh_htt_zll_a1200_h400_amcatnlo",
+        "azh_htt_zll_a1200_h500_amcatnlo",
+        "azh_htt_zll_a1200_h600_amcatnlo",
+        "azh_htt_zll_a1200_h700_amcatnlo",
+        "azh_htt_zll_a1200_h800_amcatnlo",
+        "azh_htt_zll_a1200_h850_amcatnlo",
+        "azh_htt_zll_a1200_h900_amcatnlo",
+        "azh_htt_zll_a1300_h1000_amcatnlo",
+        "azh_htt_zll_a1300_h1100_amcatnlo",
+        "azh_htt_zll_a1300_h1200_amcatnlo",
+        "azh_htt_zll_a1300_h350_amcatnlo",
+        "azh_htt_zll_a1300_h400_amcatnlo",
+        "azh_htt_zll_a1300_h500_amcatnlo",
+        "azh_htt_zll_a1300_h600_amcatnlo",
+        "azh_htt_zll_a1300_h700_amcatnlo",
+        "azh_htt_zll_a1300_h800_amcatnlo",
+        "azh_htt_zll_a1300_h900_amcatnlo",
+        "azh_htt_zll_a1400_h1000_amcatnlo",
+        "azh_htt_zll_a1400_h1100_amcatnlo",
+        "azh_htt_zll_a1400_h1200_amcatnlo",
+        "azh_htt_zll_a1400_h1300_amcatnlo",
+        "azh_htt_zll_a1400_h350_amcatnlo",
+        "azh_htt_zll_a1400_h400_amcatnlo",
+        "azh_htt_zll_a1400_h500_amcatnlo",
+        "azh_htt_zll_a1400_h600_amcatnlo",
+        "azh_htt_zll_a1400_h700_amcatnlo",
+        "azh_htt_zll_a1400_h800_amcatnlo",
+        "azh_htt_zll_a1400_h900_amcatnlo",
+        "azh_htt_zll_a1500_h1000_amcatnlo",
+        "azh_htt_zll_a1500_h1100_amcatnlo",
+        "azh_htt_zll_a1500_h1200_amcatnlo",
+        "azh_htt_zll_a1500_h1300_amcatnlo",
+        "azh_htt_zll_a1500_h1400_amcatnlo",
+        "azh_htt_zll_a1500_h350_amcatnlo",
+        "azh_htt_zll_a1500_h400_amcatnlo",
+        "azh_htt_zll_a1500_h500_amcatnlo",
+        "azh_htt_zll_a1500_h600_amcatnlo",
+        "azh_htt_zll_a1500_h700_amcatnlo",
+        "azh_htt_zll_a1500_h900_amcatnlo",
+        "azh_htt_zll_a1600_h1000_amcatnlo",
+        "azh_htt_zll_a1600_h1100_amcatnlo",
+        "azh_htt_zll_a1600_h1200_amcatnlo",
+        "azh_htt_zll_a1600_h1300_amcatnlo",
+        "azh_htt_zll_a1600_h1400_amcatnlo",
+        "azh_htt_zll_a1600_h1500_amcatnlo",
+        "azh_htt_zll_a1600_h350_amcatnlo",
+        "azh_htt_zll_a1600_h400_amcatnlo",
+        "azh_htt_zll_a1600_h500_amcatnlo",
+        "azh_htt_zll_a1600_h600_amcatnlo",
+        "azh_htt_zll_a1600_h900_amcatnlo",
+        "azh_htt_zll_a1700_h1000_amcatnlo",
+        "azh_htt_zll_a1700_h1100_amcatnlo",
+        "azh_htt_zll_a1700_h1200_amcatnlo",
+        "azh_htt_zll_a1700_h1300_amcatnlo",
+        "azh_htt_zll_a1700_h1400_amcatnlo",
+        "azh_htt_zll_a1700_h1500_amcatnlo",
+        "azh_htt_zll_a1700_h1600_amcatnlo",
+        "azh_htt_zll_a1700_h350_amcatnlo",
+        "azh_htt_zll_a1700_h400_amcatnlo",
+        "azh_htt_zll_a1700_h500_amcatnlo",
+        "azh_htt_zll_a1700_h600_amcatnlo",
+        "azh_htt_zll_a1700_h700_amcatnlo",
+        "azh_htt_zll_a1700_h800_amcatnlo",
+        "azh_htt_zll_a1700_h900_amcatnlo",
+        "azh_htt_zll_a1800_h1000_amcatnlo",
+        "azh_htt_zll_a1800_h1100_amcatnlo",
+        "azh_htt_zll_a1800_h1200_amcatnlo",
+        "azh_htt_zll_a1800_h1300_amcatnlo",
+        "azh_htt_zll_a1800_h1400_amcatnlo",
+        "azh_htt_zll_a1800_h1500_amcatnlo",
+        "azh_htt_zll_a1800_h1600_amcatnlo",
+        "azh_htt_zll_a1800_h1700_amcatnlo",
+        "azh_htt_zll_a1800_h350_amcatnlo",
+        "azh_htt_zll_a1800_h400_amcatnlo",
+        "azh_htt_zll_a1800_h500_amcatnlo",
+        "azh_htt_zll_a1800_h600_amcatnlo",
+        "azh_htt_zll_a1800_h700_amcatnlo",
+        "azh_htt_zll_a1800_h800_amcatnlo",
+        "azh_htt_zll_a1800_h900_amcatnlo",
+        "azh_htt_zll_a1900_h1000_amcatnlo",
+        "azh_htt_zll_a1900_h1100_amcatnlo",
+        "azh_htt_zll_a1900_h1200_amcatnlo",
+        "azh_htt_zll_a1900_h1300_amcatnlo",
+        "azh_htt_zll_a1900_h1400_amcatnlo",
+        "azh_htt_zll_a1900_h1500_amcatnlo",
+        "azh_htt_zll_a1900_h1600_amcatnlo",
+        "azh_htt_zll_a1900_h1700_amcatnlo",
+        "azh_htt_zll_a1900_h1800_amcatnlo",
+        "azh_htt_zll_a1900_h350_amcatnlo",
+        "azh_htt_zll_a1900_h400_amcatnlo",
+        "azh_htt_zll_a1900_h500_amcatnlo",
+        "azh_htt_zll_a1900_h600_amcatnlo",
+        "azh_htt_zll_a1900_h700_amcatnlo",
+        "azh_htt_zll_a1900_h800_amcatnlo",
+        "azh_htt_zll_a1900_h900_amcatnlo",
+        "azh_htt_zll_a2000_h1000_amcatnlo",
+        "azh_htt_zll_a2000_h1100_amcatnlo",
+        "azh_htt_zll_a2000_h1200_amcatnlo",
+        "azh_htt_zll_a2000_h1300_amcatnlo",
+        "azh_htt_zll_a2000_h1400_amcatnlo",
+        "azh_htt_zll_a2000_h1600_amcatnlo",
+        "azh_htt_zll_a2000_h1700_amcatnlo",
+        "azh_htt_zll_a2000_h1800_amcatnlo",
+        "azh_htt_zll_a2000_h1900_amcatnlo",
+        "azh_htt_zll_a2000_h350_amcatnlo",
+        "azh_htt_zll_a2000_h400_amcatnlo",
+        "azh_htt_zll_a2000_h500_amcatnlo",
+        "azh_htt_zll_a2000_h600_amcatnlo",
+        "azh_htt_zll_a2000_h700_amcatnlo",
+        "azh_htt_zll_a2000_h800_amcatnlo",
+        "azh_htt_zll_a2000_h900_amcatnlo",
+        "azh_htt_zll_a2100_h1000_amcatnlo",
+        "azh_htt_zll_a2100_h1100_amcatnlo",
+        "azh_htt_zll_a2100_h1200_amcatnlo",
+        "azh_htt_zll_a2100_h1300_amcatnlo",
+        "azh_htt_zll_a2100_h1400_amcatnlo",
+        "azh_htt_zll_a2100_h1500_amcatnlo",
+        "azh_htt_zll_a2100_h1700_amcatnlo",
+        "azh_htt_zll_a2100_h1800_amcatnlo",
+        "azh_htt_zll_a2100_h1900_amcatnlo",
+        "azh_htt_zll_a2100_h2000_amcatnlo",
+        "azh_htt_zll_a2100_h350_amcatnlo",
+        "azh_htt_zll_a2100_h400_amcatnlo",
+        "azh_htt_zll_a2100_h500_amcatnlo",
+        "azh_htt_zll_a2100_h600_amcatnlo",
+        "azh_htt_zll_a2100_h700_amcatnlo",
+        "azh_htt_zll_a2100_h800_amcatnlo",
+        "azh_htt_zll_a2100_h900_amcatnlo",
+        "azh_htt_zll_a430_h330_amcatnlo",
+        "azh_htt_zll_a450_h330_amcatnlo",
+        "azh_htt_zll_a450_h350_amcatnlo",
+        "azh_htt_zll_a500_h330_amcatnlo",
+        "azh_htt_zll_a500_h350_amcatnlo",
+        "azh_htt_zll_a500_h370_amcatnlo",
+        "azh_htt_zll_a500_h400_amcatnlo",
+        "azh_htt_zll_a550_h330_amcatnlo",
+        "azh_htt_zll_a550_h350_amcatnlo",
+        "azh_htt_zll_a550_h400_amcatnlo",
+        "azh_htt_zll_a550_h450_amcatnlo",
+        "azh_htt_zll_a600_h330_amcatnlo",
+        "azh_htt_zll_a600_h350_amcatnlo",
+        "azh_htt_zll_a600_h400_amcatnlo",
+        "azh_htt_zll_a600_h450_amcatnlo",
+        "azh_htt_zll_a600_h500_amcatnlo",
+        "azh_htt_zll_a650_h330_amcatnlo",
+        "azh_htt_zll_a650_h350_amcatnlo",
+        "azh_htt_zll_a650_h400_amcatnlo",
+        "azh_htt_zll_a650_h450_amcatnlo",
+        "azh_htt_zll_a650_h500_amcatnlo",
+        "azh_htt_zll_a650_h550_amcatnlo",
+        "azh_htt_zll_a700_h330_amcatnlo",
+        "azh_htt_zll_a700_h350_amcatnlo",
+        "azh_htt_zll_a700_h370_amcatnlo",
+        "azh_htt_zll_a700_h400_amcatnlo",
+        "azh_htt_zll_a700_h450_amcatnlo",
+        "azh_htt_zll_a700_h500_amcatnlo",
+        "azh_htt_zll_a700_h550_amcatnlo",
+        "azh_htt_zll_a750_h330_amcatnlo",
+        "azh_htt_zll_a750_h350_amcatnlo",
+        "azh_htt_zll_a750_h400_amcatnlo",
+        "azh_htt_zll_a750_h450_amcatnlo",
+        "azh_htt_zll_a750_h500_amcatnlo",
+        "azh_htt_zll_a750_h550_amcatnlo",
+        "azh_htt_zll_a750_h600_amcatnlo",
+        "azh_htt_zll_a750_h650_amcatnlo",
+        "azh_htt_zll_a800_h330_amcatnlo",
+        "azh_htt_zll_a800_h350_amcatnlo",
+        "azh_htt_zll_a800_h400_amcatnlo",
+        "azh_htt_zll_a800_h450_amcatnlo",
+        "azh_htt_zll_a800_h500_amcatnlo",
+        "azh_htt_zll_a800_h550_amcatnlo",
+        "azh_htt_zll_a800_h600_amcatnlo",
+        "azh_htt_zll_a800_h650_amcatnlo",
+        "azh_htt_zll_a800_h700_amcatnlo",
+        "azh_htt_zll_a850_h330_amcatnlo",
+        "azh_htt_zll_a850_h350_amcatnlo",
+        "azh_htt_zll_a850_h400_amcatnlo",
+        "azh_htt_zll_a850_h450_amcatnlo",
+        "azh_htt_zll_a850_h500_amcatnlo",
+        "azh_htt_zll_a850_h550_amcatnlo",
+        "azh_htt_zll_a850_h600_amcatnlo",
+        "azh_htt_zll_a850_h650_amcatnlo",
+        "azh_htt_zll_a850_h700_amcatnlo",
+        "azh_htt_zll_a850_h750_amcatnlo",
+        "azh_htt_zll_a900_h330_amcatnlo",
+        "azh_htt_zll_a900_h350_amcatnlo",
+        "azh_htt_zll_a900_h370_amcatnlo",
+        "azh_htt_zll_a900_h400_amcatnlo",
+        "azh_htt_zll_a900_h450_amcatnlo",
+        "azh_htt_zll_a900_h550_amcatnlo",
+        "azh_htt_zll_a900_h500_amcatnlo",
+        "azh_htt_zll_a900_h600_amcatnlo",
+        "azh_htt_zll_a900_h650_amcatnlo",
+        "azh_htt_zll_a900_h700_amcatnlo",
+        "azh_htt_zll_a900_h750_amcatnlo",
+        "azh_htt_zll_a900_h800_amcatnlo",
+        "azh_htt_zll_a950_h330_amcatnlo",
+        "azh_htt_zll_a950_h350_amcatnlo",
+        "azh_htt_zll_a950_h400_amcatnlo",
+        "azh_htt_zll_a950_h450_amcatnlo",
+        "azh_htt_zll_a950_h500_amcatnlo",
+        "azh_htt_zll_a950_h550_amcatnlo",
+        "azh_htt_zll_a950_h600_amcatnlo",
+        "azh_htt_zll_a950_h650_amcatnlo",
+        "azh_htt_zll_a950_h700_amcatnlo",
+        "azh_htt_zll_a950_h750_amcatnlo",
+        "azh_htt_zll_a950_h800_amcatnlo",
+        "azh_htt_zll_a950_h850_amcatnlo",
     ]
+
     for dataset_name in dataset_names:
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
-        print(dataset)
         if limit_dataset_files:
             # apply optional limit on the max. number of files per dataset
             for info in dataset.info.values():
                 if info.n_files > limit_dataset_files:
                     info.n_files = limit_dataset_files
+        if dataset.name.startswith("tt"):
+            dataset.add_tag({"is_ttbar"})
 
         # add aux info to datasets
         # if dataset.name.startswith("qcd"):
@@ -371,15 +639,35 @@ def add_config(
 
     # TODO: check e/mu/btag corrections and implement
     # btag weight configuration
-    cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
+    from columnflow.production.cms.btag import SplitBTagSFConfig
+    cfg.x.btag_sf = SplitBTagSFConfig(
+        correction_set=("deepJet_incl", "deepJet_comb"),
+        discriminator="btagDeepFlavB",
+        corrector_kwargs={"working_point": "M"},
+    )
+    # cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
+    # from columnflow.production.cms.btag import BTagSFConfig
+    # cfg.x.btag_sf = BTagSFConfig(
+    # correction_set="deepJet_comb",  
+    # jec_sources=cfg.x.btag_sf_jec_sources,
+    # discriminator="btagDeepFlavB",   
+    # corrector_kwargs={"working_point": "T"},  
+    # )
 
     # names of electron correction sets and working points
     # (used in the electron_sf producer)
-    cfg.x.electron_sf_names = ("UL-Electron-ID-SF", f"{year}{corr_postfix}", "wp80iso")
-
+    cfg.x.electron_sf_names = ("UL-Electron-ID-SF", f"{year}{corr_postfix}", "RecoAbove20")
+    cfg.x.electron_sf_id_names = ("UL-Electron-ID-SF", f"{year}{corr_postfix}", "wp80iso")
     # names of muon correction sets and working points
     # (used in the muon producer)
-    cfg.x.muon_sf_names = ("NUM_TightRelIso_DEN_TightIDandIPCut", f"{year}{corr_postfix}_UL")
+    cfg.x.muon_sf_names = ("NUM_TrackerMuons_DEN_genTracks", f"{year}{corr_postfix}_UL")
+    cfg.x.muon_sf_id_names = ("NUM_TightID_DEN_TrackerMuons", f"{year}{corr_postfix}_UL")
+    cfg.x.muon_sf_iso_names = ("NUM_TightRelIso_DEN_TightIDandIPCut", f"{year}{corr_postfix}_UL")
+
+    cfg.x.top_pt_reweighting_params = {
+    "a": 0.0615,
+    "b": -0.0005,
+    }
 
     # helper to add column aliases for both shifts of a source
     def add_aliases(shift_source: str, aliases: Set[str], selection_dependent: bool):
@@ -421,10 +709,11 @@ def add_config(
     # cfg.add_shift(name="mu_trig_sf_down", id=53, type="shape")
     # add_aliases("mu_sf", {"muon_weight": "muon_weight_{direction}"}, selection_dependent=False)
 
-    btag_uncs = [
-        "hf", "lf", f"hfstats1_{year}", f"hfstats2_{year}",
-        f"lfstats1_{year}", f"lfstats2_{year}", "cferr1", "cferr2",
-    ]
+    # btag_uncs = [
+    #     "hf", "lf", f"hfstats1_{year}", f"hfstats2_{year}",
+    #     f"lfstats1_{year}", f"lfstats2_{year}", "cferr1", "cferr2",
+    # ]
+    btag_uncs = []
     for i, unc in enumerate(btag_uncs):
         cfg.add_shift(name=f"btag_{unc}_up", id=100 + 2 * i, type="shape")
         cfg.add_shift(name=f"btag_{unc}_down", id=101 + 2 * i, type="shape")
@@ -524,6 +813,7 @@ def add_config(
                 "minbias_xs_down": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-66000ub-99bins.root", "v1"),  # noqa
             },
         },
+        "pu_sf": "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-9ea86c4c/POG/LUM/2017_UL/puWeights.json.gz",
     }))
 
     # columns to keep after certain steps
@@ -544,16 +834,18 @@ def add_config(
             "pu_weight*", "pdf_weight*",
             "murf_envelope_weight*", "mur_weight*", "muf_weight*",
             "btag_weight*",
+            "Pileup.nTrueInt",
+            "GenPart.*",
         } | set(  # Jets
             f"{jet_obj}.{field}"
             for jet_obj in ["Jet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB"]
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour","rawFactor"]
         )| set(  # BJets
             f"{jet_obj}.{field}"
             for jet_obj in ["BJet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB"]
+            for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB","hadronFlavour"]
         ) | set(  # Muons
             f"{mu_obj}.{field}"
             for mu_obj in ["Muon"]
@@ -563,7 +855,7 @@ def add_config(
             f"{e_obj}.{field}"
             for e_obj in ["Electron"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "pdgId"]
+            for field in ["pt", "eta", "phi", "mass", "pdgId","deltaEtaSC",]
         ) | set(  # MET
             f"MET.{field}"
             for field in ["pt", "phi"]
@@ -580,9 +872,16 @@ def add_config(
     # event weight columns as keys in an ordered dict, mapped to shift instances they depend on
     # get_shifts = lambda *keys: sum(([cfg.get_shift(f"{k}_up"), cfg.get_shift(f"{k}_down")] for k in keys), [])
     get_shifts = functools.partial(get_shifts_from_sources, cfg)
-    print(get_shifts("muon"))
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
+        "electron_weight": [],
+        "electron_id_weight": [],
+        "muon_weight": [],
+        "muon_id_weight": [],
+        "muon_iso_weight": [],
+        "pu_weight": [],
+        "btag_weight": [],
+        "top_pt_weight": [],
         # "muon_weight": get_shifts("muon"),
     })
 

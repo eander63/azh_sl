@@ -23,7 +23,7 @@ ak = maybe_import("awkward")
 # other unexposed selectors
 # (not selectable from the command line but used by other, exposed selectors)
 #
-
+print("start")
 
 @selector(
     uses={"Muon.pt", "Muon.eta"},
@@ -51,7 +51,7 @@ def muon_selection(
         },
     )
 
-
+print("1")
 @selector(
     uses={"Jet.pt", "Jet.eta"},
 )
@@ -86,7 +86,7 @@ def jet_selection(
 # exposed selectors
 # (those that can be invoked from the command line)
 #
-
+print("2")
 @selector(
     uses={
         # selectors / producers called within _this_ selector
@@ -106,20 +106,25 @@ def example(
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
     # prepare the selection results that are updated at every step
+    print("results")
     results = SelectionResult()
 
     # muon selection
+    print("muons")
     events, muon_results = self[muon_selection](events, **kwargs)
     results += muon_results
 
     # jet selection
+    print("jets")
     events, jet_results = self[jet_selection](events, **kwargs)
     results += jet_results
 
     # combined event selection after all steps
+    print("combine")
     results.event = results.steps.muon & results.steps.jet
 
     # create process ids
+    print("id")
     events = self[process_ids](events, **kwargs)
 
     # add the mc weight
@@ -127,14 +132,21 @@ def example(
         events = self[mc_weight](events, **kwargs)
 
     # add cutflow features, passing per-object masks
+    print("cutflow")
+    print(events)
+    print(cutflow_features)
+    print(results.objects)
+    print(self[cutflow_features])
     events = self[cutflow_features](events, results.objects, **kwargs)
 
     # increment stats
+    print("weights")
     weight_map = {
         "num_events": Ellipsis,
         "num_events_selected": results.event,
     }
     group_map = {}
+    print("group")
     if self.dataset_inst.is_mc:
         weight_map = {
             **weight_map,
@@ -162,5 +174,5 @@ def example(
         group_map=group_map,
         **kwargs,
     )
-
+    print("Ende Selection")
     return events, results

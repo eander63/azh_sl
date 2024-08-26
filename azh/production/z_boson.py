@@ -18,7 +18,7 @@ ak = maybe_import("awkward")
 def z_boson(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # leptons = events.Lepton
     # leptons = ak.pad_none(leptons,3)
-    print("Leptons for z ", events.Leptons)
+    # print("Leptons for z ", events.Leptons)
     # for l in range(3):
     #     print(l)
     #     print(events.Leptons[l])

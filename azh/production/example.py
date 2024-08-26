@@ -54,22 +54,28 @@ def cutflow_features(
     object_masks: dict[str, dict[str, ak.Array]],
     **kwargs,
 ) -> ak.Array:
+    print("Cutflow_feautures")
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
 
     # apply object masks and create new collections
+    print("reduce")
     reduced_events = create_collections_from_masks(events, object_masks)
 
     # create category ids per event and add categories back to the
+    print("ids")
+    print(category_ids)
+    print(self[category_ids](reduced_events, target_events=events, **kwargs))
     events = self[category_ids](reduced_events, target_events=events, **kwargs)
 
     # add cutflow columns
+    print("add cutflow")
     events = set_ak_column(
         events,
         "cutflow.jet1_pt",
         Route("Jet.pt[:,0]").apply(events, EMPTY_FLOAT),
     )
-
+    print("Events cutflow", events)
     return events
 
 
@@ -83,9 +89,11 @@ def cutflow_features(
 )
 def example(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # features
+    print("features")
     events = self[features](events, **kwargs)
 
     # category ids
+    print("catIDs")
     events = self[category_ids](events, **kwargs)
 
     # deterministic seeds
@@ -98,5 +106,5 @@ def example(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         # muon weights
         events = self[muon_weights](events, **kwargs)
-
+    print("Ende production")
     return events

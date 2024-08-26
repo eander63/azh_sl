@@ -74,12 +74,12 @@ def default(
 
     # # TODO Implement selection
     # # lepton selection
-    print("Leptons before selection")
-    print(results)
-    for l in range (10):
-        print(l)
-        print(events.Muon[l])
-        print(events.Electron[l])
+    # print("Leptons before selection")
+    # print(results)
+    # for l in range (10):
+    #     print(l)
+    #     print(events.Muon[l])
+    #     print(events.Electron[l])
         # print(events.category_ids[l])
 
     events, results_lepton = self[lepton_selection](events, **kwargs)
@@ -88,6 +88,7 @@ def default(
     # jet selection
     events, results_jet = self[jet_selection](events, **kwargs)
     results += results_jet
+    # print(results.BJet)
 
     # trigger selection
     # Uses pt_avg and the probe jet
@@ -104,7 +105,7 @@ def default(
 
     # build categories
     events = self[category_ids](events, **kwargs)
-
+    print(events.category_ids)
     # produce relevant columns
     # events = self[cutflow_features](events, results.objects, **kwargs)
 

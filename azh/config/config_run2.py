@@ -13,15 +13,14 @@ from scinum import Number
 import order as od
 
 from columnflow.util import DotDict
-import functools
+# import functools
 # from dijet.config.datasets import get_dataset_lfns
 from azh.config.analysis_azh import analysis_azh
 from azh.config.categories import add_categories_selection
 from azh.config.variables import add_variables
 # from azh.config.cutflow_variables import add_cutflow_variables
 from columnflow.config_util import (
-    get_root_processes_from_campaign, add_shift_aliases, get_shifts_from_sources, add_category,
-    verify_config_processes,
+    get_root_processes_from_campaign, add_shift_aliases,
 )
 
 
@@ -52,11 +51,7 @@ def add_config(
     procs = get_root_processes_from_campaign(campaign)
 
     # create a config by passing the campaign, so id and name will be identical
-    print("Begin campaign")
-    print(campaign)
-    print(config_name)
     cfg = analysis_azh.add_config(campaign, name=config_name, id=config_id)
-    print(cfg)
     # use custom get_dataset_lfns function
     # cfg.x.get_dataset_lfns = get_dataset_lfns
 
@@ -85,9 +80,8 @@ def add_config(
         "dy",
         "vv",
         "data",
-        "azh"
+        "azh",
     ]
-
 
     for process_name in process_names:
         cfg.add_process(procs.get(process_name))
@@ -95,11 +89,11 @@ def add_config(
         cfg.get_process(process_name).color2 = colors.get(process_name, "#000000")
 
     dataset_names = [
-        #TT
+        # TT
         "tt_sl_powheg",
         "tt_dl_powheg",
         "tt_fh_powheg",
-        #TTV
+        # TTV
         "ttz_llnunu_m10_amcatnlo",
         "ttz_qq_amcatnlo",
         "ttw_nlu_amcatnlo",
@@ -110,7 +104,7 @@ def add_config(
         "st_twchannel_t_powheg",
         "st_twchannel_tbar_powheg",
         "st_schannel_lep_amcatnlo",
-        #WJets
+        # WJets
         "w_lnu_ht70To100_madgraph",
         "w_lnu_ht100To200_madgraph",
         "w_lnu_ht200To400_madgraph",
@@ -119,7 +113,7 @@ def add_config(
         "w_lnu_ht800To1200_madgraph",
         "w_lnu_ht1200To2500_madgraph",
         "w_lnu_ht2500_madgraph",
-        #DY
+        # DY
         "dy_lep_m50_ht70to100_madgraph",
         "dy_lep_m50_ht100to200_madgraph",
         "dy_lep_m50_ht200to400_madgraph",
@@ -127,14 +121,14 @@ def add_config(
         "dy_lep_m50_ht600to800_madgraph",
         "dy_lep_m50_ht800to1200_madgraph",
         "dy_lep_m50_ht1200to2500_madgraph",
-        "dy_lep_m50_ht2500_madgraph", 
-        #VV
+        "dy_lep_m50_ht2500_madgraph",
+        # VV
         "zz_pythia",
         "wz_pythia",
         "ww_pythia",
 
-        #Data
-        #Double Muon
+        # Data
+        # Double Muon
         "data_doublemu_b",
         "data_doublemu_c",
         "data_doublemu_d",
@@ -142,13 +136,13 @@ def add_config(
         "data_doublemu_f",
         # "data_doublemu_g",
         # "data_doublemu_h",
-        #Double EG
+        # Double EG
         "data_doubleeg_b",
         "data_doubleeg_c",
         "data_doubleeg_d",
         "data_doubleeg_e",
         "data_doubleeg_f",
-        #Muon EG
+        # Muon EG
         "data_mueg_b",
         "data_mueg_c",
         "data_mueg_d",
@@ -156,7 +150,7 @@ def add_config(
         "data_mueg_f",
 
         # Signal
-        #AZH
+        # AZH
         "azh_htt_zll_a1000_h330_amcatnlo",
         "azh_htt_zll_a1000_h350_amcatnlo",
         "azh_htt_zll_a1000_h400_amcatnlo",
@@ -648,10 +642,10 @@ def add_config(
     # cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
     # from columnflow.production.cms.btag import BTagSFConfig
     # cfg.x.btag_sf = BTagSFConfig(
-    # correction_set="deepJet_comb",  
+    # correction_set="deepJet_comb",
     # jec_sources=cfg.x.btag_sf_jec_sources,
-    # discriminator="btagDeepFlavB",   
-    # corrector_kwargs={"working_point": "T"},  
+    # discriminator="btagDeepFlavB",
+    # corrector_kwargs={"working_point": "T"},
     # )
 
     # names of electron correction sets and working points
@@ -665,8 +659,8 @@ def add_config(
     cfg.x.muon_sf_iso_names = ("NUM_TightRelIso_DEN_TightIDandIPCut", f"{year}{corr_postfix}_UL")
 
     cfg.x.top_pt_reweighting_params = {
-    "a": 0.0615,
-    "b": -0.0005,
+        "a": 0.0615,
+        "b": -0.0005,
     }
 
     # helper to add column aliases for both shifts of a source
@@ -813,7 +807,7 @@ def add_config(
                 "minbias_xs_down": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-66000ub-99bins.root", "v1"),  # noqa
             },
         },
-        "pu_sf": "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-9ea86c4c/POG/LUM/2017_UL/puWeights.json.gz",
+        "pu_sf": ("/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-9ea86c4c/POG/LUM/2017_UL/puWeights.json.gz"), # noqa
     }))
 
     # columns to keep after certain steps
@@ -840,12 +834,12 @@ def add_config(
             f"{jet_obj}.{field}"
             for jet_obj in ["Jet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour","rawFactor"]
-        )| set(  # BJets
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor"]
+        ) | set(  # BJets
             f"{jet_obj}.{field}"
             for jet_obj in ["BJet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB","hadronFlavour"]
+            for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB", "hadronFlavour"]
         ) | set(  # Muons
             f"{mu_obj}.{field}"
             for mu_obj in ["Muon"]
@@ -855,7 +849,7 @@ def add_config(
             f"{e_obj}.{field}"
             for e_obj in ["Electron"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "pdgId","deltaEtaSC",]
+            for field in ["pt", "eta", "phi", "mass", "pdgId", "deltaEtaSC"]
         ) | set(  # MET
             f"MET.{field}"
             for field in ["pt", "phi"]
@@ -871,7 +865,7 @@ def add_config(
 
     # event weight columns as keys in an ordered dict, mapped to shift instances they depend on
     # get_shifts = lambda *keys: sum(([cfg.get_shift(f"{k}_up"), cfg.get_shift(f"{k}_down")] for k in keys), [])
-    get_shifts = functools.partial(get_shifts_from_sources, cfg)
+    # get_shifts = functools.partial(get_shifts_from_sources, cfg)
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
         "electron_weight": [],
@@ -901,8 +895,6 @@ def add_config(
     #         dataset.x.event_weights["normalized_mur_weight"] = get_shifts("mur")
     #         dataset.x.event_weights["normalized_muf_weight"] = get_shifts("muf")
     #         dataset.x.event_weights["normalized_pdf_weight"] = get_shifts("pdf")
-
-
 
     # dev_version = "v0"
     # prod_version = "prod1"

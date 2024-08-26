@@ -13,7 +13,6 @@ np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
 
-
 def add_feature_variables(config: od.Config) -> None:
     """
     Adds variables to a *config* that are produced as part of the `features` producer.

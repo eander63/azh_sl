@@ -11,7 +11,7 @@ scheme, with digits/groups of digits indicating the different category groups:
 import law
 
 from columnflow.util import maybe_import
-from columnflow.categorization import Categorizer, categorizer
+# from columnflow.categorization import Categorizer, categorizer
 from columnflow.config_util import create_category_combinations
 from azh.util import call_once_on_config
 
@@ -44,13 +44,12 @@ def skip_fn(categories: dict[str, od.Category]):
     """Custom function for skipping certain category combinations."""
     return False  # don't skip
 
+
 @call_once_on_config()
 def add_categories_selection(config: od.Config) -> None:
     add_lepton_categories(config)
     add_incl_cat(config)
     # add_categories_bjets(config)
-
-
 
 # def add_categories(config: od.Config) -> None:
 #     @categorizer(uses={"event"})
@@ -58,11 +57,11 @@ def add_categories_selection(config: od.Config) -> None:
 #         # fully inclusive selection
 #         return events, ak.ones_like(events.event) == 1
 
-
     # @categorizer(uses={"Jet.pt"})
     # def cat_2j(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     #     # two or more jets
     #     return events, ak.num(events.Jet.pt, axis=1) >= 2
+
 
 @call_once_on_config()
 def add_incl_cat(config: od.Config) -> None:
@@ -92,6 +91,7 @@ def add_lepton_categories(config: od.Config) -> None:
         label="2 Muon",
     )
 
+
 @call_once_on_config()
 def add_categories_production(config: od.Config) -> None:
     """
@@ -109,7 +109,6 @@ def add_categories_production(config: od.Config) -> None:
     cat_2mu.selection = "catid_2mu"
 
 
-
 @call_once_on_config()
 def add_categories_mz(config: od.Config) -> None:
     """
@@ -119,7 +118,6 @@ def add_categories_mz(config: od.Config) -> None:
     #
     # switch existing categories to different production module
     #
-    print("Adding Categories in SR and CR")
     cat_SR = config.add_category(  # noqa
         name="SR",
         id=100,
@@ -133,6 +131,7 @@ def add_categories_mz(config: od.Config) -> None:
         selection="catid_CR",
         label="Control region",
     )
+
 
 @call_once_on_config()
 def add_categories_bjets(config: od.Config) -> None:
@@ -163,6 +162,8 @@ def add_categories_bjets(config: od.Config) -> None:
         selection="catid_0bjets",
         label="0 B-Jets",
     )
+
+
 @call_once_on_config()
 def add_categories_njets(config: od.Config) -> None:
     """
@@ -197,7 +198,7 @@ def add_categories_njets(config: od.Config) -> None:
         ],
         "b_jets": [
             config.get_category(name)
-            for name in ["2bjets", "1bjets","0bjets"]
+            for name in ["2bjets", "1bjets", "0bjets"]
         ],
         "jets": [
             config.get_category(name)
@@ -216,4 +217,3 @@ def add_categories_njets(config: od.Config) -> None:
 #         for name in ["SR", "CR"]
 #     ]
 # }
-

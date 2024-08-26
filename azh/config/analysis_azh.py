@@ -4,20 +4,20 @@
 Configuration of the AZH analysis.
 """
 
-import functools
+# import functools
 
 
 import law
 import os
 import order as od
-from scinum import Number
+# from scinum import Number
 
-from columnflow.util import DotDict, maybe_import
-from columnflow.columnar_util import EMPTY_FLOAT, ColumnCollection
-from columnflow.config_util import (
-    get_root_processes_from_campaign, add_shift_aliases, get_shifts_from_sources, add_category,
-    verify_config_processes,
-)
+from columnflow.util import maybe_import
+# from columnflow.columnar_util import EMPTY_FLOAT, ColumnCollection
+# from columnflow.config_util import (
+#     get_root_processes_from_campaign, add_shift_aliases, get_shifts_from_sources, add_category,
+#     verify_config_processes,
+# )
 
 ak = maybe_import("awkward")
 
@@ -50,7 +50,7 @@ ana.x.bash_sandboxes = [
 ]
 
 ana.x.cmssw_sandboxes = [
-   # "$CF_BASE/sandboxes/cmssw_default.sh",
+    # "$CF_BASE/sandboxes/cmssw_default.sh",
 ]
 
 if not law.util.flag_to_bool(os.getenv("DIJET_BUNDLE_CMSSW", "1")):
@@ -89,9 +89,6 @@ config_2017_limited = add_config(
     config_id=12,
     limit_dataset_files=1,
 )
-print(config_2017.name)
-print(type(config_2017))
-print("Config done")
 
 # # get all root processes
 # procs = get_root_processes_from_campaign(campaign)

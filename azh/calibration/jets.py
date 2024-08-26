@@ -194,7 +194,7 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
     for var in ["pt", "eta", "phi", "mass"]:
         # ensure no missing values
         value = ak.fill_none(ak.nan_to_none(getattr(jet_lv, var)), 0.0)
-        value = ak.where(np.isfinite(value),value,0)
+        value = ak.where(np.isfinite(value), value, 0)
         # print(var)
         # k = 0
         # print(value[99811])

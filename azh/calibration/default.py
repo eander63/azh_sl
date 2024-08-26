@@ -8,6 +8,7 @@ from azh.calibration.jets import jet_energy, jet_lepton_cleaner
 
 ak = maybe_import("awkward")
 
+
 @calibrator(
     uses={mc_weight, deterministic_seeds, jets},
     produces={mc_weight, deterministic_seeds, jets},

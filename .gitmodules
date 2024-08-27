@@ -1,6 +1,6 @@
 [submodule "modules/columnflow"]
 	path = modules/columnflow
-	url = git@github.com:columnflow/columnflow.git
+	url = git@github.com:yannick-fischer31/columnflow.git
 	branch = master
 [submodule "modules/cmsdb"]
 	path = modules/cmsdb

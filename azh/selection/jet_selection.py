@@ -2,7 +2,7 @@
 
 from typing import Tuple
 from columnflow.util import maybe_import
-from columnflow.columnar_util import set_ak_column, Route, EMPTY_FLOAT
+from columnflow.columnar_util import set_ak_column
 from columnflow.selection import Selector, SelectionResult, selector
 from azh.util import masked_sorted_indices
 
@@ -11,10 +11,11 @@ ak = maybe_import("awkward")
 
 @selector(
     uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.puId", "Jet.btagDeepFlavB"},
-    produces={"cutflow.n_jet", "cutflow.n_bjet",
+    produces={
+        "cutflow.n_jet", "cutflow.n_bjet",
         "cutflow.jet1_pt", "cutflow.jet2_pt", "cutflow.jet3_pt", "cutflow.jet4_pt",
         "cutflow.jet1_eta", "cutflow.jet2_eta", "cutflow.jet3_eta", "cutflow.jet4_eta",
-        },
+    },
     exposed=True,
 )
 def jet_selection(
@@ -39,7 +40,7 @@ def jet_selection(
         (events.Jet.pt > 30) &
         (abs(events.Jet.eta) < 2.4) &
         # IDs in NanoAOD https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD
-        (events.Jet.jetId == 6)  &  # 2: fail tight LepVeto and 6: pass tightLepVeto
+        (events.Jet.jetId == 6) &  # 2: fail tight LepVeto and 6: pass tightLepVeto
         ((events.Jet.puId == 7) | (events.Jet.pt > 50))  # pass all IDs (l, m and t) only for jets with pt < 50 GeV
     )
     jet_sel = ak.num(events.Jet[jet_mask]) >= 5
@@ -57,8 +58,10 @@ def jet_selection(
     jets = events.Jet[jet_indices]
     padded_jets = ak.pad_none(jets, 4)
     for i in range(4):
-        events = set_ak_column(events, f"cutflow.jet{i+1}_pt", ak.where((ak.is_none(padded_jets.pt[:,{i}][:,0])),-100,(padded_jets.pt[:,{i}][:,0])))
-        events = set_ak_column(events, f"cutflow.jet{i+1}_eta", ak.where((ak.is_none(padded_jets.eta[:,{i}][:,0])),-100,(padded_jets.eta[:,{i}][:,0])))
+        events = set_ak_column(events, f"cutflow.jet{i+1}_pt",
+        ak.where((ak.is_none(padded_jets.pt[:, {i}][:, 0])), -100, (padded_jets.pt[:, {i}][:, 0])))
+        events = set_ak_column(events, f"cutflow.jet{i+1}_eta",
+        ak.where((ak.is_none(padded_jets.eta[:, {i}][:, 0])), -100, (padded_jets.eta[:, {i}][:, 0])))
 
     jet_sel = ak.fill_none(jet_sel, False)
     bjet_sel = ak.fill_none(bjet_sel, False)

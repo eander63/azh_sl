@@ -13,8 +13,8 @@ from columnflow.util import maybe_import
 
 from columnflow.selection.stats import increment_stats
 from columnflow.selection import Selector, SelectionResult, selector
-from columnflow.selection.cms.met_filters import met_filters
-from columnflow.selection.cms.json_filter import json_filter
+# from columnflow.selection.cms.met_filters import met_filters
+# from columnflow.selection.cms.json_filter import json_filter
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
@@ -33,7 +33,7 @@ ak = maybe_import("awkward")
 @selector(
     uses={
         process_ids, attach_coffea_behavior,
-        mc_weight, category_ids, # not opened per default but always required in Cutflow tasks
+        mc_weight, category_ids,  # not opened per default but always required in Cutflow tasks
         jet_selection, lepton_selection,  # azh_selection,
         increment_stats,
     },
@@ -71,16 +71,6 @@ def default(
     # if self.dataset_inst.is_data:
     #     events, json_filter_results = self[json_filter](events, **kwargs)
     #     results += json_filter_results
-
-    # # TODO Implement selection
-    # # lepton selection
-    # print("Leptons before selection")
-    # print(results)
-    # for l in range (10):
-    #     print(l)
-    #     print(events.Muon[l])
-    #     print(events.Electron[l])
-        # print(events.category_ids[l])
 
     events, results_lepton = self[lepton_selection](events, **kwargs)
     results += results_lepton
@@ -150,21 +140,10 @@ def default(
 
     return events, results
 
+
 @default.init
 def default_init(self: Selector) -> None:
     # add production categories to config
     if not self.config_inst.get_aux("has_categories_sel", False):
         add_categories_production(self.config_inst)
         self.config_inst.x.has_categories_sel = True
-
-# @default.init
-# def default_init(self: Selector) -> None:
-#     if self.config_inst.x("do_cutflow_features", False):
-#         self.uses.add(cutflow_features)
-#         self.produces.add(cutflow_features)
-
-#     if not getattr(self, "dataset_inst", None) or self.dataset_inst.is_data:
-#         return
-
-#     self.uses.add(event_weights_to_normalize)
-#     self.produces.add(event_weights_to_normalize)

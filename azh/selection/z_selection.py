@@ -2,7 +2,7 @@ from typing import Tuple
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 from columnflow.selection import Selector, SelectionResult, selector
-from azh.util import masked_sorted_indices
+# from azh.util import masked_sorted_indices
 
 ak = maybe_import("awkward")
 
@@ -10,10 +10,13 @@ ak = maybe_import("awkward")
 @selector(
 
     uses={
-        "Electron.pt", "Electron.eta", "Electron.mvaFall17V2Iso_WP80", "Electron.mvaFall17V2Iso_WP90", "Electron.phi", "Electron.mass",
-        "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId", "Muon.phi", "Muon.mass"
+        "Electron.pt", "Electron.eta", "Electron.mvaFall17V2Iso_WP80", "Electron.mvaFall17V2Iso_WP90", "Electron.phi",
+        "Electron.mass", "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId", "Muon.phi", "Muon.mass",
     },
-    produces={"cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose", "cutflow.n_muo_loose", "cutflow.n_ele_high", "cutflow.n_muo_high"},
+    produces={
+        "cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose",
+        "cutflow.n_muo_loose", "cutflow.n_ele_high", "cutflow.n_muo_high",
+    },
     exposed=True,
 )
 def z_selection(
@@ -71,7 +74,6 @@ def z_selection(
 
     m_z = 91.188
 
-
     loose_leptons = ak.concatenate([
         events.Electron[ele_mask_loose] * 1,
         events.Muon[muo_mask_loose] * 1,
@@ -80,8 +82,7 @@ def z_selection(
     lepton_pairs = ak.combinations(loose_leptons, 2)
     l1, l2 = ak.unzip(lepton_pairs)
     lepton_pairs["m_inv"] = (l1 + l2).mass
-    z_sel = ak.any((abs(lepton_pairs.m_inv - m_z ) <= 5), axis=1)
-
+    z_sel = ak.any((abs(lepton_pairs.m_inv - m_z) <= 5), axis=1)
 
     # build and return selection results plus new columns
     return events, SelectionResult(

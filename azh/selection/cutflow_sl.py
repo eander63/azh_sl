@@ -13,8 +13,8 @@ from columnflow.util import maybe_import
 
 from columnflow.selection.stats import increment_stats
 from columnflow.selection import Selector, SelectionResult, selector
-from columnflow.selection.cms.met_filters import met_filters
-from columnflow.selection.cms.json_filter import json_filter
+# from columnflow.selection.cms.met_filters import met_filters
+# from columnflow.selection.cms.json_filter import json_filter
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
@@ -35,15 +35,15 @@ ak = maybe_import("awkward")
 @selector(
     uses={
         process_ids, attach_coffea_behavior,
-        mc_weight, category_ids, # not opened per default but always required in Cutflow tasks
+        mc_weight, category_ids,  # not opened per default but always required in Cutflow tasks
         jet_selection, lepton_selection,  # azh_selection,
-        increment_stats, bjet_selection, z_selection
+        increment_stats, bjet_selection, z_selection,
     },
     produces={
         process_ids, attach_coffea_behavior,
         mc_weight, category_ids,
         jet_selection, lepton_selection,  # azh_selection,
-        increment_stats, bjet_selection, z_selection
+        increment_stats, bjet_selection, z_selection,
     },
     exposed=True,
     check_used_columns=False,
@@ -82,11 +82,10 @@ def cutflow_sl(
     #     print(l)
     #     print(events.Muon[l])
     #     print(events.Electron[l])
-        # print(events.category_ids[l])
 
     events, results_lepton = self[lepton_selection](events, **kwargs)
     results += results_lepton
-  
+
     events, results_z = self[z_selection](events, **kwargs)
     results += results_z
 
@@ -127,7 +126,6 @@ def cutflow_sl(
         "num_events_selected": results.event,
     }
     group_map = {}
-    print("group")
     if self.dataset_inst.is_mc:
         weight_map = {
             **weight_map,
@@ -157,6 +155,7 @@ def cutflow_sl(
     )
 
     return events, results
+
 
 @cutflow_sl.init
 def cutflow_sl_init(self: Selector) -> None:

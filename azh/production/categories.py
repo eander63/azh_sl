@@ -18,11 +18,12 @@ ak = maybe_import("awkward")
 
 z_mass = 91.188
 mass_window = 5
+pt_z_cut = 15
 
 
 @categorizer(uses={"event"}, call_force=True)
 def catid_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    mask = ( events.m_z >=  np.full_like(events.m_z, z_mass - mass_window))  & (events.m_z <= np.full_like(events.m_z, z_mass + mass_window))  # noqa
+    mask = ( events.m_z >=  np.full_like(events.m_z, z_mass - mass_window))  & (events.m_z <= np.full_like(events.m_z, z_mass + mass_window)) & ( events.pt_z >=  np.full_like(events.pt_z, pt_z_cut))  # noqa
     return events, mask
 
 
@@ -30,7 +31,7 @@ def catid_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
 def catid_CR(
     self: Categorizer, events: ak.Array, **kwargs,
 ) -> tuple[ak.Array, ak.Array]:
-    mask = ( events.m_z <  np.full_like(events.m_z, z_mass - mass_window)) | ( events.m_z >  np.full_like(events.m_z, z_mass + mass_window))  # noqa
+    mask = (( events.m_z <  np.full_like(events.m_z, z_mass - mass_window)) | ( events.m_z >  np.full_like(events.m_z, z_mass + mass_window))) & (events.m_z > np.full_like(events.m_z, 50)) & ( events.pt_z >=  np.full_like(events.pt_z, pt_z_cut)) # noqa
     return events, mask
 
 

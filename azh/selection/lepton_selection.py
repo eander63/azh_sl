@@ -10,9 +10,9 @@ ak = maybe_import("awkward")
 @selector(
 
     uses={
-        "Electron.pt", "Electron.eta", "Electron.mvaFall17V2Iso_WP80",
-        "Electron.mvaFall17V2Iso_WP90", "Electron.charge",
-        "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId", "Muon.tkIsoId", "Muon.charge",
+        "Electron.pt", "Electron.eta", "Electron.mvaIso_WP80",
+        "Electron.mvaIso_WP90", "Electron.charge",
+        "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId", "Muon.highPtId", "Muon.tkIsoId", "Muon.charge",
     },
     produces={
         "cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose", "cutflow.n_muo_loose",
@@ -34,14 +34,14 @@ def lepton_selection(
     muo_mask = (
         (events.Muon.pt > 20) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.tightId) &
+        (events.Muon.highPtId == 2) &
         (events.Muon.tkIsoId == 2)
     )
 
     muo_mask_high = (
         (events.Muon.pt > 35) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.tightId) &
+        (events.Muon.highPtId == 2) &
         (events.Muon.tkIsoId == 2)
     )
 
@@ -57,30 +57,30 @@ def lepton_selection(
     ele_mask = (
         (events.Electron.pt > 20) &
         (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaFall17V2Iso_WP80)
+        (events.Electron.mvaIso_WP80)
     )
 
     ele_mask_high = (
         (events.Electron.pt > 35) &
         (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaFall17V2Iso_WP80)
+        (events.Electron.mvaIso_WP80)
     )
 
     ele_mask_loose = (
         (events.Electron.pt > 20) &
         (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaFall17V2Iso_WP90)
+        (events.Electron.mvaIso_WP90)
     )
 
     ele_test = (
         (events.Electron.pt > 20) &
         (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaFall17V2Iso_WP80)
+        (events.Electron.mvaIso_WP80)
     )
     muo_test = (
         (events.Muon.pt > 20) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.tightId) &
+        (events.Muon.highPtId == 2) &
         (events.Muon.tkIsoId == 2)
     )
     events = set_ak_column(events, "cutflow.n_ele_test", ak.sum(ele_test, axis=1))

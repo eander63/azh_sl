@@ -106,6 +106,14 @@ def add_variables(config: od.Config) -> None:
     )
 
     config.add_variable(
+        name="jets_btag",
+        expression="Jet.btagDeepFlavB",
+        binning=(20, 0, 1),
+        unit="",
+        x_title="Btag Score Deep Jet",
+    )
+
+    config.add_variable(
         name="m_z",
         expression="m_z",
         binning=(40, 0, 400),
@@ -115,24 +123,32 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="m_h",
         expression="m_h",
-        binning=(60, 0, 1200),
+        binning=(30, 0, 1200),
         unit="GeV",
         x_title="Invariant mass of the reconstructed H",
     )
     config.add_variable(
         name="m_a",
         expression="m_a",
-        binning=(70, 0, 1400),
+        binning=(35, 0, 1400),
         unit="GeV",
         x_title="Invariant mass of the reconstructed A",
     )
     config.add_variable(
         name="del_m",
         expression="del_m",
-        binning=(60, 0, 600),
+        binning=(15, 0, 600),
         unit="GeV",
         x_title="Mass difference between H and A",
     )
+    config.add_variable(
+        name="pt_z",
+        expression="pt_z",
+        binning=(40, 0, 400),
+        unit="GeV",
+        x_title="Transverse momentum of Z boson",
+    )
+
     # Jets (3 pt-leading jets)
     for i in range(3):
         config.add_variable(

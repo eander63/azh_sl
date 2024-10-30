@@ -68,26 +68,28 @@ analysis_azh.set_aux("config_groups", {})
 # an example config is setup below, based on cms NanoAOD v9 for Run2 2017, focussing on
 # ttbar and single top MCs, plus single muon data
 # update this config or add additional ones to accomodate the needs of your analysis
-from azh.config.config_run2 import add_config
-# import cmsdb.campaigns.run3_2022_preEE_nano_v12
+from azh.config.config_run3 import add_config
+import cmsdb.campaigns.run3_2022_preEE_nano_v12
 # import cmsdb.campaigns.run3_2022_postEE_nano_v12
 # from cmsdb.campaigns.run2_2017_nano_v9 import campaign_run2_2017_nano_v9
-import cmsdb.campaigns.run2_2017_nano_v9
-campaign_run2_2017_nano_v9 = cmsdb.campaigns.run2_2017_nano_v9.campaign_run2_2017_nano_v9
+# import cmsdb.campaigns.run2_2017_nano_v9
+# campaign_run2_2017_nano_v9 = cmsdb.campaigns.run2_2017_nano_v9.campaign_run2_2017_nano_v9
+campaign_run3_2022_preEE_nano_v12 = cmsdb.campaigns.run3_2022_preEE_nano_v12.campaign_run3_2022_preEE_nano_v12
+campaign_run3_2022_preEE_nano_v12.x.EE = "pre"
 
 # copy the campaign
 # (creates copies of all linked datasets, processes, etc. to allow for encapsulated customization)
 # campaign = campaign_run2_2017_nano_v9.copy()
-config_2017 = add_config(
+config_2022pre = add_config(
     analysis_azh,
-    campaign_run2_2017_nano_v9.copy(),
-    config_name="config_2017",
+    campaign_run3_2022_preEE_nano_v12.copy(),
+    config_name="config_2022pre",
     config_id=1,
 )
-config_2017_limited = add_config(
+config_2022pre_limited = add_config(
     analysis_azh,
-    campaign_run2_2017_nano_v9.copy(),
-    config_name="config_2017_limited",
+    campaign_run3_2022_preEE_nano_v12.copy(),
+    config_name="config_2022pre_limited",
     config_id=12,
     limit_dataset_files=1,
 )

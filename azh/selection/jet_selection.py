@@ -10,7 +10,7 @@ ak = maybe_import("awkward")
 
 
 @selector(
-    uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.puId", "Jet.btagDeepFlavB"},
+    uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.btagDeepFlavB"},
     produces={
         "cutflow.n_jet", "cutflow.n_bjet",
         "cutflow.jet1_pt", "cutflow.jet2_pt", "cutflow.jet3_pt", "cutflow.jet4_pt",
@@ -40,8 +40,7 @@ def jet_selection(
         (events.Jet.pt > 30) &
         (abs(events.Jet.eta) < 2.4) &
         # IDs in NanoAOD https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD
-        (events.Jet.jetId == 6) &  # 2: fail tight LepVeto and 6: pass tightLepVeto
-        ((events.Jet.puId == 7) | (events.Jet.pt > 50))  # pass all IDs (l, m and t) only for jets with pt < 50 GeV
+        (events.Jet.jetId == 6)  # 2: fail tight LepVeto and 6: pass tightLepVeto
     )
     jet_sel = ak.num(events.Jet[jet_mask]) >= 5
 

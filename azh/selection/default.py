@@ -13,8 +13,8 @@ from columnflow.util import maybe_import
 
 from columnflow.selection.stats import increment_stats
 from columnflow.selection import Selector, SelectionResult, selector
-# from columnflow.selection.cms.met_filters import met_filters
-# from columnflow.selection.cms.json_filter import json_filter
+from columnflow.selection.cms.met_filters import met_filters
+from columnflow.selection.cms.json_filter import json_filter
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
@@ -22,6 +22,7 @@ from columnflow.production.processes import process_ids
 
 from azh.selection.jet_selection import jet_selection
 from azh.selection.lepton_selection import lepton_selection
+from azh.selection.trigger import trigger_selection
 from columnflow.production.categories import category_ids
 from azh.config.categories import add_categories_production
 
@@ -35,13 +36,15 @@ ak = maybe_import("awkward")
         process_ids, attach_coffea_behavior,
         mc_weight, category_ids,  # not opened per default but always required in Cutflow tasks
         jet_selection, lepton_selection,  # azh_selection,
-        increment_stats,
+        increment_stats, trigger_selection,
+        met_filters, json_filter
     },
     produces={
         process_ids, attach_coffea_behavior,
         mc_weight, category_ids,
         jet_selection, lepton_selection,  # azh_selection,
-        increment_stats,
+        increment_stats, trigger_selection,
+        met_filters, json_filter
     },
     exposed=True,
     check_used_columns=False,
@@ -64,13 +67,13 @@ def default(
     results = SelectionResult()
 
     # MET filters
-    # events, met_filters_results = self[met_filters](events, **kwargs)
-    # results += met_filters_results
+    events, met_filters_results = self[met_filters](events, **kwargs)
+    results += met_filters_results
 
     # JSON filter (data-only)
-    # if self.dataset_inst.is_data:
-    #     events, json_filter_results = self[json_filter](events, **kwargs)
-    #     results += json_filter_results
+    if self.dataset_inst.is_data:
+        events, json_filter_results = self[json_filter](events, **kwargs)
+        results += json_filter_results
 
     events, results_lepton = self[lepton_selection](events, **kwargs)
     results += results_lepton
@@ -85,17 +88,18 @@ def default(
     # if self.dataset_inst.is_data:
     #     events, results_trigger = self[trigger_selection](events, **kwargs)
     #     results += results_trigger
+    events, results_trigger = self[trigger_selection](events, **kwargs)
+    results += results_trigger
 
     # events, results_azh = self[azh_selection](events, **kwargs)
     # results += results_azh
 
     # create process ids
-    print(process_ids)
     events = self[process_ids](events, **kwargs)
 
     # build categories
     events = self[category_ids](events, **kwargs)
-    print(events.category_ids)
+
     # produce relevant columns
     # events = self[cutflow_features](events, results.objects, **kwargs)
 
@@ -109,7 +113,6 @@ def default(
         "num_events_selected": results.event,
     }
     group_map = {}
-    print("group")
     if self.dataset_inst.is_mc:
         weight_map = {
             **weight_map,

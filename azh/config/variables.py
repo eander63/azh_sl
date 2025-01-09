@@ -123,30 +123,46 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="m_h",
         expression="m_h",
-        binning=(30, 0, 1200),
+        binning=(50, 0, 2500),
         unit="GeV",
         x_title="Invariant mass of the reconstructed H",
     )
     config.add_variable(
         name="m_a",
         expression="m_a",
-        binning=(35, 0, 1400),
+        binning=(40, 0, 2000),
         unit="GeV",
         x_title="Invariant mass of the reconstructed A",
     )
     config.add_variable(
         name="del_m",
         expression="del_m",
-        binning=(15, 0, 600),
+        binning=(40, 0, 2000),
         unit="GeV",
         x_title="Mass difference between H and A",
     )
     config.add_variable(
         name="pt_z",
         expression="pt_z",
-        binning=(40, 0, 400),
+        binning=(70, 0, 700),
         unit="GeV",
         x_title="Transverse momentum of Z boson",
+    )
+
+    config.add_variable(
+        name="selta_b_z",
+        expression="delta_b_z",
+        binning=(50, 0, 10),
+        unit="",
+        x_title="Distance between b and Z",
+    )
+
+    config.add_variable(
+        name="PNN_output",
+        expression="PNN.output",
+        binning=(20, 0, 1),
+        unit="",
+        x_title="PNN output score",
     )
 
     # Jets (3 pt-leading jets)

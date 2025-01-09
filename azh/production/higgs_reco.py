@@ -13,7 +13,7 @@ ak = maybe_import("awkward")
         "Jet", "BJet",
     },
     produces={
-        "m_h", "m_a", "del_m", "n_jets", "n_bjets",
+        "m_h", "m_a", "del_m", "n_jets", "n_bjets","deltaR_b_z"
     },
 )
 def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -63,8 +63,11 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     mass_z = ak.where(np.isfinite(mass_z), mass_z, ak.full_like(mass_z, 0))
     a = z + h
     mass_a = a.mass
+    # leading_b = ak.where((ak.num(events.BJet, axis=-1) > 0),sorted_bjets[:, 0],)
+    deltaR_b_z =np.sqrt(np.abs((sorted_bjets[:, 0].eta-z.eta)**2+(sorted_bjets[:, 0].phi-z.phi)**2))
     mass_a = ak.where(np.isfinite(mass_a), mass_a, ak.full_like(mass_a, 0))
     del_m = mass_a - mass_h
     events = set_ak_column(events, "m_a", mass_a)
     events = set_ak_column(events, "del_m", del_m)
+    events = set_ak_column(events, "deltaR_b_z", deltaR_b_z)
     return events

@@ -17,6 +17,7 @@ from azh.production.z_boson import z_boson
 from azh.production.higgs_reco import higgs_reco
 from azh.production.prepare_objects import prepare_objects
 from azh.production.leptons import choose_lepton
+from azh.production.ml_inputs import ml_inputs
 from azh.production.weights import weights, event_weight
 from azh.config.categories import add_categories_mz
 from azh.config.categories import add_categories_bjets
@@ -32,12 +33,12 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 @producer(
     uses={
         category_ids, normalization_weights,
-        weights, z_boson, higgs_reco, choose_lepton,
+        weights, z_boson, higgs_reco, choose_lepton, ml_inputs,
         prepare_objects, "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.rawFactor", event_weight, "Jet.btagDeepFlavB",
     },
     produces={
         category_ids, normalization_weights,
-        weights, z_boson, choose_lepton,
+        weights, z_boson, choose_lepton, ml_inputs,
         prepare_objects, higgs_reco, event_weight, "event_number",
     },
 )
@@ -69,6 +70,9 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # deterministoc seeds
     # events = self[category_ids](events, **kwargs)
     # print(events.category_ids)
+    print(events.category_ids)
+    events = self[ml_inputs](events, **kwargs)
+    print(events.category_ids)
 
     # not_passed = ~passed
     # event_id = event_id[not_passed]
@@ -146,8 +150,8 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 @default.init
 def default_init(self: Producer) -> None:
     # add production categories to config
-    if not self.config_inst.get_aux("has_categories_production", False):
-        add_categories_mz(self.config_inst)
-        add_categories_bjets(self.config_inst)
-        add_categories_njets(self.config_inst)
-        self.config_inst.x.has_categories_production = True
+    # if not self.config_inst.get_aux("has_categories_production", False):
+    add_categories_mz(self.config_inst)
+    add_categories_bjets(self.config_inst)
+    add_categories_njets(self.config_inst)
+    # self.config_inst.x.has_categories_production = True

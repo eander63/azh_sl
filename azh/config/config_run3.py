@@ -77,6 +77,7 @@ def add_config(
         "higgs": "#984ea3",  # purple
         "st": "#3E00FB",  # dark purple
         "vv": "#B900FC",  # pink
+        "azh": "#984ea3",
         "other": "#999999",  # grey
     }
 
@@ -89,7 +90,9 @@ def add_config(
         "w_lnu",
         "vv",
         "data",
-        # "azh",
+        "azh_htt_zll_a1000_h330",
+        "azh_htt_zll_a1600_h1500",
+        "azh_htt_zll_a430_h330",
     ]
     print(process_names)
     for process_name in process_names:
@@ -105,7 +108,7 @@ def add_config(
         # # TTV
         "ttz_zll_m4to50_amcatnlo",
         "ttz_zll_m50toinf_amcatnlo",
-        # "ttw_amcatnlo",
+        "ttw_amcatnlo",
         # "ttw_wlnu_amcatnlo",
         # "ttz_zqq_amcatnlo",
         # "ttz_zll_m4to50_amcatnlo",
@@ -114,7 +117,7 @@ def add_config(
         # # ST
         "st_tchannel_tbar_4f_powheg",
         "st_tchannel_t_4f_powheg",
-        "st_twchannel_tbar_dl_powheg",
+        # "st_twchannel_tbar_dl_powheg",
         # "st_twchannel_tbar_fh_powheg",
         "st_twchannel_tbar_sl_powheg",
         "st_twchannel_t_dl_powheg",
@@ -174,13 +177,13 @@ def add_config(
 
         # Signal
         # AZH
-        # "azh_htt_zll_a1000_h330_amcatnlo",
+        "azh_htt_zll_a1000_h330_amcatnlo",
         # "azh_htt_zll_a1000_h350_amcatnlo",
         # "azh_htt_zll_a1000_h400_amcatnlo",
         # "azh_htt_zll_a1000_h450_amcatnlo",
         # "azh_htt_zll_a1000_h500_amcatnlo",
         # "azh_htt_zll_a1000_h550_amcatnlo",
-        # "azh_htt_zll_a1000_h600_amcatnlo",
+        "azh_htt_zll_a1000_h600_amcatnlo",
         # "azh_htt_zll_a1000_h650_amcatnlo",
         # "azh_htt_zll_a1000_h700_amcatnlo",
         # "azh_htt_zll_a1000_h750_amcatnlo",
@@ -272,7 +275,7 @@ def add_config(
         # "azh_htt_zll_a1600_h1200_amcatnlo",
         # "azh_htt_zll_a1600_h1300_amcatnlo",
         # "azh_htt_zll_a1600_h1400_amcatnlo",
-        # "azh_htt_zll_a1600_h1500_amcatnlo",
+        "azh_htt_zll_a1600_h1500_amcatnlo",
         # "azh_htt_zll_a1600_h350_amcatnlo",
         # "azh_htt_zll_a1600_h400_amcatnlo",
         # "azh_htt_zll_a1600_h500_amcatnlo",
@@ -356,11 +359,11 @@ def add_config(
         # "azh_htt_zll_a2100_h700_amcatnlo",
         # "azh_htt_zll_a2100_h800_amcatnlo",
         # "azh_htt_zll_a2100_h900_amcatnlo",
-        # "azh_htt_zll_a430_h330_amcatnlo",
+        "azh_htt_zll_a430_h330_amcatnlo",
         # "azh_htt_zll_a450_h330_amcatnlo",
         # "azh_htt_zll_a450_h350_amcatnlo",
         # "azh_htt_zll_a500_h330_amcatnlo",
-        # "azh_htt_zll_a500_h350_amcatnlo",
+        "azh_htt_zll_a500_h350_amcatnlo",
         # "azh_htt_zll_a500_h370_amcatnlo",
         # "azh_htt_zll_a500_h400_amcatnlo",
         # "azh_htt_zll_a550_h330_amcatnlo",
@@ -447,6 +450,8 @@ def add_config(
                     info.n_files = limit_dataset_files
         if dataset.name.startswith("tt"):
             dataset.add_tag({"is_ttbar"})
+        if dataset.name.startswith("azh"):
+            dataset.add_tag({"is_signal"})
 
         # add aux info to datasets
         # if dataset.name.startswith("qcd"):
@@ -978,7 +983,7 @@ def add_config(
     #         dataset.x.event_weights["normalized_pdf_weight"] = get_shifts("pdf")
 
     # dev_version = "v0"
-    # prod_version = "prod1"
+    prod_version = "v1"
 
     # def reduce_version(cls, inst, params):
     #     version = dev_version
@@ -990,12 +995,18 @@ def add_config(
     # Version of required tasks
     cfg.x.versions = {
         "cf.CalibrateEvents": "v0",
-        # "cf.SelectEvents": reduce_version,
-        # "cf.MergeSelectionStats": reduce_version,
-        # "cf.MergeSelectionMasks": reduce_version,
-        # "cf.ReduceEvents": reduce_version,
-        # "cf.MergeReductionStats": reduce_version,
-        # "cf.MergeReducedEvents": reduce_version,
+        "cf.SelectEvents": prod_version,
+        "cf.MergeSelectionStats": prod_version,
+        "cf.MergeSelectionMasks": prod_version,
+        "cf.ReduceEvents": prod_version,
+        "cf.MergeReductionStats": prod_version,
+        "cf.MergeReduceEvents": prod_version,
+        "cf.ProvideReducedEvents": prod_version,
+        "cf.ProduceColumns": prod_version,
+        "cf.MergeMLEvents": prod_version,
+        "cf.MergeMLStats": prod_version,
+        "cf.PrepareMLEvents": prod_version,
+        "cf.MLTraining": prod_version,
     }
 
     # add categories

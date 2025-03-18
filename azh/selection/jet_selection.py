@@ -42,7 +42,7 @@ def jet_selection(
         # IDs in NanoAOD https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD
         (events.Jet.jetId == 6)  # 2: fail tight LepVeto and 6: pass tightLepVeto
     )
-    jet_sel = ak.num(events.Jet[jet_mask]) >= 5
+    jet_sel = ak.num(events.Jet[jet_mask]) >= 4
 
     events = set_ak_column(events, "cutflow.n_jet", ak.sum(jet_mask, axis=1))
     # btagging

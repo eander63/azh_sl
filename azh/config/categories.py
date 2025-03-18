@@ -173,6 +173,14 @@ def add_categories_njets(config: od.Config) -> None:
     #
     # switch existing categories to different production module
     #
+
+    cat_SR = config.add_category(  # noqa
+        name="4jets",
+        id=30000,
+        selection="catid_4jets",
+        label="4 Jets",
+    )
+
     cat_SR = config.add_category(  # noqa
         name="5jets",
         id=10000,
@@ -186,7 +194,7 @@ def add_categories_njets(config: od.Config) -> None:
         selection="catid_6jets",
         label="6 or more Jets",
     )
-
+    print("NJets")
     category_groups = {
         "lepton": [
             config.get_category(name)
@@ -202,7 +210,7 @@ def add_categories_njets(config: od.Config) -> None:
         ],
         "jets": [
             config.get_category(name)
-            for name in ["5jets", "6jets"]
+            for name in ["5jets", "6jets","4jets"]
         ],
     }
     create_category_combinations(config, category_groups, name_fn, kwargs_fn)

@@ -36,6 +36,11 @@ set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
         "del_m",
         "category_ids",
         "deltaR_b_z",
+        "deltaPhi_MET_Jet1",
+        "deltaPhi_MET_Jet2",
+        "deltaPhi_MET_Jet3",
+        "MET_ht",
+        "m_z"
     },
     # produces={
     #     weights,
@@ -65,8 +70,13 @@ def ml_inputs(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column(events, f"{ns}.m_a", events.m_a)
     events = set_ak_column(events, f"{ns}.m_h", events.m_h)
     events = set_ak_column(events, f"{ns}.pt_z", events.pt_z)
+    events = set_ak_column(events, f"{ns}.m_z", events.m_z)
     events = set_ak_column(events, f"{ns}.category_ids", events.category_ids)
     events = set_ak_column(events, f"{ns}.deltaR_b_z", events.deltaR_b_z)
+    events = set_ak_column(events, f"{ns}.deltaPhi_MET_Jet1", events.deltaPhi_MET_Jet1)
+    events = set_ak_column(events, f"{ns}.deltaPhi_MET_Jet2", events.deltaPhi_MET_Jet2)
+    events = set_ak_column(events, f"{ns}.deltaPhi_MET_Jet3", events.deltaPhi_MET_Jet3)
+    events = set_ak_column(events, f"{ns}.MET_ht", events.MET_ht)
 
     # -- helper functions
 
@@ -91,7 +101,7 @@ def ml_inputs(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         return events
     # AK4 jets
     events = set_vars(
-        events, "jet", jet, n_max=5,
+        events, "jet", jet, n_max=6,
         attrs=("energy", "pt", "eta", "phi", "mass", "btag"),
     )
 
@@ -130,11 +140,17 @@ def ml_inputs_init(self: Producer) -> None:
         "m_a",
         "del_m",
         "category_ids",
-        "deltaR_b_z"
+        "deltaR_b_z",
+        "deltaPhi_MET_Jet1",
+        "deltaPhi_MET_Jet2",
+        "deltaPhi_MET_Jet3",
+        "MET_ht",
+        "m_z"
+        
     } | {
         f"jet_{var}_{i + 1}"
         for var in ("energy", "pt", "eta", "phi", "mass", "btag")
-        for i in range(5)
+        for i in range(6)
     } | {
         f"Leptons_{var}_{i + 1}"
         for var in ("energy", "pt", "eta", "phi")

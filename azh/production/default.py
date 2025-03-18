@@ -34,7 +34,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
     uses={
         category_ids, normalization_weights,
         weights, z_boson, higgs_reco, choose_lepton, ml_inputs,
-        prepare_objects, "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.rawFactor", event_weight, "Jet.btagDeepFlavB",
+        prepare_objects, "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.rawFactor", event_weight, "Jet.btagDeepFlavB","MET.pt","MET.phi"
     },
     produces={
         category_ids, normalization_weights,

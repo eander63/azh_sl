@@ -15,6 +15,7 @@ from columnflow.selection.stats import increment_stats
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
 from columnflow.selection.cms.json_filter import json_filter
+from columnflow.selection.cms.jets import jet_veto_map
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
@@ -37,14 +38,14 @@ ak = maybe_import("awkward")
         mc_weight, category_ids,  # not opened per default but always required in Cutflow tasks
         jet_selection, lepton_selection,  # azh_selection,
         increment_stats, trigger_selection,
-        met_filters, json_filter
+        met_filters, json_filter, jet_veto_map,
     },
     produces={
         process_ids, attach_coffea_behavior,
         mc_weight, category_ids,
         jet_selection, lepton_selection,  # azh_selection,
         increment_stats, trigger_selection,
-        met_filters, json_filter
+        met_filters, json_filter, jet_veto_map,
     },
     exposed=True,
     check_used_columns=False,
@@ -70,6 +71,9 @@ def default(
     events, met_filters_results = self[met_filters](events, **kwargs)
     results += met_filters_results
 
+    events, jet_veto_results = self[jet_veto_map](events, **kwargs)
+    results += jet_veto_results
+ 
     # JSON filter (data-only)
     if self.dataset_inst.is_data:
         events, json_filter_results = self[json_filter](events, **kwargs)

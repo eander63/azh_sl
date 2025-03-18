@@ -150,7 +150,7 @@ def add_variables(config: od.Config) -> None:
     )
 
     config.add_variable(
-        name="selta_b_z",
+        name="delta_b_z",
         expression="delta_b_z",
         binning=(50, 0, 10),
         unit="",
@@ -164,9 +164,44 @@ def add_variables(config: od.Config) -> None:
         unit="",
         x_title="PNN output score",
     )
+    config.add_variable(
+        name="MET",
+        expression="MET.pt",
+        binning=(20, 0, 400),
+        unit="",
+        x_title="MET $p_{T}$",
+    )
 
+    config.add_variable(
+        name="category_ids",
+        expression="category_ids",
+        binning=(20, 0, 100000),
+        unit="",
+        x_title="Event category",
+    )
+    config.add_variable(
+        name="deltaPhi_MET_Jet1",
+        expression="deltaPhi_MET_Jet1",
+        binning=(40, -3.2, 3.2),
+        unit="",
+        x_title="$\Delta \phi$ (MET,Jet1) ",
+    )
+    config.add_variable(
+        name="deltaPhi_MET_Jet2",
+        expression="deltaPhi_MET_Jet2",
+        binning=(40, -3.2, 3.2),
+        unit="",
+        x_title="$\Delta \phi$ (MET,Jet2) ",
+    )
+    config.add_variable(
+        name="deltaPhi_MET_Jet3",
+        expression="deltaPhi_MET_Jet3",
+        binning=(40, -3.2, 3.2),
+        unit="",
+        x_title="$\Delta \phi$ (MET,Jet3) ",
+    )
     # Jets (3 pt-leading jets)
-    for i in range(3):
+    for i in range(6):
         config.add_variable(
             name=f"jet{i+1}_pt",
             expression=f"Jet.pt[:,{i}]",

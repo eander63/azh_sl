@@ -11,8 +11,10 @@ from typing import Set
 import yaml
 from scinum import Number
 import order as od
+import law
 
 from columnflow.util import DotDict
+from cmsdb.util import add_decay_process
 # import functools
 # from dijet.config.datasets import get_dataset_lfns
 from azh.config.analysis_azh_run3 import analysis_azh
@@ -27,6 +29,45 @@ from columnflow.config_util import (
 thisdir = os.path.dirname(os.path.abspath(__file__))
 
 
+def modify_cmsdb_processes():
+    from cmsdb.processes import (
+        dy, dy_m10to50, dy_m50toinf, dy_m50toinf_0j, dy_m50toinf_1j, dy_m50toinf_2j,dy_m50toinf_3j,dy_m50toinf_4j,
+    )
+
+    decay_map = {
+        "lf": {
+            "name": "lf",
+            "id": 50,
+            "label": "(lf)",
+            "br": -1,
+        },
+        "hf": {
+            "name": "hf",
+            "id": 60,
+            "label": "(hf)",
+            "br": -1,
+        },
+    }
+
+    for dy_proc_inst in (
+        dy, dy_m10to50, dy_m50toinf, dy_m50toinf_0j, dy_m50toinf_1j, dy_m50toinf_2j,dy_m50toinf_3j,dy_m50toinf_4j,
+    ):
+        add_production_mode_parent = dy_proc_inst.name != "dy"
+        for flavour in ("hf", "lf"):
+            # print(flavour)
+            # print(dy_proc_inst)
+            # the 'add_decay_process' function helps us to create all parent-daughter relationships
+            add_decay_process(
+                dy_proc_inst,
+                decay_map[flavour],
+                add_production_mode_parent=add_production_mode_parent,
+                name_func=lambda parent_name, decay_name: f"{parent_name}_{decay_name}",
+                label_func=lambda parent_label, decay_label: f"{parent_label} {decay_label}",
+                xsecs=None,
+                aux={"flavour": flavour},
+            )
+
+modify_cmsdb_processes()
 def add_config(
     analysis: od.Analysis,
     campaign: od.Campaign,
@@ -69,7 +110,9 @@ def add_config(
     # set color of some processes
     # set color of some processes
     colors = {
-        "dy": "#FBFF36",  # yellow
+        # "dy": "#FBFF36",  # yellow
+        "dy_hf": "#C7FF33",
+        "dy_lf": "#FBFF36",
         "data": "#000000",  # black
         "tt": "#E04F21",  # red
         "ttv": "#5E8FFC",  # blue
@@ -77,19 +120,27 @@ def add_config(
         "higgs": "#984ea3",  # purple
         "st": "#3E00FB",  # dark purple
         "vv": "#B900FC",  # pink
-        "azh": "#984ea3",
+        # "azh": "#984ea3",
+        "azh_htt_zll_a1000_h600": "#C7FF33",
+        "azh_htt_zll_a1900_h500": "#2FC917",
+        "azh_htt_zll_a650_h550": "#1752C9",
+        # "azh_htt_zll_a2100_h1300": "#C9174D",
+        # "azh_htt_zll_a1000_h600" : "#F74CD8",
+        # "azh_htt_zll_a500_h350": "#EB973F",
         "other": "#999999",  # grey
     }
 
     # add datasets we need to study
     process_names = [
-        "dy",
+        # "dy",
+        "dy_hf",
+        "dy_lf",
         "tt",
         "ttv",
         "st",
         "w_lnu",
         "vv",
-        "vvv",
+        # "vvv",
         "data",
         "azh_htt_zll_a1000_h330",
         "azh_htt_zll_a1600_h1500",
@@ -354,12 +405,36 @@ def add_config(
         "azh_htt_zll_a950_h800",
         "azh_htt_zll_a950_h850",
     ]
-    print(process_names)
+    # print(process_names)
     for process_name in process_names:
         cfg.add_process(procs.get(process_name))
         cfg.get_process(process_name).color1 = colors.get(process_name, "#aaaaaa")
         cfg.get_process(process_name).color2 = colors.get(process_name, "#000000")
+    # helper to enable processes / datasets only for a specific era
+    def _match_era(
+        *,
+        run: int | set[int] | None = None,
+        year: int | set[int] | None = None,
+        postfix: str | set[int] | None = None,
+        tag: str | set[str] | None = None,
+        nano: int | set[int] | None = None,
+        sync: bool = False,
+    ) -> bool:
+        return (
+            (run is None or campaign.x.run in law.util.make_set(run)) and
+            (year is None or campaign.x.year in law.util.make_set(year)) and
+            (postfix is None or campaign.x.postfix in law.util.make_set(postfix)) and
+            (tag is None or campaign.has_tag(tag, mode=any)) and
+            (nano is None or campaign.x.version in law.util.make_set(nano))
+        )
 
+    def if_era(*, values: list[str | None] | None = None, **kwargs) -> list[str]:
+        return list(filter(bool, values or [])) if _match_era(**kwargs) else []
+
+    def if_not_era(*, values: list[str | None] | None = None, **kwargs) -> list[str]:
+        return list(filter(bool, values or [])) if not _match_era(**kwargs) else []
+
+    ######################################################################################
     dataset_names = [
         # TT
         "tt_sl_powheg",
@@ -422,26 +497,46 @@ def add_config(
         "ww_pythia",
 
         # # VVV
-        "wwz_pythia",
+        # "wwz_pythia",
 
         # Data
         # # Double Muon
         # "data_doublemu_a",
         # "data_doublemu_b",
-        "data_doublemu_c",
-        # # muon
-        "data_mu_c",
-        "data_mu_d",
-        # #  EG
-        # "data_egamma_a",
-        # "data_egamma_b",
-        "data_egamma_c",
-        "data_egamma_d",
-        # # Muon EG
-        # "data_muoneg_a",
-        # "data_muoneg_b",
-        "data_muoneg_c",
-        "data_muoneg_d",
+        *if_era(year=2022, tag="preEE", values=[
+            "data_doublemu_c",
+            "data_mu_c",
+            "data_mu_d",
+            "data_egamma_c",
+            "data_egamma_d",
+            "data_muoneg_c",
+            "data_muoneg_d",
+        ]),
+        *if_era(year=2022, tag="postEE", values=[
+            "data_mu_e",
+            "data_mu_f",
+            "data_mu_g",
+            "data_egamma_e",
+            "data_egamma_f",
+            "data_egamma_g",
+            "data_muoneg_e",
+            # "data_muoneg_f",
+            # "data_muoneg_g",
+        ]),
+        # "data_doublemu_c",
+        # # # muon
+        # "data_mu_c",
+        # "data_mu_d",
+        # # #  EG
+        # # "data_egamma_a",
+        # # "data_egamma_b",
+        # "data_egamma_c",
+        # "data_egamma_d",
+        # # # Muon EG
+        # # "data_muoneg_a",
+        # # "data_muoneg_b",
+        # "data_muoneg_c",
+        # "data_muoneg_d",
 
         # Signal
         # AZH
@@ -718,6 +813,8 @@ def add_config(
                     info.n_files = limit_dataset_files
         if dataset.name.startswith("tt"):
             dataset.add_tag({"is_ttbar"})
+        if dataset.name.startswith("dy"):
+            dataset.add_tag({"is_dy"})
         if dataset.name.startswith("azh"):
             dataset.add_tag({"is_signal"})
 
@@ -1215,7 +1312,7 @@ def add_config(
         ) | set(  # GenJets
             f"{gen_jet_obj}.{field}"
             for gen_jet_obj in ["GenJet"]
-            for field in ["pt", "eta", "phi", "mass"]
+            for field in ["pt", "eta", "phi", "mass","hadronFlavour"]
         )
     )
 

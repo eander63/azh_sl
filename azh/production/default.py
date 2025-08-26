@@ -19,6 +19,7 @@ from azh.production.prepare_objects import prepare_objects
 from azh.production.leptons import choose_lepton
 from azh.production.ml_inputs import ml_inputs
 from azh.production.dy_producer import dy_producer
+from azh.production.trigger import trigger
 from azh.production.weights import weights, event_weight
 from azh.config.categories import add_categories_mz
 from azh.config.categories import add_categories_bjets
@@ -33,12 +34,12 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 
 @producer(
     uses={
-        category_ids, normalization_weights,dy_producer,
+        category_ids, normalization_weights,dy_producer, trigger,
         weights, z_boson, higgs_reco, choose_lepton, ml_inputs,
         prepare_objects, "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.rawFactor", event_weight, "Jet.btagDeepFlavB","MET.pt","MET.phi","process_id"
     },
     produces={
-        category_ids, normalization_weights,dy_producer,
+        category_ids, normalization_weights,dy_producer, trigger,
         weights, z_boson, choose_lepton, ml_inputs,
         prepare_objects, higgs_reco, event_weight, "event_number","process_id",
     },
@@ -54,6 +55,7 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # from IPython import embed; embed()
     events = self[higgs_reco](events, **kwargs)
     events = self[category_ids](events, **kwargs)
+    # events = self[trigger](events, **kwargs)
     # mc-only weights
     # from IPython import embed; embed()
 
@@ -72,9 +74,9 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # deterministoc seeds
     # events = self[category_ids](events, **kwargs)
     # print(events.category_ids)
-    print(events.category_ids)
+    # print(events.category_ids)
     events = self[ml_inputs](events, **kwargs)
-    print(events.category_ids)
+    # print(events.category_ids)
 
     # not_passed = ~passed
     # event_id = event_id[not_passed]

@@ -97,7 +97,12 @@ def default(
 
     # events, results_azh = self[azh_selection](events, **kwargs)
     # results += results_azh
-
+    results.steps['no_trig'] = (
+        results.steps.Jet & 
+        results.steps.Lepton &
+        results.steps.met_filter &
+        results.steps.jet_veto_map
+        )
     # create process ids
     events = self[process_ids](events, **kwargs)
 

@@ -10,8 +10,9 @@ ak = maybe_import("awkward")
 @selector(
 
     uses={
-        "Electron.pt", "Electron.eta", "Electron.mvaFall17V2Iso_WP80", "Electron.mvaFall17V2Iso_WP90", "Electron.phi",
-        "Electron.mass", "Muon.pt", "Muon.eta", "Muon.tightId", "Muon.looseId", "Muon.phi", "Muon.mass",
+        "Electron.pt", "Electron.eta","Electron.phi","Electron.mass", "Electron.mvaIso_WP80",
+        "Electron.mvaIso_WP90", "Electron.charge",
+        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass","Muon.tightId", "Muon.looseId", "Muon.highPtId", "Muon.tkIsoId", "Muon.charge",
     },
     produces={
         "cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose",

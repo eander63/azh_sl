@@ -28,38 +28,50 @@ def default(self):
 
     year = self.config_inst.campaign.x.year  # noqa; not used right now
     ecm = self.config_inst.campaign.ecm
-
+    corr_postfix = ""
+    if year == 2022:
+        corr_postfix = f"{self.config_inst.campaign.x.EE}EE"
+    elif year == 2023:
+        corr_postfix = f"{self.config_inst.campaign.x.BPix}BPix"
     #
     # categories
     #
 
     e_categories, mu_categories = [], []
 
+    if corr_postfix=="preEE":
+        mu_datasets = [f"data_mu_{i}" for i in [ "c", "d"]]
+        ee_datasets = [f"data_egamma_{i}" for i in [ "c", "d"]]
+    if corr_postfix=="postEE":
+        mu_datasets = [f"data_mu_{i}" for i in [ "e", "f", "g"]]
+        ee_datasets = [f"data_egamma_{i}" for i in [ "e", "f", "g"]]
+
     # NOTE: use ML model inst if possible
     ml_model_name = "PNN"
     ml_model_processes = [
-        "azh_htt_zll_a950_h850",
+        "azh_htt_zll_a600_h500",
         "tt",
         "ttv",
-        "dy",
+        "dy_hf",
+        "dy_lf",
     ]
     print("appending cats!")
     # from IPython import embed; embed()
 
-    e_categories.append(self.add_category(
-        "cat_2e",
-        config_category=f"2e",
-        config_variable=f"{ml_model_name}_output",
-        mc_stats=True,
-        config_data_datasets=[f"data_egamma_{i}" for i in [ "c", "d"]],
-    ))
-    mu_categories.append(self.add_category(
-        f"cat_2mu",
-        config_category=f"2mu",
-        config_variable=f"{ml_model_name}_output",
-        mc_stats=True,
-        config_data_datasets=[f"data_mu_{i}" for i in [ "c", "d"]],
-    ))
+    # e_categories.append(self.add_category(
+    #     "cat_2e",
+    #     config_category=f"2e",
+    #     config_variable=f"{ml_model_name}_output",
+    #     mc_stats=True,
+    #     config_data_datasets=[f"data_egamma_{i}" for i in [ "c", "d"]],
+    # ))
+    # mu_categories.append(self.add_category(
+    #     f"cat_2mu",
+    #     config_category=f"2mu",
+    #     config_variable=f"{ml_model_name}_output",
+    #     mc_stats=True,
+    #     config_data_datasets=[f"data_mu_{i}" for i in [ "c", "d"]],
+    # ))
 
     # e_categories.append(self.add_category(
     #     "cat_2e__SR",
@@ -75,20 +87,20 @@ def default(self):
     #     mc_stats=True,
     #     config_data_datasets=[f"data_mu_{i}" for i in [ "c", "d"]],
     # ))
-
+    CR_obs = "pt_z"
     e_categories.append(self.add_category(
         "cat_2e_SR_2b_6j",
         config_category=f"2e__SR__2bjets__6jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=[f"data_egamma_{i}" for i in [ "c", "d"]],
+        config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_2b_6j",
         config_category=f"2mu__SR__2bjets__6jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=[f"data_mu_{i}" for i in [ "c", "d"]],
+        config_data_datasets=mu_datasets,
     ))
 
     e_categories.append(self.add_category(
@@ -96,14 +108,14 @@ def default(self):
         config_category=f"2e__SR__2bjets__5jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=[f"data_egamma_{i}" for i in [ "c", "d"]],
+        config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_2b_5j",
         config_category=f"2mu__SR__2bjets__5jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=[f"data_mu_{i}" for i in [ "c", "d"]],
+        config_data_datasets=mu_datasets,
     ))
 
     e_categories.append(self.add_category(
@@ -111,14 +123,14 @@ def default(self):
         config_category=f"2e__SR__1bjets__6jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=[f"data_egamma_{i}" for i in [ "c", "d"]],
+        config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_1b_6j",
         config_category=f"2mu__SR__1bjets__6jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=[f"data_mu_{i}" for i in [ "c", "d"]],
+        config_data_datasets=mu_datasets,
     ))
 
     e_categories.append(self.add_category(
@@ -126,31 +138,118 @@ def default(self):
         config_category=f"2e__SR__1bjets__5jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=[f"data_egamma_{i}" for i in [ "c", "d"]],
+        config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_1b_5j",
         config_category=f"2mu__SR__1bjets__5jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=[f"data_mu_{i}" for i in [ "c", "d"]],
+        config_data_datasets=mu_datasets,
+    ))
+
+    #Control regions
+    e_categories.append(self.add_category(
+        "cat_2e_SR_0b_5j",
+        config_category=f"2e__SR__0bjets__5jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=ee_datasets,
+    ))
+    mu_categories.append(self.add_category(
+        f"cat_2mu_SR_0b_5j",
+        config_category=f"2mu__SR__0bjets__5jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=mu_datasets,
+    ))
+    e_categories.append(self.add_category(
+        "cat_2e_SR_0b_6j",
+        config_category=f"2e__SR__0bjets__6jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=ee_datasets,
+    ))
+    mu_categories.append(self.add_category(
+        f"cat_2mu_SR_0b_6j",
+        config_category=f"2mu__SR__0bjets__6jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=mu_datasets,
+    ))
+    e_categories.append(self.add_category(
+        "cat_2e_CR_1b_5j",
+        config_category=f"2e__CR__1bjets__5jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=ee_datasets,
+    ))
+    mu_categories.append(self.add_category(
+        f"cat_2mu_CR_1b_5j",
+        config_category=f"2mu__CR__1bjets__5jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=mu_datasets,
+    ))
+    e_categories.append(self.add_category(
+        "cat_2e_CR_1b_6j",
+        config_category=f"2e__CR__1bjets__6jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=ee_datasets,
+    ))
+    mu_categories.append(self.add_category(
+        f"cat_2mu_CR_1b_6j",
+        config_category=f"2mu__CR__1bjets__6jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=mu_datasets,
+    ))
+    e_categories.append(self.add_category(
+        "cat_2e_CR_2b_5j",
+        config_category=f"2e__CR__2bjets__5jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=ee_datasets,
+    ))
+    mu_categories.append(self.add_category(
+        f"cat_2mu_CR_2b_5j",
+        config_category=f"2mu__CR__2bjets__5jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=mu_datasets,
+    ))
+    e_categories.append(self.add_category(
+        "cat_2e_CR_2b_6j",
+        config_category=f"2e__CR__2bjets__6jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=ee_datasets,
+    ))
+    mu_categories.append(self.add_category(
+        f"cat_2mu_CR_2b_6j",
+        config_category=f"2mu__CR__2bjets__6jets",
+        config_variable=CR_obs,
+        mc_stats=True,
+        config_data_datasets=mu_datasets,
     ))
     #
     # processes
     #
     print("procs!")
     signals_azh = [
-        "azh_htt_zll_a950_h850",
+        "azh_htt_zll_a600_h500",
     ]
 
     processes = [
-        "azh_htt_zll_a950_h850",
+        "azh_htt_zll_a600_h500",
         "tt",
         "ttv",
         "st", 
-        "dy",
+        "dy_hf",
+        "dy_lf",
         # "w_lnu",
-        "vv",
+        # "vv",
         # "vvv",
         # "qcd",
         # "ggZH", "tHq", "tHW", "ggH", "qqH", "ZH", "WH", "VH", "ttH", "bbH",
@@ -282,7 +381,34 @@ def default(self):
     )
     self.add_parameter_to_group(f"CMS_pileup_{year}", "experiment")
     """
-
+    self.add_parameter(
+        "mur",
+        type=ParameterType.shape,
+        config_shift_source="mur",
+    )
+    self.add_parameter(
+        "muf",
+        type=ParameterType.shape,
+        config_shift_source="muf",
+    )
+    self.add_parameter(
+    "rate_ttbar",
+    process="tt",
+    type=ParameterType.rate_unconstrained,
+    effect=["1", "[0,2]"],
+    )
+    self.add_parameter(
+    "rate_dy_hf",
+    process="dy_hf",
+    type=ParameterType.rate_unconstrained,
+    effect=["1", "[0,2]"],
+    )
+    self.add_parameter(
+    "rate_dy_lf",
+    process="dy_lf",
+    type=ParameterType.rate_unconstrained,
+    effect=["1", "[0,2]"],
+    )
     # scale + pdf (shape)
     # for proc in processes:
     #     if proc == "qcd":

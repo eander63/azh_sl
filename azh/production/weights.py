@@ -12,6 +12,7 @@ from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
 from columnflow.production.normalization import normalization_weights
 from columnflow.production.cms.pileup import pu_weight
+from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from columnflow.util import maybe_import
 
 from azh.production.gen_top import top_pt_weight
@@ -33,9 +34,12 @@ def event_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     weight = ak.Array(np.ones(len(events)))
     if self.dataset_inst.is_mc:
         for column in self.config_inst.x.event_weights:
+            print(column)
             if (self.dataset_inst.has_tag("is_ttbar") or (column != "top_pt_weight")):
                 weight = weight * Route(column).apply(events)
+        print(self.dataset_inst.x("event_weights", []))
         for column in self.dataset_inst.x("event_weights", []):
+            print(column)
             if ((self.dataset_inst.has_tag("is_ttbar")) or (column != "top_pt_weight")):
                 if has_ak_column(events, column):
                     weight = weight * Route(column).apply(events)
@@ -108,6 +112,8 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         # compute pu weights
         events = self[pu_weight](events, **kwargs)
+        events = self[murmuf_weights](events, **kwargs)
+        events = self[murmuf_envelope_weights](events, **kwargs)
 
     return events
 
@@ -118,10 +124,10 @@ def weights_init(self: Producer) -> None:
         # dynamically add dependencies if running on MC
         self.uses |= {
             split_btag_weights, electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, top_pt_weight,  # normalized_pu_weights,
+            normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights # normalized_pu_weights,
 
         }
         self.produces |= {
             split_btag_weights, electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, top_pt_weight,  # normalized_pu_weights,
+            normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights # normalized_pu_weights,
         }

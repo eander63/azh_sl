@@ -122,14 +122,14 @@ def add_categories_mz(config: od.Config) -> None:
         name="SR",
         id=100,
         selection="catid_SR",
-        label="Signal region",
+        label="In Z window",
     )
 
     cat_CR= config.add_category(  # noqa
         name="CR",
         id=200,
         selection="catid_CR",
-        label="Control region",
+        label="m(ll) sidebands",
     )
 
 

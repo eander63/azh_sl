@@ -350,3 +350,12 @@ def add_variables(config: od.Config) -> None:
             binning=(50, -2.5, 2.5),
             x_title=rf"jet {i+1} $\eta$",
         )
+    
+    # Trigger descision
+    config.add_variable(
+        name="trig_ids",
+        expression="trig_ids",
+        binning=(21, -0.5, 20.5),
+        unit="",
+        x_title="Trigger IDs",
+    )

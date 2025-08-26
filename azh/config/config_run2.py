@@ -103,7 +103,7 @@ def add_config(
         "st_tchannel_t_4f_powheg",
         "st_tchannel_tbar_4f_powheg",
         "st_twchannel_t_powheg",
-        "st_twchannel_tbar_powheg",
+        # "st_twchannel_tbar_powheg",
         "st_schannel_lep_4f_amcatnlo",
         # WJets
         "w_lnu_ht70to100_madgraph",
@@ -829,13 +829,14 @@ def add_config(
             "pu_weight*", "pdf_weight*",
             "murf_envelope_weight*", "mur_weight*", "muf_weight*",
             "btag_weight*",
+            "LHEScaleWeight",
             "Pileup.nTrueInt",
             "GenPart.*",
         } | set(  # Jets
             f"{jet_obj}.{field}"
             for jet_obj in ["Jet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor"]
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor","btagDeepFlavQG"]
         ) | set(  # BJets
             f"{jet_obj}.{field}"
             for jet_obj in ["BJet"]

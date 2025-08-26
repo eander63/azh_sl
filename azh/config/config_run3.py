@@ -12,6 +12,7 @@ import yaml
 from scinum import Number
 import order as od
 import law
+import functools
 
 from columnflow.util import DotDict
 from cmsdb.util import add_decay_process
@@ -22,7 +23,7 @@ from azh.config.categories import add_categories_selection
 from azh.config.variables import add_variables
 # from azh.config.cutflow_variables import add_cutflow_variables
 from columnflow.config_util import (
-    get_root_processes_from_campaign, add_shift_aliases,
+    get_root_processes_from_campaign, add_shift_aliases,get_shifts_from_sources
 )
 
 
@@ -84,6 +85,8 @@ def add_config(
         assert campaign.x.BPix in ["pre", "post"]
 
     # gather campaign data
+    # modify_cmsdb_processes()
+
     year = campaign.x.year
     year2 = year % 100
     corr_postfix = ""
@@ -92,10 +95,10 @@ def add_config(
     elif year == 2023:
         corr_postfix = f"{campaign.x.BPix}BPix"
 
-    implemented_years = [2022]
+    implemented_years = [2022,2023]
 
     if year not in implemented_years:
-        raise NotImplementedError("For now, only 2022 campaign is fully implemented")
+        raise NotImplementedError("For now, only 2022+2023 campaign is fully implemented")
 
     # get all root processes
     procs = get_root_processes_from_campaign(campaign)
@@ -109,6 +112,11 @@ def add_config(
 
     # set color of some processes
     # set color of some processes
+    labels = {
+        "tt": "$t\\bar{t}$",
+        "ttv": "$t\\bar{t}$ + V",
+    }
+
     colors = {
         # "dy": "#FBFF36",  # yellow
         "dy_hf": "#C7FF33",
@@ -122,11 +130,11 @@ def add_config(
         "vv": "#B900FC",  # pink
         # "azh": "#984ea3",
         "azh_htt_zll_a1000_h600": "#C7FF33",
-        "azh_htt_zll_a1900_h500": "#2FC917",
+        "azh_htt_zll_a1600_h1500": "#2FC917",
         "azh_htt_zll_a650_h550": "#1752C9",
-        # "azh_htt_zll_a2100_h1300": "#C9174D",
-        # "azh_htt_zll_a1000_h600" : "#F74CD8",
-        # "azh_htt_zll_a500_h350": "#EB973F",
+        "azh_htt_zll_a2100_h1300": "#C9174D",
+        "azh_htt_zll_a1000_h330" : "#F74CD8",
+        "azh_htt_zll_a430_h330": "#EB973F",
         "other": "#999999",  # grey
     }
 
@@ -219,7 +227,7 @@ def add_config(
         "azh_htt_zll_a1300_h900",
         "azh_htt_zll_a1400_h1000",
         "azh_htt_zll_a1400_h1100",
-        "azh_htt_zll_a1400_h1200",
+        # "azh_htt_zll_a1400_h1200",
         "azh_htt_zll_a1400_h1300",
         "azh_htt_zll_a1400_h350",
         "azh_htt_zll_a1400_h400",
@@ -262,7 +270,7 @@ def add_config(
         "azh_htt_zll_a1700_h600",
         "azh_htt_zll_a1700_h700",
         "azh_htt_zll_a1700_h800",
-        "azh_htt_zll_a1700_h900",
+        # "azh_htt_zll_a1700_h900",
         "azh_htt_zll_a1800_h1000",
         "azh_htt_zll_a1800_h1100",
         "azh_htt_zll_a1800_h1200",
@@ -410,6 +418,7 @@ def add_config(
         cfg.add_process(procs.get(process_name))
         cfg.get_process(process_name).color1 = colors.get(process_name, "#aaaaaa")
         cfg.get_process(process_name).color2 = colors.get(process_name, "#000000")
+        cfg.get_process(process_name).label = labels.get(process_name)
     # helper to enable processes / datasets only for a specific era
     def _match_era(
         *,
@@ -457,9 +466,9 @@ def add_config(
         # "st_twchannel_tbar_dl_powheg",
         # "st_twchannel_tbar_fh_powheg",
         "st_twchannel_tbar_sl_powheg",
-        "st_twchannel_t_dl_powheg",
+        # "st_twchannel_t_dl_powheg",
         # "st_twchannel_t_fh_powheg",
-        "st_twchannel_t_sl_powheg",
+        # "st_twchannel_t_sl_powheg", #root trouble
         # "st_schannel_t_lep_4f_amcatnlo",
         # "st_schannel_tbar_lep_4f_amcatnlo",
 
@@ -468,6 +477,7 @@ def add_config(
         # "w_lnu_amcatnlo",
 
         # # DY
+        "dy_m10to50_madgraph",
         "dy_m50toinf_1j_madgraph",
         "dy_m50toinf_2j_madgraph",
         "dy_m50toinf_3j_madgraph",
@@ -492,9 +502,9 @@ def add_config(
         # "dy_m50toinf_ht2500toinf_madgraph",
 
         # # VV
-        "zz_pythia",
+        # "zz_pythia",
         # "wz_pythia", #ROOT Files missing
-        "ww_pythia",
+        # "ww_pythia",
 
         # # VVV
         # "wwz_pythia",
@@ -613,7 +623,7 @@ def add_config(
         "azh_htt_zll_a1300_h900_amcatnlo",
         "azh_htt_zll_a1400_h1000_amcatnlo",
         "azh_htt_zll_a1400_h1100_amcatnlo",
-        "azh_htt_zll_a1400_h1200_amcatnlo",
+        # "azh_htt_zll_a1400_h1200_amcatnlo",
         "azh_htt_zll_a1400_h1300_amcatnlo",
         "azh_htt_zll_a1400_h350_amcatnlo",
         "azh_htt_zll_a1400_h400_amcatnlo",
@@ -657,7 +667,7 @@ def add_config(
         "azh_htt_zll_a1700_h600_amcatnlo",
         "azh_htt_zll_a1700_h700_amcatnlo",
         "azh_htt_zll_a1700_h800_amcatnlo",
-        "azh_htt_zll_a1700_h900_amcatnlo",
+        # "azh_htt_zll_a1700_h900_amcatnlo",
         "azh_htt_zll_a1800_h1000_amcatnlo",
         "azh_htt_zll_a1800_h1100_amcatnlo",
         "azh_htt_zll_a1800_h1200_amcatnlo",
@@ -904,13 +914,20 @@ def add_config(
     if year == 2022:
         if campaign.x.EE == "pre":
             cfg.x.luminosity = Number(7971, {
-                "lumi_13TeV_2022": 0.01j,
-                "lumi_13TeV_correlated": 0.006j,
+                "lumi_13TeV_correlated": 0.014j,
             })
         elif campaign.x.EE == "post":
             cfg.x.luminosity = Number(26337, {
-                "lumi_13TeV_2022": 0.01j,
-                "lumi_13TeV_correlated": 0.006j,
+                "lumi_13TeV_correlated": 0.014j,
+            })
+    elif year == 2023:
+        if campaign.x.BPix == "pre":
+            cfg.x.luminosity = Number(18062, {
+                "lumi_13TeV_correlated": 0.013j,
+            })
+        elif campaign.x.BPix == "post":
+            cfg.x.luminosity = Number(9693, {
+                "lumi_13TeV_correlated": 0.013j,
             })
     else:
         raise NotImplementedError(f"Luminosity for year {year} is not defined.")
@@ -921,13 +938,13 @@ def add_config(
     cfg.x.met_filters = {
         "Flag.goodVertices",
         "Flag.globalSuperTightHalo2016Filter",
-        "Flag.HBHENoiseFilter",
-        "Flag.HBHENoiseIsoFilter",
+        # "Flag.HBHENoiseFilter",
+        # "Flag.HBHENoiseIsoFilter",
         "Flag.EcalDeadCellTriggerPrimitiveFilter",
         "Flag.BadPFMuonFilter",
         "Flag.BadPFMuonDzFilter",
         "Flag.eeBadScFilter",
-        "Flag.ecalBadCalibFilter",
+        #"Flag.ecalBadCalibFilter",
     }
 
     # minimum bias cross section in mb (milli) for creating PU weights, values from
@@ -939,31 +956,59 @@ def add_config(
 
     # jec configuration
     # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC?rev=201
-    jerc_postfix = ""
-    if year == 2022 and campaign.x.EE == "post":
-        jerc_postfix = "EE"
+    if year == 2022:
+        jerc_postfix = ""
+        if year == 2022 and campaign.x.EE == "post":
+            jerc_postfix = "EE"
 
-    jerc_campaign = f"Summer{year2}{jerc_postfix}_22Sep2023"
+        jerc_campaign = f"Summer{year2}{jerc_postfix}_22Sep2023"
+
+    # if year == 2023:
+    #     jerc_postfix = ""
+
+    #     jerc_campaign = f"Summer22_22Sep2023"
+    if year ==2023:
+        jerc_postfix = ""
+        if campaign.x.BPix == "post":
+            jerc_postfix = "BPix"
+
+        jerc_campaign = f"Summer{year2}{jerc_postfix}Prompt23"
+
     jet_type = "AK4PFPuppi"
 
-    print(jerc_campaign)
-    cfg.x.jec = DotDict.wrap({
-        "campaign": jerc_campaign,
-        "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2"}[year],
-        "jet_type": jet_type,
-        "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
-        "levels_for_type1_met": ["L1FastJet"],
-        "uncertainty_sources": [
-            "Total",
-        ],
-    })
+    jer_campaign = jerc_campaign
+    if year == 2023:
+        jer_campaign += f"_Run{'Cv1234' if campaign.has_tag('preBPix') else 'D'}"
 
+    # print(jerc_campaign)
+    if not jerc_postfix == "BPix":
+        cfg.x.jec = DotDict.wrap({
+            "campaign": jerc_campaign,
+            "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2", 2023: "V2"}[year],
+            "jet_type": jet_type,
+            "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
+            "levels_for_type1_met": ["L1FastJet"],
+            "uncertainty_sources": [
+                "Total",
+            ],
+        })
+    else:
+        cfg.x.jec = DotDict.wrap({
+            "campaign": jerc_campaign,
+            "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2", 2023: "V3"}[year],
+            "jet_type": jet_type,
+            "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
+            "levels_for_type1_met": ["L1FastJet"],
+            "uncertainty_sources": [
+                "Total",
+            ],
+        })
 
     # JER
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
     cfg.x.jer = DotDict.wrap({
-        "campaign": jerc_campaign,
-        "version": {2022: "JRV1"}[year],
+        "campaign": jer_campaign,
+        "version": {2022: "JRV1", 2023:"JRV1"}[year],
         "jet_type": jet_type,
     })
 
@@ -1019,28 +1064,44 @@ def add_config(
     # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22/
     # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/
     # TODO: add correct 2022 + 2022preEE WP for deepcsv if needed
-    btag_key = f"2022{campaign.x.EE}EE" if year == 2022 else year
+    if year == 2022:
+        btag_key = f"2022{campaign.x.EE}EE" 
+    if year == 2023:
+        btag_key = f"2023{campaign.x.BPix}BPix" 
+
     cfg.x.btag_working_points = DotDict.wrap({
         "deepjet": {
             "loose": {
-                "2022preEE": 0.0583, "2022postEE": 0.0614,
+                "2022preEE": 0.0583, "2022postEE": 0.0614,"2023preBPix": 0.0479, "2023postBPix": 0.048,
             }[btag_key],
             "medium": {
-                "2022preEE": 0.3086, "2022postEE": 0.3196,
+                "2022preEE": 0.3086, "2022postEE": 0.3196,"2023preBPix": 0.2431, "2023postBPix": 0.2435,
             }[btag_key],
             "tight": {
-                "2022preEE": 0.7183, "2022postEE": 0.7300,
+                "2022preEE": 0.7183, "2022postEE": 0.7300,"2023preBPix": 0.6553, "2023postBPix": 0.6563,
             }[btag_key],
         },
+        #Dont use deepcsv in 2023, not yet defined properly!!
         "deepcsv": {
             "loose": {
-                "2022preEE": 0.1208, "2022postEE": 0.1208,
+                "2022preEE": 0.1208, "2022postEE": 0.1208,"2023preBPix": 0.0479, "2023postBPix": 0.048,
             }[btag_key],
             "medium": {
-                "2022preEE": 0.4168, "2022postEE": 0.4168,
+                "2022preEE": 0.4168, "2022postEE": 0.4168,"2023preBPix": 0.2431, "2023postBPix": 0.2435,
             }[btag_key],
             "tight": {
-                "2022preEE": 0.7665, "2022postEE": 0.7665,
+                "2022preEE": 0.7665, "2022postEE": 0.7665,"2023preBPix": 0.6553, "2023postBPix": 0.6563,
+            }[btag_key],
+        },
+        "particleNet": {
+            "loose": {
+                "2022preEE": 0.047, "2022postEE": 0.0499,"2023preBPix": 0.0358, "2023postBPix": 0.0359,
+            }[btag_key],
+            "medium": {
+                "2022preEE": 0.245, "2022postEE": 0.2605,"2023preBPix": 0.1917, "2023postBPix": 0.1919,
+            }[btag_key],
+            "tight": {
+                "2022preEE": 0.6734, "2022postEE": 0.6915,"2023preBPix": 0.6172, "2023postBPix": 0.6133,
             }[btag_key],
         },
     })
@@ -1049,7 +1110,8 @@ def add_config(
     # btag weight configuration
     from columnflow.production.cms.btag import SplitBTagSFConfig
     cfg.x.btag_sf = SplitBTagSFConfig(
-        correction_set=("deepJet_light", "deepJet_comb"),
+        # correction_set=("deepJet_light", "deepJet_comb"),
+        correction_set=("particleNet_light", "particleNet_comb"),
         discriminator="btagDeepFlavB",
         corrector_kwargs={"working_point": "M"},
     )
@@ -1072,6 +1134,20 @@ def add_config(
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
+    elif f"{year}{corr_postfix}" == "2023postBPix":
+        # cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
+        # cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptD", "Reco20to75")
+        # cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptD", "wp80iso")
+        cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
+        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
+        cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
+    elif f"{year}{corr_postfix}" == "2023preBPix":
+        # cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
+        cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
+        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
+        cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
+        # cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
+        # cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
     # names of muon correction sets and working points
     # (used in the muon producer)
     # cfg.x.muon_sf_names = ("NUM_TightRelTkIso_DEN_HighPtID", f"{year}{corr_postfix}_UL")
@@ -1187,11 +1263,16 @@ def add_config(
         return f"{jme_aux.source}/{jme_full_version}/{jme_full_version}_{name}_{jme_aux.jet_type}.txt"
 
     # external files
-    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-49ddc547"
+    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-b7a48c75"
+    # json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-c9422789"
     local_repo = "/data/dust/user/matthiej/topsf"  # TODO: avoid hardcoding path
 
-    corr_tag = f"{year}_Summer22{jerc_postfix}"
-
+    if year == 2022:
+        corr_tag = f"{year}_Summer22{jerc_postfix}"
+    if year == 2023:
+        corr_tag = f"{year}_Summer23{jerc_postfix}"
+    print("CORRR TAAGGGGGGGGGG")
+    print(corr_tag)
     cfg.x.external_files = DotDict.wrap({
         # pileup weight corrections
         "pu_sf": (f"{json_mirror}/POG/LUM/{corr_tag}/puWeights.json.gz", "v1"),
@@ -1200,13 +1281,15 @@ def add_config(
         "jet_jerc": (f"{json_mirror}/POG/JME/{corr_tag}/jet_jerc.json.gz", "v1"),
 
         # electron scale factors
-        "electron_sf": (f"{json_mirror}/POG/EGM/{corr_tag}/electron.json.gz", "v1"),
+        # "electron_sf": (f"{json_mirror}/POG/EGM/{corr_tag}/electron.json.gz", "v1"),
+        "electron_sf": (f"{json_mirror}/POG/EGM/2022_Summer22/electron.json.gz", "v1"),
 
         # muon scale factors
         "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_Z.json.gz", "v1"),
 
         # btag scale factor
-        "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
+        # "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
+        "btag_sf_corr": (f"{json_mirror}/POG/BTV/2022_Summer22EE/btagging.json.gz", "v1"),
 
         # V+jets reweighting
         "vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
@@ -1261,6 +1344,29 @@ def add_config(
                 },
             },
         }))
+    elif year == 2023:
+        cfg.x.external_files.update(DotDict.wrap({
+            # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
+            "lumi": {
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json", "v1"),
+            },
+            "pu": {
+                # "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileup_JSON.txt", "v1"),  # noqa
+                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/BCD/pileup_JSON.txt", "v1"),  # noqa
+                "mc_profile": ("https://raw.githubusercontent.com/cms-sw/cmssw/bb525104a7ddb93685f8ced6fed1ab793b2d2103/SimGeneral/MixingModule/python/Run3_2022_LHC_Simulation_10h_2h_cfi.py", "v1"),  # noqa
+                "data_profile": {
+                    # data profiles were produced with 99 bins instead of 100 --> use custom produced data profiles instead  # noqa
+                    # "nominal": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileupHistogram-Cert_Collisions2022_359022_362760_eraEFG_GoldenJson-13p6TeV-69200ub-99bins.root", "v1"),  # noqa
+                    # "minbias_xs_up": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileupHistogram-Cert_Collisions2022_359022_362760_eraEFG_GoldenJson-13p6TeV-72400ub-99bins.root", "v1"),  # noqa
+                    # "minbias_xs_down": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileupHistogram-Cert_Collisions2022_359022_362760_eraEFG_GoldenJson-13p6TeV-66000ub-99bins.root", "v1"),  # noqa
+                    "nominal": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions23/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-69200ub-100bins.root", "v1"),  # noqa
+                    "minbias_xs_up": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions23/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-72400ub-100bins.root", "v1"),  # noqa
+                    "minbias_xs_down": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions23/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-66000ub-100bins.root", "v1"),  # noqa
+                },
+            },
+        }))
+    
     else:
         raise NotImplementedError(f"No lumi and pu files provided for year {year}")
     # columns to keep after certain steps
@@ -1282,12 +1388,14 @@ def add_config(
             "murf_envelope_weight*", "mur_weight*", "muf_weight*",
             "btag_weight*",
             "Pileup.nTrueInt",
+            "LHEScaleWeight",
             "GenPart.*",
+            "HLT*",
         } | set(  # Jets
             f"{jet_obj}.{field}"
             for jet_obj in ["Jet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor"]
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor", "btagDeepFlavQG","btagDeepFlavQG"]
         ) | set(  # BJets
             f"{jet_obj}.{field}"
             for jet_obj in ["BJet"]
@@ -1318,7 +1426,7 @@ def add_config(
 
     # event weight columns as keys in an ordered dict, mapped to shift instances they depend on
     # get_shifts = lambda *keys: sum(([cfg.get_shift(f"{k}_up"), cfg.get_shift(f"{k}_down")] for k in keys), [])
-    # get_shifts = functools.partial(get_shifts_from_sources, cfg)
+    get_shifts = functools.partial(get_shifts_from_sources, cfg)
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
         "electron_weight": [],
@@ -1329,6 +1437,8 @@ def add_config(
         "muon_iso_weight": [],
         "pu_weight": [],
         "btag_weight": [],
+        "mur_weight": get_shifts("mur"),
+        "muf_weight": get_shifts("muf"),
         # "top_pt_weight": [],
         # "muon_weight": get_shifts("muon"),
     })
@@ -1401,7 +1511,9 @@ def add_config(
     if year == 2022:
         from azh.config.triggers import add_triggers_2022
         add_triggers_2022(cfg)
-
+    if year == 2023:
+        from azh.config.triggers import add_triggers_2023
+        add_triggers_2023(cfg)
 
     # only produce cutflow features when number of dataset_files is limited (used in selection module)
     cfg.x.do_cutflow_features = bool(limit_dataset_files) and limit_dataset_files <= 10

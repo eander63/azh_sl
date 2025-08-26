@@ -27,7 +27,7 @@ logger = law.logger.get_logger(__name__)
 class PNNModel(MLModel):
 
     # mark the model as accepting only a single config
-    single_config = True
+    single_config = False
     input_features_namespace = "MLInput"
 
 
@@ -154,7 +154,7 @@ class PNNModel(MLModel):
             config_inst.get_dataset("azh_htt_zll_a1300_h900_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1400_h1000_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1400_h1100_amcatnlo"),
-            config_inst.get_dataset("azh_htt_zll_a1400_h1200_amcatnlo"),
+            # config_inst.get_dataset("azh_htt_zll_a1400_h1200_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1400_h1300_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1400_h350_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1400_h400_amcatnlo"),
@@ -198,7 +198,7 @@ class PNNModel(MLModel):
             config_inst.get_dataset("azh_htt_zll_a1700_h600_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1700_h700_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1700_h800_amcatnlo"),
-            config_inst.get_dataset("azh_htt_zll_a1700_h900_amcatnlo"),
+            # config_inst.get_dataset("azh_htt_zll_a1700_h900_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1800_h1000_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1800_h1100_amcatnlo"),
             config_inst.get_dataset("azh_htt_zll_a1800_h1200_amcatnlo"),
@@ -413,7 +413,7 @@ class PNNModel(MLModel):
             #     ak.from_parquet(inp["mlevents"].fn)
             #     for inp in files
             # ]
-            mlevents= ak.Array([])
+            mlevents= []
             #slimming to signal catgory
             for inp in files:
                 # print(inp)
@@ -429,10 +429,11 @@ class PNNModel(MLModel):
                 events = events[is_signal]
                 # from IPython import embed; embed()
                 # print("After slimming:", len(events))
-                if len(mlevents)==0:
-                    mlevents = [events]
-                else:
-                    mlevents = ak.concatenate(mlevents2,events)
+                mlevents.append(events)
+                # if len(mlevents)==0:
+                #     mlevents = [events]
+                # else:
+                #     mlevents = ak.concatenate(mlevents,events)
             # from IPython import embed; embed()
             n_events = sum(
                 len(events)
@@ -800,8 +801,8 @@ class PNNModel(MLModel):
         ### TODO
         # Implement way to extract m_H_param and m_A_param from dataset
 
-        a_param = 950
-        h_param = 850
+        a_param = 600
+        h_param = 500
         # print(events)
         # print(f"{self.cls_name}.output")
         # from IPython import embed; embed()
@@ -880,12 +881,12 @@ class PNNModel(MLModel):
 # usable derivations
 PNN = PNNModel.derive("PNN", cls_dict={
     "batchsize": 500,
-    "dropout": 0.5,
+    "dropout": 0.3,
     "epochs": 500,
-    "folds": 2,
+    "folds": 4,
     "eqweight": True,
     "validation_fraction": 0.25,
-    "layers": [512, 512],
+    "layers": [1024, 1024,1024,1024],
     "learning_rate": 0.0005,
 
 
@@ -972,7 +973,7 @@ PNN = PNNModel.derive("PNN", cls_dict={
         "azh_htt_zll_a1300_h900",
         "azh_htt_zll_a1400_h1000",
         "azh_htt_zll_a1400_h1100",
-        "azh_htt_zll_a1400_h1200",
+        # "azh_htt_zll_a1400_h1200",
         "azh_htt_zll_a1400_h1300",
         "azh_htt_zll_a1400_h350",
         "azh_htt_zll_a1400_h400",
@@ -1015,7 +1016,7 @@ PNN = PNNModel.derive("PNN", cls_dict={
         "azh_htt_zll_a1700_h600",
         "azh_htt_zll_a1700_h700",
         "azh_htt_zll_a1700_h800",
-        "azh_htt_zll_a1700_h900",
+        # "azh_htt_zll_a1700_h900",
         "azh_htt_zll_a1800_h1000",
         "azh_htt_zll_a1800_h1100",
         "azh_htt_zll_a1800_h1200",
@@ -1243,7 +1244,7 @@ PNN = PNNModel.derive("PNN", cls_dict={
         "azh_htt_zll_a1300_h900":1,
         "azh_htt_zll_a1400_h1000":1,
         "azh_htt_zll_a1400_h1100":1,
-        "azh_htt_zll_a1400_h1200":1,
+        # "azh_htt_zll_a1400_h1200":1,
         "azh_htt_zll_a1400_h1300":1,
         "azh_htt_zll_a1400_h350":1,
         "azh_htt_zll_a1400_h400":1,
@@ -1286,7 +1287,7 @@ PNN = PNNModel.derive("PNN", cls_dict={
         "azh_htt_zll_a1700_h600":1,
         "azh_htt_zll_a1700_h700":1,
         "azh_htt_zll_a1700_h800":1,
-        "azh_htt_zll_a1700_h900":1,
+        # "azh_htt_zll_a1700_h900":1,
         "azh_htt_zll_a1800_h1000":1,
         "azh_htt_zll_a1800_h1100":1,
         "azh_htt_zll_a1800_h1200":1,

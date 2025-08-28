@@ -70,16 +70,27 @@ analysis_azh.set_aux("config_groups", {})
 # update this config or add additional ones to accomodate the needs of your analysis
 from azh.config.config_run3 import add_config
 import cmsdb.campaigns.run3_2022_preEE_nano_v12
+import cmsdb.campaigns.run3_2022_postEE_nano_v12
+import cmsdb.campaigns.run3_2023_preBPix_nano_v12
+import cmsdb.campaigns.run3_2023_postBPix_nano_v12
 # import cmsdb.campaigns.run3_2022_postEE_nano_v12
 # from cmsdb.campaigns.run2_2017_nano_v9 import campaign_run2_2017_nano_v9
 # import cmsdb.campaigns.run2_2017_nano_v9
 # campaign_run2_2017_nano_v9 = cmsdb.campaigns.run2_2017_nano_v9.campaign_run2_2017_nano_v9
 campaign_run3_2022_preEE_nano_v12 = cmsdb.campaigns.run3_2022_preEE_nano_v12.campaign_run3_2022_preEE_nano_v12
 campaign_run3_2022_preEE_nano_v12.x.EE = "pre"
+campaign_run3_2022_postEE_nano_v12 = cmsdb.campaigns.run3_2022_postEE_nano_v12.campaign_run3_2022_postEE_nano_v12
+campaign_run3_2022_postEE_nano_v12.x.EE = "post"
+campaign_run3_2023_preBPix_nano_v12 = cmsdb.campaigns.run3_2023_preBPix_nano_v12.campaign_run3_2023_preBPix_nano_v12
+campaign_run3_2023_preBPix_nano_v12.x.BPix = "pre"
+campaign_run3_2023_postBPix_nano_v12 = cmsdb.campaigns.run3_2023_postBPix_nano_v12.campaign_run3_2023_postBPix_nano_v12
+campaign_run3_2023_postBPix_nano_v12.x.BPix = "post"
 
 # copy the campaign
 # (creates copies of all linked datasets, processes, etc. to allow for encapsulated customization)
 # campaign = campaign_run2_2017_nano_v9.copy()
+
+#2022
 config_2022pre = add_config(
     analysis_azh,
     campaign_run3_2022_preEE_nano_v12.copy(),
@@ -94,6 +105,47 @@ config_2022pre_limited = add_config(
     limit_dataset_files=1,
 )
 
+config_2022post = add_config(
+    analysis_azh,
+    campaign_run3_2022_postEE_nano_v12.copy(),
+    config_name="config_2022post",
+    config_id=2,
+)
+config_2022post_limited = add_config(
+    analysis_azh,
+    campaign_run3_2022_postEE_nano_v12.copy(),
+    config_name="config_2022post_limited",
+    config_id=22,
+    limit_dataset_files=1,
+)
+
+#2023
+config_2023pre = add_config(
+    analysis_azh,
+    campaign_run3_2023_preBPix_nano_v12.copy(),
+    config_name="config_2023pre",
+    config_id=3,
+)
+config_2023pre_limited = add_config(
+    analysis_azh,
+    campaign_run3_2023_preBPix_nano_v12.copy(),
+    config_name="config_2023pre_limited",
+    config_id=32,
+    limit_dataset_files=1,
+)
+config_2023post = add_config(
+    analysis_azh,
+    campaign_run3_2023_postBPix_nano_v12.copy(),
+    config_name="config_2023post",
+    config_id=4,
+)
+config_2023post_limited = add_config(
+    analysis_azh,
+    campaign_run3_2023_postBPix_nano_v12.copy(),
+    config_name="config_2023post_limited",
+    config_id=42,
+    limit_dataset_files=1,
+)
 # # get all root processes
 # procs = get_root_processes_from_campaign(campaign)
 

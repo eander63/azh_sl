@@ -32,40 +32,55 @@ def z_selection(
     muo_mask = (
         (events.Muon.pt > 20) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.tightId)
+        (events.Muon.highPtId == 2) &
+        (events.Muon.tkIsoId == 2)
     )
 
     muo_mask_high = (
         (events.Muon.pt > 35) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.tightId)
+        (events.Muon.highPtId == 2) &
+        (events.Muon.tkIsoId == 2)
     )
 
     muo_mask_loose = (
         (events.Muon.pt > 20) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.looseId)
+        (events.Muon.looseId) &
+        ((events.Muon.tkIsoId == 1) |
+        (events.Muon.tkIsoId == 2))
     )
 
     # mask for electrons
     ele_mask = (
         (events.Electron.pt > 20) &
         (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaFall17V2Iso_WP80)
+        (events.Electron.mvaIso_WP80)
     )
 
     ele_mask_high = (
         (events.Electron.pt > 35) &
         (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaFall17V2Iso_WP80)
+        (events.Electron.mvaIso_WP80)
     )
 
     ele_mask_loose = (
         (events.Electron.pt > 20) &
         (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaFall17V2Iso_WP90)
+        (events.Electron.mvaIso_WP90)
     )
 
+    ele_test = (
+        (events.Electron.pt > 20) &
+        (abs(events.Electron.eta) < 2.4) &
+        (events.Electron.mvaIso_WP80)
+    )
+    muo_test = (
+        (events.Muon.pt > 20) &
+        (abs(events.Muon.eta) < 2.4) &
+        (events.Muon.highPtId == 2) &
+        (events.Muon.tkIsoId == 2)
+    )
     events = set_ak_column(events, "cutflow.n_ele", ak.sum(ele_mask, axis=1))
     events = set_ak_column(events, "cutflow.n_muo", ak.sum(muo_mask, axis=1))
     events = set_ak_column(events, "cutflow.n_ele_loose", ak.sum(ele_mask_loose, axis=1))

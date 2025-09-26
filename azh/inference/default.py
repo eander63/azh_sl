@@ -93,14 +93,14 @@ def default(self):
         config_category=f"2e__SR__2bjets__6jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_2b_6j",
         config_category=f"2mu__SR__2bjets__6jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
 
     e_categories.append(self.add_category(
@@ -108,14 +108,14 @@ def default(self):
         config_category=f"2e__SR__2bjets__5jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_2b_5j",
         config_category=f"2mu__SR__2bjets__5jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
 
     e_categories.append(self.add_category(
@@ -123,14 +123,14 @@ def default(self):
         config_category=f"2e__SR__1bjets__6jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_1b_6j",
         config_category=f"2mu__SR__1bjets__6jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
 
     e_categories.append(self.add_category(
@@ -138,14 +138,14 @@ def default(self):
         config_category=f"2e__SR__1bjets__5jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_1b_5j",
         config_category=f"2mu__SR__1bjets__5jets",
         config_variable=f"{ml_model_name}_output",
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
 
     #Control regions
@@ -154,100 +154,100 @@ def default(self):
         config_category=f"2e__SR__0bjets__5jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_0b_5j",
         config_category=f"2mu__SR__0bjets__5jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
     e_categories.append(self.add_category(
         "cat_2e_SR_0b_6j",
         config_category=f"2e__SR__0bjets__6jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_SR_0b_6j",
         config_category=f"2mu__SR__0bjets__6jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
     e_categories.append(self.add_category(
         "cat_2e_CR_1b_5j",
         config_category=f"2e__CR__1bjets__5jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_CR_1b_5j",
         config_category=f"2mu__CR__1bjets__5jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
     e_categories.append(self.add_category(
         "cat_2e_CR_1b_6j",
         config_category=f"2e__CR__1bjets__6jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_CR_1b_6j",
         config_category=f"2mu__CR__1bjets__6jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
     e_categories.append(self.add_category(
         "cat_2e_CR_2b_5j",
         config_category=f"2e__CR__2bjets__5jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_CR_2b_5j",
         config_category=f"2mu__CR__2bjets__5jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
     e_categories.append(self.add_category(
         "cat_2e_CR_2b_6j",
         config_category=f"2e__CR__2bjets__6jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=ee_datasets,
+        # config_data_datasets=ee_datasets,
     ))
     mu_categories.append(self.add_category(
         f"cat_2mu_CR_2b_6j",
         config_category=f"2mu__CR__2bjets__6jets",
         config_variable=CR_obs,
         mc_stats=True,
-        config_data_datasets=mu_datasets,
+        # config_data_datasets=mu_datasets,
     ))
     #
     # processes
     #
     print("procs!")
     signals_azh = [
-        "azh_htt_zll_a600_h500",
+        "azh_htt_zll_a2000_h1900",
     ]
 
     processes = [
-        "azh_htt_zll_a600_h500",
+        "azh_htt_zll_a2000_h1900",
         "tt",
         "ttv",
         "st", 
-        "dy_hf",
-        "dy_lf",
+        # "dy_hf",
+        # "dy_lf",
         # "w_lnu",
         # "vv",
         # "vvv",
@@ -276,9 +276,20 @@ def default(self):
             inference_procnames.get(proc, proc),
             config_process=proc,
             is_signal=("azh_" in proc),
-            config_mc_datasets=datasets,
+            # config_mc_datasets=datasets,
         )
-
+    self.add_process(
+        "dy_hf",
+        config_process="dy_hf",
+        config_mc_datasets=["dy_m50toinf_1j_madgraph","dy_m50toinf_2j_madgraph","dy_m50toinf_3j_madgraph","dy_m50toinf_4j_madgraph"],
+    )
+    self.add_process(
+        "dy_lf",
+        config_process="dy_lf",
+        config_mc_datasets=["dy_m50toinf_1j_madgraph","dy_m50toinf_2j_madgraph","dy_m50toinf_3j_madgraph","dy_m50toinf_4j_madgraph"],
+    )
+    #"dy_m10to50_madgraph"
+    
     #
     # parameters
     #

@@ -26,6 +26,45 @@ from columnflow.config_util import (
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
 
+def modify_cmsdb_processes():
+    from cmsdb.processes import (
+        dy, dy_m10to50, dy_m50toinf, dy_m50toinf_0j, dy_m50toinf_1j, dy_m50toinf_2j,dy_m50toinf_3j,dy_m50toinf_4j,
+    )
+
+    decay_map = {
+        "lf": {
+            "name": "lf",
+            "id": 50,
+            "label": "(lf)",
+            "br": -1,
+        },
+        "hf": {
+            "name": "hf",
+            "id": 60,
+            "label": "(hf)",
+            "br": -1,
+        },
+    }
+
+    for dy_proc_inst in (
+        dy, dy_m10to50, dy_m50toinf, dy_m50toinf_0j, dy_m50toinf_1j, dy_m50toinf_2j,dy_m50toinf_3j,dy_m50toinf_4j,
+    ):
+        add_production_mode_parent = dy_proc_inst.name != "dy"
+        for flavour in ("hf", "lf"):
+            # print(flavour)
+            # print(dy_proc_inst)
+            # the 'add_decay_process' function helps us to create all parent-daughter relationships
+            add_decay_process(
+                dy_proc_inst,
+                decay_map[flavour],
+                add_production_mode_parent=add_production_mode_parent,
+                name_func=lambda parent_name, decay_name: f"{parent_name}_{decay_name}",
+                label_func=lambda parent_label, decay_label: f"{parent_label} {decay_label}",
+                xsecs=None,
+                aux={"flavour": flavour},
+            )
+
+modify_cmsdb_processes()
 
 def add_config(
     analysis: od.Analysis,
@@ -61,7 +100,7 @@ def add_config(
     # set color of some processes
     colors = {
         "data": "#000000",  # black
-        "dy": "#FBFF36",  # yellow
+        # "dy": "#FBFF36",  # yellow
         "tt": "#E04F21",  # red
         "ttv": "#5E8FFC",  # blue
         "w_lnu": "#82FF28",  # green
@@ -73,7 +112,9 @@ def add_config(
 
     # add datasets we need to study
     process_names = [
-        "dy",
+        # "dy",
+        "dy_hf",
+        "dy_lf",
         "tt",
         "ttv",
         "st",

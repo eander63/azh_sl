@@ -453,21 +453,32 @@ class PNNModel(MLModel):
                 sum_back_weight += sum_weights
 
             for i, proc in enumerate(process_insts):
-                # print("LEAF")
+                print("LEAF")
                 # print(proc)
                 proc_custom_weights[i] = self.proc_custom_weights[proc.name]
                 leaf_procs = [
                     p for p, _, _ in self.config_inst.get_process(proc).walk_processes(include_self=True)
                 ]
-                # print(leaf_procs)
-                # print(dataset_inst.processes.get_first())
+                print("leaf ", leaf_procs)
+                print("get first " , dataset_inst.processes.get_first())
+                print("process ", dataset_inst.processes)
+                # from IPython import embed; embed()
                 if dataset_inst.processes.get_first() in leaf_procs:
                 # if True:
+                    print("i ",i)
+                    print("proc ",proc)
                     logger.info(f"the dataset *{dataset}* is used for training the *{proc.name}* output node")
                     proc_idx[dataset] = i
                     proc_n_events[i] += n_events
                     proc_sum_weights[i] += sum_weights
                     continue
+                #Dirty Fix
+                if "dy_" in dataset_inst.name and "dy_hf" in leaf_procs[0].name:
+                    proc_idx[dataset] = i
+                    proc_n_events[i] += n_events
+                    proc_sum_weights[i] += sum_weights
+                    continue
+
             # print("Leaving LEAF")
 
         # fail if no process was found for dataset
@@ -876,6 +887,9 @@ class PNNModel(MLModel):
         #     print(outputs[i])
         events = set_ak_column(events, f"{self.cls_name}.output", outputs)
         return events
+    def training_configs(self, requested_configs):
+    #     return ("config_2022pre,config_2022post,config_2023pre,config_2023post")
+        return ["config_2022pre","config_2022post","config_2023pre","config_2023post"]
 
 
 # usable derivations
@@ -893,7 +907,9 @@ PNN = PNNModel.derive("PNN", cls_dict={
     "processes": [
         "tt",
         # "st",
-        "dy",
+        # "dy",
+        "dy_hf",
+        # "dy_lf",
         "ttv",
         # "vv",
         "azh_htt_zll_a1000_h330",
@@ -1164,7 +1180,9 @@ PNN = PNNModel.derive("PNN", cls_dict={
     "proc_custom_weights": {
         "tt": 1,
         # "st": 1,
-        "dy": 1,
+        # "dy": 1,
+        "dy_hf": 1,
+        # "dy_lf" : 1,
         "ttv":1,
         "vv":1,
         "azh_htt_zll_a1000_h330":1,

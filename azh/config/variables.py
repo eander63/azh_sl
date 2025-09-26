@@ -144,7 +144,7 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="pt_z",
         expression="pt_z",
-        binning=(70, 0, 700),
+        binning=(10, 0, 700),
         unit="GeV",
         x_title="Transverse momentum of Z boson",
     )
@@ -160,7 +160,7 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="PNN_output",
         expression="PNN.output",
-        binning=(20, 0, 1),
+        binning=(10, 0, 1),
         unit="",
         x_title="PNN output score",
     )

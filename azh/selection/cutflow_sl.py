@@ -20,15 +20,15 @@ from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.processes import process_ids
 
-from azh.selection.jet_selection_cutflow import jet_selection
-from azh.selection.bjet_selection import bjet_selection
+#from azh.selection.jet_selection_cutflow import jet_selection
+#from azh.selection.bjet_selection import bjet_selection
 from azh.selection.lepton_selection_cutflow import lepton_selection_cutflow
 from azh.selection.z_selection import z_selection
 from columnflow.production.categories import category_ids
 from azh.config.categories import add_categories_production
 from azh.selection.trigger import trigger_selection
 from columnflow.selection.cms.met_filters import met_filters
-from columnflow.selection.cms.jets import jet_veto_map
+#from columnflow.selection.cms.jets import jet_veto_map
 
 
 np = maybe_import("numpy")
@@ -39,18 +39,25 @@ ak = maybe_import("awkward")
     uses={
         process_ids, attach_coffea_behavior,
         mc_weight, category_ids,  # not opened per default but always required in Cutflow tasks
-        jet_selection, lepton_selection_cutflow,  # azh_selection,
-        increment_stats, bjet_selection, z_selection,
+        #jet_selection, 
+        lepton_selection_cutflow,  # azh_selection,
+        increment_stats,
+        #bjet_selection, 
+        z_selection,
         trigger_selection,
-        met_filters, jet_veto_map,
+        met_filters, 
+        #jet_veto_map,
     },
     produces={
         process_ids, attach_coffea_behavior,
         mc_weight, category_ids,
-        jet_selection, lepton_selection_cutflow,  # azh_selection,
-        increment_stats, bjet_selection, z_selection,
+        #jet_selection, 
+        lepton_selection_cutflow,  # azh_selection,
+        increment_stats, 
+        #jet_selection, 
+        z_selection,
         trigger_selection,
-        met_filters, jet_veto_map,
+        met_filters, #jet_veto_map,
     },
     exposed=True,
     check_used_columns=False,
@@ -97,17 +104,17 @@ def cutflow_sl(
     results += results_z
 
     # jet selection
-    events, results_jet = self[jet_selection](events, **kwargs)
-    results += results_jet
+    #events, results_jet = self[jet_selection](events, **kwargs)
+    #results += results_jet
 
-    events, results_bjet = self[bjet_selection](events, **kwargs)
-    results += results_bjet
+    #events, results_bjet = self[bjet_selection](events, **kwargs)
+    #results += results_bjet
 
     events, met_filters_results = self[met_filters](events, **kwargs)
     results += met_filters_results
 
-    events, jet_veto_results = self[jet_veto_map](events, **kwargs)
-    results += jet_veto_results
+    #events, jet_veto_results = self[jet_veto_map](events, **kwargs)
+    #results += jet_veto_results
 
     events, results_trigger = self[trigger_selection](events, **kwargs)
     results += results_trigger

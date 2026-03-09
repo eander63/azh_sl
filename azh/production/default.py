@@ -36,12 +36,12 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
     uses={
         category_ids, normalization_weights,dy_producer, trigger,
         weights, z_boson, higgs_reco, choose_lepton, ml_inputs,
-        prepare_objects, "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.rawFactor", event_weight, "Jet.btagDeepFlavB","MET.pt","MET.phi","process_id"
+        prepare_objects, event_weight, "MET.pt","MET.phi","process_id","cutflow*",
     },
     produces={
         category_ids, normalization_weights,dy_producer, trigger,
-        weights, z_boson, choose_lepton, ml_inputs,
-        prepare_objects, higgs_reco, event_weight, "event_number","process_id",
+        weights, z_boson, choose_lepton,
+        higgs_reco, event_weight, "event_number","process_id",
     },
 )
 def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -53,7 +53,7 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = self[prepare_objects](events, **kwargs)
     events = self[z_boson](events, **kwargs)
     # from IPython import embed; embed()
-    events = self[higgs_reco](events, **kwargs)
+    # events = self[higgs_reco](events, **kwargs)
     events = self[category_ids](events, **kwargs)
     # events = self[trigger](events, **kwargs)
     # mc-only weights
@@ -70,12 +70,13 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # print("Weights: ", events.event_weight)
         # print("Normalized Weights: ", events.normalization_weight)
     if self.dataset_inst.has_tag("is_dy"):
+        pass
         events = self[dy_producer](events, **kwargs)
     # deterministoc seeds
     # events = self[category_ids](events, **kwargs)
     # print(events.category_ids)
     # print(events.category_ids)
-    events = self[ml_inputs](events, **kwargs)
+    # events = self[ml_inputs](events, **kwargs)
     # print(events.category_ids)
 
     # not_passed = ~passed
@@ -156,6 +157,6 @@ def default_init(self: Producer) -> None:
     # add production categories to config
     # if not self.config_inst.get_aux("has_categories_production", False):
     add_categories_mz(self.config_inst)
-    add_categories_bjets(self.config_inst)
-    add_categories_njets(self.config_inst)
+    # add_categories_bjets(self.config_inst)
+    # add_categories_njets(self.config_inst)
     # self.config_inst.x.has_categories_production = True

@@ -29,16 +29,6 @@ custom_collections = {
         "check_attr": "metric_table",
         "skip_fields": "*Idx*G",
     },
-    "Jet": {
-        "type_name": "Jet",  # is there some other collection?
-        "check_attr": "metric_table",
-        "skip_fields": "*Idx*G",
-    },
-    "BJet": {
-        "type_name": "Jet",  # is there some other collection?
-        "check_attr": "metric_table",
-        "skip_fields": "*Idx*G",
-    },
 }
 
 
@@ -48,7 +38,7 @@ custom_collections = {
     uses={
         attach_coffea_behavior, "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
         "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Leptons.pt", "Leptons.eta", "Leptons.phi",
-        "Leptons.mass", "Jet", "BJet",
+        "Leptons.mass",
         choose_lepton,
     },
     # no produces since we do not want to permanently produce columns

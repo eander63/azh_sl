@@ -6,7 +6,7 @@ Producers related to event weights.
 
 from columnflow.production import Producer, producer
 from columnflow.columnar_util import set_ak_column, has_ak_column, Route
-from columnflow.production.cms.btag import split_btag_weights
+# from columnflow.production.cms.btag import split_btag_weights
 from columnflow.production.cms.electron import electron_weights
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
@@ -100,7 +100,7 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[muon_iso_weights](events, **kwargs)
 
         # compute btag weights
-        events = self[split_btag_weights](events, **kwargs)
+        # events = self[split_btag_weights](events, **kwargs)
 
         # # compute top pT weights (disabled for now)
         if self.dataset_inst.has_tag("is_ttbar"):
@@ -123,11 +123,11 @@ def weights_init(self: Producer) -> None:
     if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
         # dynamically add dependencies if running on MC
         self.uses |= {
-            split_btag_weights, electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
+            electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights # normalized_pu_weights,
 
         }
         self.produces |= {
-            split_btag_weights, electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
+            electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights # normalized_pu_weights,
         }

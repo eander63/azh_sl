@@ -16,11 +16,18 @@ ak = maybe_import("awkward")
     },
 )
 def z_boson(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    # leptons = events.Lepton
-    # leptons = ak.pad_none(leptons,3)
-    z = events.Leptons[:, 0] + events.Leptons[:, 1]
-    mass_z = z.mass
-    mass_z = ak.where(np.isfinite(mass_z), mass_z, ak.full_like(mass_z, 0))
+    leptons = events.Leptons
+    # pad to 2, use None for missing leptons
+    padded = ak.pad_none(leptons, 2)
+    l1 = ak.fill_none(padded[:, 0], padded[:, 0])
+    l2 = ak.fill_none(padded[:, 1], padded[:, 1])
+    # compute z only where both leptons exist
+    has_pair = ak.num(leptons) >= 2
+    z_mass = ak.where(has_pair, (padded[:, 0] + padded[:, 1]).mass, 0.0)
+    z_pt = ak.where(has_pair, (padded[:, 0] + padded[:, 1]).pt, 0.0)
+    z_mass = ak.fill_none(z_mass, 0.0)
+    z_pt = ak.fill_none(z_pt, 0.0)
+    mass_z = ak.where(np.isfinite(z_mass), z_mass, ak.full_like(z_mass, 0))
     events = set_ak_column(events, "m_z", mass_z)
-    events = set_ak_column(events, "pt_z", z.pt)
+    events = set_ak_column(events, "pt_z", z_pt)
     return events

@@ -1314,7 +1314,7 @@ def add_config(
         "btag_sf_corr": (f"{json_mirror}/POG/BTV/2022_Summer22EE/btagging.json.gz", "v1"),
 
         # V+jets reweighting
-        "vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
+        #"vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
 
         # jet veto map
         "jet_veto_map": (f"{json_mirror}/POG/JME/{corr_tag}/jetvetomaps.json.gz", "v1")
@@ -1413,17 +1413,18 @@ def add_config(
             "LHEScaleWeight",
             "GenPart.*",
             "HLT*",
-        } | set(  # Jets
-            f"{jet_obj}.{field}"
-            for jet_obj in ["Jet"]
+        }# | set(  # Jets
+         #   f"{jet_obj}.{field}"
+         #   for jet_obj in ["Jet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor", "btagDeepFlavQG","btagDeepFlavQG"]
-        ) | set(  # BJets
-            f"{jet_obj}.{field}"
-            for jet_obj in ["BJet"]
+         #   for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor", "btagDeepFlavQG","btagDeepFlavQG"]
+       # ) | set(  # BJets
+         #   f"{jet_obj}.{field}"
+         #   for jet_obj in ["BJet"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB", "hadronFlavour"]
-        ) | set(  # Muons
+         #   for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB", "hadronFlavour"]
+        #)
+          | set(  # Muons
             f"{mu_obj}.{field}"
             for mu_obj in ["Muon"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
@@ -1442,7 +1443,7 @@ def add_config(
         ) | set(  # GenJets
             f"{gen_jet_obj}.{field}"
             for gen_jet_obj in ["GenJet"]
-            for field in ["pt", "eta", "phi", "mass","hadronFlavour"]
+            for field in ["pt", "eta", "phi", "mass", "hadronFlavour"]
         )
     )
 
@@ -1458,7 +1459,7 @@ def add_config(
         "muon_id_weight": [],
         "muon_iso_weight": [],
         "pu_weight": [],
-        "btag_weight": [],
+        # "btag_weight": [],
         "mur_weight": get_shifts("mur"),
         "muf_weight": get_shifts("muf"),
         # "top_pt_weight": [],

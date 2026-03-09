@@ -36,9 +36,11 @@ def choose_lepton(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # extract only LV columns
     muon = events.Muon[["pt", "eta", "phi", "mass", "pdgId"]]
     electron = events.Electron[["pt", "eta", "phi", "mass", "pdgId"]]
+    is_2mu = ak.any(events.category_ids == 20, axis=1)
+    is_2e = ak.any(events.category_ids == 10, axis=1)
     leptons = ak.concatenate([
-        ak.mask(muon, (ak.pad_none(events.category_ids, 2) == 20)[:, 0]),
-        ak.mask(electron, (ak.pad_none(events.category_ids, 2) == 10)[:, 0]),
+        ak.mask(muon, is_2mu),
+        ak.mask(electron, is_2e),
     ], axis=1)
 
     # attach lorentz vector behavior to lepton

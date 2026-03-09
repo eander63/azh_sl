@@ -98,7 +98,6 @@ def default(
     # events, results_azh = self[azh_selection](events, **kwargs)
     # results += results_azh
     results.steps['no_trig'] = (
-        results.steps.Jet & 
         results.steps.Lepton &
         results.steps.met_filter &
         results.steps.jet_veto_map
@@ -114,7 +113,7 @@ def default(
 
     # results.event contains full selection mask. Sum over all steps.
     # Make sure all nans are present, otherwise next tasks fail
-    results.event = reduce(and_, results.steps.values())
+    results.event = results.steps["no_trig"]
     results.event = ak.fill_none(results.event, False)
 
     weight_map = {

@@ -93,11 +93,11 @@ def lepton_selection(
     events = set_ak_column(events, "cutflow.n_ele_high", ak.sum(ele_mask_high, axis=1))
     events = set_ak_column(events, "cutflow.n_muo_high", ak.sum(muo_mask_high, axis=1))
 
-    # select only events with exactly 2 leptons
-    lep_sel = (((events.cutflow.n_ele == 2) & (events.cutflow.n_ele_high > 0) &
-        (events.cutflow.n_ele_loose == 2) & (events.cutflow.n_muo_loose == 0)) |
-        ((events.cutflow.n_muo == 2) & (events.cutflow.n_muo_high > 0) &
-        (events.cutflow.n_muo_loose == 2) & (events.cutflow.n_ele_loose == 0)))
+    # select only events with exactly 2 same-flavor loose leptons (Z peak validation)
+    lep_sel = (
+        ((events.cutflow.n_ele_loose == 2) & (events.cutflow.n_muo_loose == 0)) |
+        ((events.cutflow.n_muo_loose == 2) & (events.cutflow.n_ele_loose == 0))
+    )
 
     # i = 0
     # j = 0

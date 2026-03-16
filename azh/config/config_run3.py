@@ -974,7 +974,7 @@ def add_config(
     cfg.x.minbias_xs = Number(69.2, 0.046j)
 
     # whether to validate the number of obtained LFNs in GetDatasetLFNs
-    cfg.x.validate_dataset_lfns = limit_dataset_files is None
+    cfg.x.validate_dataset_lfns = False
 
     # jec configuration
     # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC?rev=201
@@ -1412,7 +1412,6 @@ def add_config(
             "Pileup.nTrueInt",
             "LHEScaleWeight",
             "GenPart.*",
-            "HLT*",
         }# | set(  # Jets
          #   f"{jet_obj}.{field}"
          #   for jet_obj in ["Jet"]

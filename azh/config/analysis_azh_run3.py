@@ -104,6 +104,14 @@ config_2022pre_limited = add_config(
     config_id=12,
     limit_dataset_files=1,
 )
+config_2022pre_10files = add_config(
+    analysis_azh,
+    campaign_run3_2022_preEE_nano_v12.copy(),
+    config_name="config_2022pre_10files",
+    config_id=13,
+    limit_dataset_files=10,
+)
+
 
 config_2022post = add_config(
     analysis_azh,

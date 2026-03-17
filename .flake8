@@ -1,0 +1,8 @@
+[flake8]
+max-line-length = 90
+
+exclude = .git, __pycache__, build, dist, .venv, venv, env
+
+ignore = E731, W504
+# E731) lambda expressions
+# W504) line break after binary operator

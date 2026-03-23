@@ -72,20 +72,6 @@ def lepton_selection(
         (events.Electron.mvaIso_WP90)
     )
 
-    ele_test = (
-        (events.Electron.pt > 20) &
-        (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaIso_WP80)
-    )
-    muo_test = (
-        (events.Muon.pt > 20) &
-        (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.highPtId == 2) &
-        (events.Muon.tkIsoId == 2)
-    )
-    events = set_ak_column(events, "cutflow.n_ele_test", ak.sum(ele_test, axis=1))
-    events = set_ak_column(events, "cutflow.n_muo_test", ak.sum(muo_test, axis=1))
-
     events = set_ak_column(events, "cutflow.n_ele", ak.sum(ele_mask, axis=1))
     events = set_ak_column(events, "cutflow.n_muo", ak.sum(muo_mask, axis=1))
     events = set_ak_column(events, "cutflow.n_ele_loose", ak.sum(ele_mask_loose, axis=1))
@@ -93,10 +79,18 @@ def lepton_selection(
     events = set_ak_column(events, "cutflow.n_ele_high", ak.sum(ele_mask_high, axis=1))
     events = set_ak_column(events, "cutflow.n_muo_high", ak.sum(muo_mask_high, axis=1))
 
-    # select only events with exactly 2 same-flavor loose leptons (Z peak validation)
+    # select only events with exactly 2 same-flavor OS loose leptons,
+    # with at least one passing the high-pT threshold
     lep_sel = (
-        ((events.cutflow.n_ele_loose == 2) & (events.cutflow.n_muo_loose == 0)) |
-        ((events.cutflow.n_muo_loose == 2) & (events.cutflow.n_ele_loose == 0))
+        (
+            (events.cutflow.n_ele_loose == 2) &
+            (events.cutflow.n_muo_loose == 0) &
+            (events.cutflow.n_ele_high > 0)
+        ) | (
+            (events.cutflow.n_muo_loose == 2) &
+            (events.cutflow.n_ele_loose == 0) &
+            (events.cutflow.n_muo_high > 0)
+        )
     )
 
     # i = 0

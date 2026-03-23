@@ -21,6 +21,23 @@ mass_window = 5
 pt_z_cut = 15
 
 
+@categorizer(uses={"cutflow.*"}, call_force=True)
+def catid_2l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    """Combined ee + mumu category for Z mass plots."""
+    mask = (
+        (
+            (events.cutflow.n_ele_loose == 2) &
+            (events.cutflow.n_muo_loose == 0) &
+            (events.cutflow.n_ele_high > 0)
+        ) | (
+            (events.cutflow.n_muo_loose == 2) &
+            (events.cutflow.n_ele_loose == 0) &
+            (events.cutflow.n_muo_high > 0)
+        )
+    )
+    return events, mask
+
+
 @categorizer(uses={"event"}, call_force=True)
 def catid_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     mask = ( events.m_z >=  np.full_like(events.m_z, z_mass - mass_window))  & (events.m_z <= np.full_like(events.m_z, z_mass + mass_window)) & ( events.pt_z >=  np.full_like(events.pt_z, pt_z_cut))  # noqa

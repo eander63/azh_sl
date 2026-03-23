@@ -24,6 +24,7 @@ from azh.production.weights import weights, event_weight
 from azh.config.categories import add_categories_mz
 from azh.config.categories import add_categories_bjets
 from azh.config.categories import add_categories_njets
+from azh.config.categories import add_category_2l
 
 
 ak = maybe_import("awkward")
@@ -45,7 +46,6 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
     },
 )
 def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    print("WELCOME TO THE DEFAULT PRODUCER")
     # events = self[azh_quantities](events, **kwargs)
     # category ids
     # events = self[category_ids](events, **kwargs)
@@ -61,7 +61,6 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
     if self.dataset_inst.is_mc:
         # normalization weights
-        print("NWeights BEfore: ", events.mc_weight)
         # from IPython import embed; embed()
         events = self[weights](events, **kwargs)
         # from IPython import embed; embed()
@@ -70,7 +69,6 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # print("Weights: ", events.event_weight)
         # print("Normalized Weights: ", events.normalization_weight)
     if self.dataset_inst.has_tag("is_dy"):
-        pass
         events = self[dy_producer](events, **kwargs)
     # deterministoc seeds
     # events = self[category_ids](events, **kwargs)
@@ -157,6 +155,7 @@ def default_init(self: Producer) -> None:
     # add production categories to config
     # if not self.config_inst.get_aux("has_categories_production", False):
     add_categories_mz(self.config_inst)
+    add_category_2l(self.config_inst)
     # add_categories_bjets(self.config_inst)
     # add_categories_njets(self.config_inst)
     # self.config_inst.x.has_categories_production = True

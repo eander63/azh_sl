@@ -116,9 +116,16 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="m_z",
         expression="m_z",
-        binning=(40, 0, 400),
+        binning=(60, 60.0, 120.0),
         unit="GeV",
-        x_title="Invariant mass of two leptons",
+        x_title=r"$m_{\ell\ell}$ [GeV]",
+    )
+    config.add_variable(
+        name="m_z_wide",
+        expression="m_z",
+        binning=(40, 0.0, 400.0),
+        unit="GeV",
+        x_title=r"$m_{\ell\ell}$ [GeV] (wide)",
     )
     config.add_variable(
         name="m_h",
@@ -257,7 +264,7 @@ def add_variables(config: od.Config) -> None:
             x_title=r"Lepton %i $\phi$" % (i + 1),
         )
 
-# Cutflow Variables
+    # Cutflow Variables
     config.add_variable(
         name="cf_n_jet",
         expression="cutflow.n_jet",

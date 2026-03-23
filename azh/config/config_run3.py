@@ -69,6 +69,37 @@ def modify_cmsdb_processes():
             )
 
 modify_cmsdb_processes()
+
+
+def get_dataset_lfns(
+    dataset_inst: od.Dataset,
+    shift_inst: od.Shift,
+    dataset_key: str,
+) -> list[str]:
+    """
+    Custom LFN retrieval that constrains DAS queries to T2_DE_RWTH
+    where the Run3 NanoAOD files are available.
+    """
+    import subprocess
+    query = f"file dataset={dataset_key} site=T2_DE_RWTH"
+    result = subprocess.run(
+        ["dasgoclient", f"--query={query}"],
+        capture_output=True,
+        text=True,
+    )
+    lfns = [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+    if not lfns:
+        # fall back to global query if site-specific returns nothing
+        query = f"file dataset={dataset_key}"
+        result = subprocess.run(
+            ["dasgoclient", f"--query={query}"],
+            capture_output=True,
+            text=True,
+        )
+        lfns = [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+    return lfns
+
+
 def add_config(
     analysis: od.Analysis,
     campaign: od.Campaign,
@@ -106,7 +137,7 @@ def add_config(
     # create a config by passing the campaign, so id and name will be identical
     cfg = analysis_azh.add_config(campaign, name=config_name, id=config_id)
     # use custom get_dataset_lfns function
-    # cfg.x.get_dataset_lfns = get_dataset_lfns
+    cfg.x.get_dataset_lfns = get_dataset_lfns
 
     # add processes we are interested in
 
@@ -445,401 +476,85 @@ def add_config(
 
     ######################################################################################
     dataset_names = [
-        # TT
-        "tt_sl_powheg",
-        "tt_dl_powheg",
-        "tt_fh_powheg",
-
-        # # TTV
-        "ttz_zll_m4to50_amcatnlo",
-        "ttz_zll_m50toinf_amcatnlo",
-        # "ttw_amcatnlo",
-        # "ttw_wlnu_amcatnlo",
-        # "ttz_zqq_amcatnlo",
-        # "ttz_zll_m4to50_amcatnlo",
-        # "ttz_zll_m50toinf_amcatnlo",
-        # "ttw_wqq_amcatnlo",
-
-        # # ST
-        # "st_tchannel_tbar_4f_powheg",
-        "st_tchannel_t_4f_powheg",
-        # "st_twchannel_tbar_dl_powheg",
-        # "st_twchannel_tbar_fh_powheg",
-        "st_twchannel_tbar_sl_powheg",
-        # "st_twchannel_t_dl_powheg",
-        # "st_twchannel_t_fh_powheg",
-        # "st_twchannel_t_sl_powheg", #root trouble
-        # "st_schannel_t_lep_4f_amcatnlo",
-        # "st_schannel_tbar_lep_4f_amcatnlo",
-
-        # # WJets
-        #empty at the moment
-        # "w_lnu_amcatnlo",
-
-        # # DY
+    # DY — use the jet-binned LO madgraph samples for stitching
+    # (these are what the current config already uses)
         "dy_m10to50_madgraph",
         "dy_m50toinf_1j_madgraph",
         "dy_m50toinf_2j_madgraph",
         "dy_m50toinf_3j_madgraph",
         "dy_m50toinf_4j_madgraph",
-        # "dy_m50toinf_1j_pt40to100_amcatnlo",
-        # "dy_m50toinf_1j_pt100to200_amcatnlo",
-        # "dy_m50toinf_1j_pt200to400_amcatnlo",
-        # "dy_m50toinf_1j_pt400to600_amcatnlo",
-        # "dy_m50toinf_1j_pt600toinf_amcatnlo",
-        # "dy_m50toinf_2j_pt40to100_amcatnlo",
-        # "dy_m50toinf_2j_pt100to200_amcatnlo",
-        # "dy_m50toinf_2j_pt200to400_amcatnlo",
-        # "dy_m50toinf_2j_pt400to600_amcatnlo",
-        # "dy_m50toinf_2j_pt600toinf_amcatnlo",
-        # "dy_m50toinf_ht70to100_madgraph",
-        # "dy_m50toinf_ht100to200_madgraph",
-        # "dy_m50toinf_ht200to400_madgraph",
-        # "dy_m50toinf_ht400to600_madgraph",
-        # "dy_m50toinf_ht600to800_madgraph",
-        # "dy_m50toinf_ht800to1200_madgraph",
-        # "dy_m50toinf_ht1200to2500_madgraph",
-        # "dy_m50toinf_ht2500toinf_madgraph",
 
-        # # VV
-        # "zz_pythia",
-        # "wz_pythia", #ROOT Files missing
-        # "ww_pythia",
+    # TTbar
+        "tt_sl_powheg",
+        "tt_dl_powheg",
+        "tt_fh_powheg",
 
-        # # VVV
-        # "wwz_pythia",
+    # TTZ
+        "ttz_zll_m4to50_amcatnlo",
+        "ttz_zll_m50toinf_amcatnlo",
 
-        # Data
-        # # Double Muon
-        # "data_doublemu_a",
-        # "data_doublemu_b",
-        *if_era(year=2022, tag="preEE", values=[
-            "data_doublemu_c",
-            "data_mu_c",
-            "data_mu_d",
-            "data_egamma_c",
-            "data_egamma_d",
-            "data_muoneg_c",
-            "data_muoneg_d",
-        ]),
-        *if_era(year=2022, tag="postEE", values=[
-            "data_mu_e",
-            "data_mu_f",
-            "data_mu_g",
-            "data_egamma_e",
-            "data_egamma_f",
-            "data_egamma_g",
-            "data_muoneg_e",
-            # "data_muoneg_f",
-            # "data_muoneg_g",
-        ]),
-        *if_era(year=2023, tag="preBPix", values=[
-            "data_mu_c1",
-            "data_mu_c2",
-            "data_mu_c3",
-            "data_mu_c4",
-            "data_egamma_c1",
-            "data_egamma_c2",
-            "data_egamma_c3",
-            "data_egamma_c4",
-            "data_muoneg_c1",
-            "data_muoneg_c2",
-            "data_muoneg_c3",
-            "data_muoneg_c4",
-        ]),
-        *if_era(year=2023, tag="postBPix", values=[
-            "data_mu_d1",
-            "data_mu_d2",
-            "data_egamma_d1",
-            "data_egamma_d2",
-            "data_muoneg_d1",
-            "data_muoneg_d2",
-        ]),
-        # "data_doublemu_c",
-        # # # muon
-        # "data_mu_c",
-        # "data_mu_d",
-        # # #  EG
-        # # "data_egamma_a",
-        # # "data_egamma_b",
-        # "data_egamma_c",
-        # "data_egamma_d",
-        # # # Muon EG
-        # # "data_muoneg_a",
-        # # "data_muoneg_b",
-        # "data_muoneg_c",
-        # "data_muoneg_d",
+    # Single top
+        "st_tchannel_t_4f_powheg",
+        "st_tchannel_tbar_4f_powheg",
+        "st_twchannel_t_sl_powheg",
+        "st_twchannel_tbar_sl_powheg",
+        "st_twchannel_t_dl_powheg",
+        "st_twchannel_tbar_dl_powheg",
 
-        # Signal
-        # AZH
-        "azh_htt_zll_a1000_h330_amcatnlo",
-        "azh_htt_zll_a1000_h350_amcatnlo",
-        "azh_htt_zll_a1000_h400_amcatnlo",
-        "azh_htt_zll_a1000_h450_amcatnlo",
-        "azh_htt_zll_a1000_h500_amcatnlo",
-        "azh_htt_zll_a1000_h550_amcatnlo",
-        "azh_htt_zll_a1000_h600_amcatnlo",
-        "azh_htt_zll_a1000_h650_amcatnlo",
-        "azh_htt_zll_a1000_h700_amcatnlo",
-        "azh_htt_zll_a1000_h750_amcatnlo",
-        "azh_htt_zll_a1000_h800_amcatnlo",
-        "azh_htt_zll_a1000_h850_amcatnlo",
-        "azh_htt_zll_a1000_h900_amcatnlo",
-        "azh_htt_zll_a1050_h330_amcatnlo",
-        "azh_htt_zll_a1050_h350_amcatnlo",
-        "azh_htt_zll_a1050_h400_amcatnlo",
-        "azh_htt_zll_a1050_h450_amcatnlo",
-        "azh_htt_zll_a1050_h500_amcatnlo",
-        "azh_htt_zll_a1050_h550_amcatnlo",
-        "azh_htt_zll_a1050_h600_amcatnlo",
-        "azh_htt_zll_a1050_h700_amcatnlo",
-        "azh_htt_zll_a1050_h750_amcatnlo",
-        "azh_htt_zll_a1050_h800_amcatnlo",
-        "azh_htt_zll_a1050_h850_amcatnlo",
-        "azh_htt_zll_a1050_h900_amcatnlo",
-        "azh_htt_zll_a1050_h950_amcatnlo",
-        "azh_htt_zll_a1100_h1000_amcatnlo",
-        "azh_htt_zll_a1100_h330_amcatnlo",
-        "azh_htt_zll_a1100_h350_amcatnlo",
-        "azh_htt_zll_a1100_h400_amcatnlo",
-        "azh_htt_zll_a1100_h450_amcatnlo",
-        "azh_htt_zll_a1100_h500_amcatnlo",
-        "azh_htt_zll_a1100_h550_amcatnlo",
-        "azh_htt_zll_a1100_h600_amcatnlo",
-        "azh_htt_zll_a1100_h650_amcatnlo",
-        "azh_htt_zll_a1100_h700_amcatnlo",
-        "azh_htt_zll_a1100_h750_amcatnlo",
-        "azh_htt_zll_a1100_h800_amcatnlo",
-        "azh_htt_zll_a1100_h850_amcatnlo",
-        "azh_htt_zll_a1100_h900_amcatnlo",
-        "azh_htt_zll_a1100_h950_amcatnlo",
-        "azh_htt_zll_a1150_h1050_amcatnlo",
-        "azh_htt_zll_a1150_h330_amcatnlo",
-        "azh_htt_zll_a1150_h350_amcatnlo",
-        "azh_htt_zll_a1150_h450_amcatnlo",
-        "azh_htt_zll_a1150_h550_amcatnlo",
-        "azh_htt_zll_a1150_h650_amcatnlo",
-        "azh_htt_zll_a1150_h750_amcatnlo",
-        "azh_htt_zll_a1150_h850_amcatnlo",
-        "azh_htt_zll_a1150_h950_amcatnlo",
-        "azh_htt_zll_a1200_h1000_amcatnlo",
-        "azh_htt_zll_a1200_h1100_amcatnlo",
-        "azh_htt_zll_a1200_h330_amcatnlo",
-        "azh_htt_zll_a1200_h350_amcatnlo",
-        "azh_htt_zll_a1200_h400_amcatnlo",
-        "azh_htt_zll_a1200_h500_amcatnlo",
-        "azh_htt_zll_a1200_h600_amcatnlo",
-        "azh_htt_zll_a1200_h700_amcatnlo",
-        "azh_htt_zll_a1200_h800_amcatnlo",
-        "azh_htt_zll_a1200_h850_amcatnlo",
-        "azh_htt_zll_a1200_h900_amcatnlo",
-        "azh_htt_zll_a1300_h1000_amcatnlo",
-        "azh_htt_zll_a1300_h1100_amcatnlo",
-        "azh_htt_zll_a1300_h1200_amcatnlo",
-        "azh_htt_zll_a1300_h350_amcatnlo",
-        "azh_htt_zll_a1300_h400_amcatnlo",
-        "azh_htt_zll_a1300_h500_amcatnlo",
-        "azh_htt_zll_a1300_h600_amcatnlo",
-        "azh_htt_zll_a1300_h700_amcatnlo",
-        "azh_htt_zll_a1300_h800_amcatnlo",
-        "azh_htt_zll_a1300_h900_amcatnlo",
-        "azh_htt_zll_a1400_h1000_amcatnlo",
-        "azh_htt_zll_a1400_h1100_amcatnlo",
-        # "azh_htt_zll_a1400_h1200_amcatnlo",
-        "azh_htt_zll_a1400_h1300_amcatnlo",
-        "azh_htt_zll_a1400_h350_amcatnlo",
-        "azh_htt_zll_a1400_h400_amcatnlo",
-        "azh_htt_zll_a1400_h500_amcatnlo",
-        "azh_htt_zll_a1400_h600_amcatnlo",
-        "azh_htt_zll_a1400_h700_amcatnlo",
-        "azh_htt_zll_a1400_h800_amcatnlo",
-        "azh_htt_zll_a1400_h900_amcatnlo",
-        "azh_htt_zll_a1500_h1000_amcatnlo",
-        "azh_htt_zll_a1500_h1100_amcatnlo",
-        "azh_htt_zll_a1500_h1200_amcatnlo",
-        "azh_htt_zll_a1500_h1300_amcatnlo",
-        "azh_htt_zll_a1500_h1400_amcatnlo",
-        "azh_htt_zll_a1500_h350_amcatnlo",
-        "azh_htt_zll_a1500_h400_amcatnlo",
-        "azh_htt_zll_a1500_h500_amcatnlo",
-        "azh_htt_zll_a1500_h600_amcatnlo",
-        "azh_htt_zll_a1500_h700_amcatnlo",
-        "azh_htt_zll_a1500_h900_amcatnlo",
-        "azh_htt_zll_a1600_h1000_amcatnlo",
-        "azh_htt_zll_a1600_h1100_amcatnlo",
-        "azh_htt_zll_a1600_h1200_amcatnlo",
-        "azh_htt_zll_a1600_h1300_amcatnlo",
-        "azh_htt_zll_a1600_h1400_amcatnlo",
-        "azh_htt_zll_a1600_h1500_amcatnlo",
-        "azh_htt_zll_a1600_h350_amcatnlo",
-        "azh_htt_zll_a1600_h400_amcatnlo",
-        "azh_htt_zll_a1600_h500_amcatnlo",
-        "azh_htt_zll_a1600_h600_amcatnlo",
-        "azh_htt_zll_a1600_h900_amcatnlo",
-        "azh_htt_zll_a1700_h1000_amcatnlo",
-        "azh_htt_zll_a1700_h1100_amcatnlo",
-        "azh_htt_zll_a1700_h1200_amcatnlo",
-        "azh_htt_zll_a1700_h1300_amcatnlo",
-        "azh_htt_zll_a1700_h1400_amcatnlo",
-        "azh_htt_zll_a1700_h1500_amcatnlo",
-        "azh_htt_zll_a1700_h1600_amcatnlo",
-        "azh_htt_zll_a1700_h350_amcatnlo",
-        "azh_htt_zll_a1700_h400_amcatnlo",
-        "azh_htt_zll_a1700_h500_amcatnlo",
-        "azh_htt_zll_a1700_h600_amcatnlo",
-        "azh_htt_zll_a1700_h700_amcatnlo",
-        "azh_htt_zll_a1700_h800_amcatnlo",
-        # "azh_htt_zll_a1700_h900_amcatnlo",
-        "azh_htt_zll_a1800_h1000_amcatnlo",
-        "azh_htt_zll_a1800_h1100_amcatnlo",
-        "azh_htt_zll_a1800_h1200_amcatnlo",
-        "azh_htt_zll_a1800_h1300_amcatnlo",
-        "azh_htt_zll_a1800_h1400_amcatnlo",
-        "azh_htt_zll_a1800_h1500_amcatnlo",
-        "azh_htt_zll_a1800_h1600_amcatnlo",
-        "azh_htt_zll_a1800_h1700_amcatnlo",
-        "azh_htt_zll_a1800_h350_amcatnlo",
-        "azh_htt_zll_a1800_h400_amcatnlo",
-        "azh_htt_zll_a1800_h500_amcatnlo",
-        "azh_htt_zll_a1800_h600_amcatnlo",
-        "azh_htt_zll_a1800_h700_amcatnlo",
-        "azh_htt_zll_a1800_h800_amcatnlo",
-        "azh_htt_zll_a1800_h900_amcatnlo",
-        "azh_htt_zll_a1900_h1000_amcatnlo",
-        "azh_htt_zll_a1900_h1100_amcatnlo",
-        "azh_htt_zll_a1900_h1200_amcatnlo",
-        "azh_htt_zll_a1900_h1300_amcatnlo",
-        "azh_htt_zll_a1900_h1400_amcatnlo",
-        "azh_htt_zll_a1900_h1500_amcatnlo",
-        "azh_htt_zll_a1900_h1600_amcatnlo",
-        "azh_htt_zll_a1900_h1700_amcatnlo",
-        "azh_htt_zll_a1900_h1800_amcatnlo",
-        "azh_htt_zll_a1900_h350_amcatnlo",
-        "azh_htt_zll_a1900_h400_amcatnlo",
-        "azh_htt_zll_a1900_h500_amcatnlo",
-        "azh_htt_zll_a1900_h600_amcatnlo",
-        "azh_htt_zll_a1900_h700_amcatnlo",
-        "azh_htt_zll_a1900_h800_amcatnlo",
-        "azh_htt_zll_a1900_h900_amcatnlo",
-        "azh_htt_zll_a2000_h1000_amcatnlo",
-        "azh_htt_zll_a2000_h1100_amcatnlo",
-        "azh_htt_zll_a2000_h1200_amcatnlo",
-        "azh_htt_zll_a2000_h1300_amcatnlo",
-        "azh_htt_zll_a2000_h1400_amcatnlo",
-        "azh_htt_zll_a2000_h1600_amcatnlo",
-        "azh_htt_zll_a2000_h1700_amcatnlo",
-        "azh_htt_zll_a2000_h1800_amcatnlo",
-        "azh_htt_zll_a2000_h1900_amcatnlo",
-        "azh_htt_zll_a2000_h350_amcatnlo",
-        "azh_htt_zll_a2000_h400_amcatnlo",
-        "azh_htt_zll_a2000_h500_amcatnlo",
-        "azh_htt_zll_a2000_h600_amcatnlo",
-        "azh_htt_zll_a2000_h700_amcatnlo",
-        "azh_htt_zll_a2000_h800_amcatnlo",
-        "azh_htt_zll_a2000_h900_amcatnlo",
-        "azh_htt_zll_a2100_h1000_amcatnlo",
-        "azh_htt_zll_a2100_h1100_amcatnlo",
-        "azh_htt_zll_a2100_h1200_amcatnlo",
-        "azh_htt_zll_a2100_h1300_amcatnlo",
-        "azh_htt_zll_a2100_h1400_amcatnlo",
-        "azh_htt_zll_a2100_h1500_amcatnlo",
-        "azh_htt_zll_a2100_h1700_amcatnlo",
-        "azh_htt_zll_a2100_h1800_amcatnlo",
-        "azh_htt_zll_a2100_h1900_amcatnlo",
-        "azh_htt_zll_a2100_h2000_amcatnlo",
-        "azh_htt_zll_a2100_h350_amcatnlo",
-        "azh_htt_zll_a2100_h400_amcatnlo",
-        "azh_htt_zll_a2100_h500_amcatnlo",
-        "azh_htt_zll_a2100_h600_amcatnlo",
-        "azh_htt_zll_a2100_h700_amcatnlo",
-        "azh_htt_zll_a2100_h800_amcatnlo",
-        "azh_htt_zll_a2100_h900_amcatnlo",
-        "azh_htt_zll_a430_h330_amcatnlo",
-        "azh_htt_zll_a450_h330_amcatnlo",
-        "azh_htt_zll_a450_h350_amcatnlo",
-        "azh_htt_zll_a500_h330_amcatnlo",
-        "azh_htt_zll_a500_h350_amcatnlo",
-        # "azh_htt_zll_a500_h370_amcatnlo",
-        "azh_htt_zll_a500_h400_amcatnlo",
-        "azh_htt_zll_a550_h330_amcatnlo",
-        "azh_htt_zll_a550_h350_amcatnlo",
-        "azh_htt_zll_a550_h400_amcatnlo",
-        "azh_htt_zll_a550_h450_amcatnlo",
-        "azh_htt_zll_a600_h330_amcatnlo",
-        "azh_htt_zll_a600_h350_amcatnlo",
-        "azh_htt_zll_a600_h400_amcatnlo",
-        "azh_htt_zll_a600_h450_amcatnlo",
-        "azh_htt_zll_a600_h500_amcatnlo",
-        "azh_htt_zll_a650_h330_amcatnlo",
-        "azh_htt_zll_a650_h350_amcatnlo",
-        "azh_htt_zll_a650_h400_amcatnlo",
-        "azh_htt_zll_a650_h450_amcatnlo",
-        "azh_htt_zll_a650_h500_amcatnlo",
-        "azh_htt_zll_a650_h550_amcatnlo",
-        "azh_htt_zll_a700_h330_amcatnlo",
-        "azh_htt_zll_a700_h350_amcatnlo",
-        # "azh_htt_zll_a700_h370_amcatnlo",
-        "azh_htt_zll_a700_h400_amcatnlo",
-        "azh_htt_zll_a700_h450_amcatnlo",
-        "azh_htt_zll_a700_h500_amcatnlo",
-        "azh_htt_zll_a700_h550_amcatnlo",
-        "azh_htt_zll_a750_h330_amcatnlo",
-        "azh_htt_zll_a750_h350_amcatnlo",
-        "azh_htt_zll_a750_h400_amcatnlo",
-        "azh_htt_zll_a750_h450_amcatnlo",
-        "azh_htt_zll_a750_h500_amcatnlo",
-        "azh_htt_zll_a750_h550_amcatnlo",
-        "azh_htt_zll_a750_h600_amcatnlo",
-        "azh_htt_zll_a750_h650_amcatnlo",
-        "azh_htt_zll_a800_h330_amcatnlo",
-        "azh_htt_zll_a800_h350_amcatnlo",
-        "azh_htt_zll_a800_h400_amcatnlo",
-        "azh_htt_zll_a800_h450_amcatnlo",
-        "azh_htt_zll_a800_h500_amcatnlo",
-        "azh_htt_zll_a800_h550_amcatnlo",
-        "azh_htt_zll_a800_h600_amcatnlo",
-        "azh_htt_zll_a800_h650_amcatnlo",
-        "azh_htt_zll_a800_h700_amcatnlo",
-        "azh_htt_zll_a850_h330_amcatnlo",
-        "azh_htt_zll_a850_h350_amcatnlo",
-        "azh_htt_zll_a850_h400_amcatnlo",
-        "azh_htt_zll_a850_h450_amcatnlo",
-        "azh_htt_zll_a850_h500_amcatnlo",
-        "azh_htt_zll_a850_h550_amcatnlo",
-        "azh_htt_zll_a850_h600_amcatnlo",
-        "azh_htt_zll_a850_h650_amcatnlo",
-        "azh_htt_zll_a850_h700_amcatnlo",
-        "azh_htt_zll_a850_h750_amcatnlo",
-        "azh_htt_zll_a900_h330_amcatnlo",
-        "azh_htt_zll_a900_h350_amcatnlo",
-        # "azh_htt_zll_a900_h370_amcatnlo",
-        "azh_htt_zll_a900_h400_amcatnlo",
-        "azh_htt_zll_a900_h450_amcatnlo",
-        "azh_htt_zll_a900_h550_amcatnlo",
-        "azh_htt_zll_a900_h500_amcatnlo",
-        "azh_htt_zll_a900_h600_amcatnlo",
-        "azh_htt_zll_a900_h650_amcatnlo",
-        "azh_htt_zll_a900_h700_amcatnlo",
-        "azh_htt_zll_a900_h750_amcatnlo",
-        "azh_htt_zll_a900_h800_amcatnlo",
-        "azh_htt_zll_a950_h330_amcatnlo",
-        "azh_htt_zll_a950_h350_amcatnlo",
-        "azh_htt_zll_a950_h400_amcatnlo",
-        "azh_htt_zll_a950_h450_amcatnlo",
-        "azh_htt_zll_a950_h500_amcatnlo",
-        "azh_htt_zll_a950_h550_amcatnlo",
-        "azh_htt_zll_a950_h600_amcatnlo",
-        "azh_htt_zll_a950_h650_amcatnlo",
-        "azh_htt_zll_a950_h700_amcatnlo",
-        "azh_htt_zll_a950_h750_amcatnlo",
-        "azh_htt_zll_a950_h800_amcatnlo",
-        "azh_htt_zll_a950_h850_amcatnlo",
+    # Diboson
+        "ww_pythia",
+        "wz_pythia",
+        "zz_pythia",
+
+    # W+jets
+        "w_lnu_amcatnlo",
+
+    *if_era(year=2022, tag="preEE", values=[
+        "data_mu_c",
+        "data_mu_d",
+        "data_egamma_c",
+        "data_egamma_d",
+        "data_muoneg_c",
+        "data_muoneg_d",
+    ]),
+    *if_era(year=2022, tag="postEE", values=[
+        "data_mu_e",
+        "data_mu_f",
+        "data_mu_g",
+        "data_egamma_e",
+        "data_egamma_f",
+        "data_egamma_g",
+        "data_muoneg_e",
+        "data_muoneg_f",
+        "data_muoneg_g",
+    ]),
+    *if_era(year=2023, tag="preBPix", values=[
+        "data_mu_c1",
+        "data_mu_c2",
+        "data_mu_c3",
+        "data_mu_c4",
+        "data_egamma_c1",
+        "data_egamma_c2",
+        "data_egamma_c3",
+        "data_egamma_c4",
+        "data_muoneg_c1",
+        "data_muoneg_c2",
+        "data_muoneg_c3",
+        "data_muoneg_c4",
+    ]),
+    *if_era(year=2023, tag="postBPix", values=[
+        "data_mu_d1",
+        "data_mu_d2",
+        "data_egamma_d1",
+        "data_egamma_d2",
+        "data_muoneg_d1",
+        "data_muoneg_d2",
+    ]),
     ]
 
     for dataset_name in dataset_names:
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
         if limit_dataset_files:
-            # apply optional limit on the max. number of files per dataset
             for info in dataset.info.values():
                 if info.n_files > limit_dataset_files:
                     info.n_files = limit_dataset_files
@@ -849,6 +564,12 @@ def add_config(
             dataset.add_tag({"is_dy"})
         if dataset.name.startswith("azh"):
             dataset.add_tag({"is_signal"})
+        if dataset.name.startswith("data_mu"):
+            dataset.add_tag("mu")
+        if dataset.name.startswith("data_egamma"):
+            dataset.add_tag("egamma")
+        if dataset.name.startswith("data_muoneg"):
+            dataset.add_tag({"mu", "egamma"})
 
         # add aux info to datasets
         # if dataset.name.startswith("qcd"):
@@ -1285,7 +1006,7 @@ def add_config(
         return f"{jme_aux.source}/{jme_full_version}/{jme_full_version}_{name}_{jme_aux.jet_type}.txt"
 
     # external files
-    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-b7a48c75"
+    json_mirror = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration"
     # json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-c9422789"
     local_repo = "/data/dust/user/matthiej/topsf"  # TODO: avoid hardcoding path
 
@@ -1304,14 +1025,14 @@ def add_config(
 
         # electron scale factors
         # "electron_sf": (f"{json_mirror}/POG/EGM/{corr_tag}/electron.json.gz", "v1"),
-        "electron_sf": (f"{json_mirror}/POG/EGM/2022_Summer22/electron.json.gz", "v1"),
+        "electron_sf": (f"{json_mirror}/POG/EGM/{corr_tag}/electron.json.gz", "v1"),
 
         # muon scale factors
         "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_Z.json.gz", "v1"),
 
         # btag scale factor
         # "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
-        "btag_sf_corr": (f"{json_mirror}/POG/BTV/2022_Summer22EE/btagging.json.gz", "v1"),
+        "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
 
         # V+jets reweighting
         #"vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
@@ -1389,8 +1110,6 @@ def add_config(
             },
         }))
     
-    else:
-        raise NotImplementedError(f"No lumi and pu files provided for year {year}")
     # columns to keep after certain steps
     cfg.x.keep_columns = DotDict.wrap({
         "cf.SelectEvents": {"mc_weight"},
@@ -1427,12 +1146,12 @@ def add_config(
             f"{mu_obj}.{field}"
             for mu_obj in ["Muon"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "pdgId"]
+            for field in ["pt", "eta", "phi", "mass", "pdgId", "charge"]
         ) | set(  # Electrons
             f"{e_obj}.{field}"
             for e_obj in ["Electron"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "pdgId", "deltaEtaSC"]
+            for field in ["pt", "eta", "phi", "mass", "pdgId", "deltaEtaSC", "charge"]
         ) | set(  # MET
             f"MET.{field}"
             for field in ["pt", "phi"]

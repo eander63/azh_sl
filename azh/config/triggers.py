@@ -6,7 +6,6 @@ import order as od
 
 from azh.config.util import Trigger, TriggerLeg
 
-# 2016 triggers as per AN of CMS-HIG-20-010 (AN2018_121_v11-1)
 
 def add_triggers_2022(config: od.Config) -> None:
     """
@@ -16,43 +15,82 @@ def add_triggers_2022(config: od.Config) -> None:
     Muon Trigger: https://twiki.cern.ch/twiki/bin/view/CMS/MuonHLT2022
     """
     config.x.triggers = od.UniqueObjectIndex(Trigger, [
-   
-        #
-        # vbf
-        #
+
+        # Single muon — primary trigger for Z→μμ
+        # Bit 1 (value 2): Iso filter (hltL3crIso*IsoFiltered), covers HLT_IsoMu24
+        Trigger(
+            name="HLT_IsoMu24",
+            id=101,
+            legs=[
+                TriggerLeg(
+                    pdg_id=13,
+                    min_pt=26.0,
+                    trigger_bits=2,
+                ),
+            ],
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("mu")),
+            tags={"single_mu"},
+        ),
+
+        # Bit 1 (value 2): Iso filter, covers HLT_IsoMu27
+        Trigger(
+            name="HLT_IsoMu27",
+            id=103,
+            legs=[
+                TriggerLeg(
+                    pdg_id=13,
+                    min_pt=29.0,
+                    trigger_bits=2,
+                ),
+            ],
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("mu")),
+            tags={"single_mu"},
+        ),
+
+        # Single electron — primary trigger for Z→ee
+        # Bit 19 (value 2**19): hltEle30WPTightGsfTrackIsoFilter
+        Trigger(
+            name="HLT_Ele30_WPTight_Gsf",
+            id=201,
+            legs=[
+                TriggerLeg(
+                    pdg_id=11,
+                    min_pt=32.0,
+                    trigger_bits=2**19,
+                ),
+            ],
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("egamma")),
+            tags={"single_e"},
+        ),
+
+        # Di-muon — supplemental for lower-pT muon pairs
+        # Bit 0 (value 1): TrkIsoVVL filter
         Trigger(
             name="HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8",
             id=102,
             legs=[
                 TriggerLeg(
                     pdg_id=13,
-                    min_pt=25.0,
-                    trigger_bits=8 + 32 + 4096,
+                    min_pt=18.0,
+                    trigger_bits=1,
                 ),
                 TriggerLeg(
                     pdg_id=13,
-                    min_pt=25.0,
-                    trigger_bits=8 + 32 + 4096,
+                    min_pt=10.0,
+                    trigger_bits=1,
                 ),
-                # # additional leg infos for vbf jets
-                # TriggerLeg(
-                #     min_pt=115.0,
-                #     # filter names:
-                #     # The filters are applied to the lepton
-                #     # Taking the loosest filter for the Jets with the pt cut
-                #     trigger_bits=1,
-                # ),
-                # TriggerLeg(
-                #     min_pt=40.0,
-                #     # filter names:
-                #     # The filters are applied to the lepton
-                #     trigger_bits=1,
-                # ),
             ],
-            # applies_to_dataset=(lambda dataset_inst: dataset_inst.is_data and config.has_tag("pre")),
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("mu")),
             tags={"di_mu"},
         ),
 
+        # Di-electron — supplemental
+        # Bit 0 (value 2**0): CaloIdL_TrackIdL_IsoVL leg 1
+        # Bit 5 (value 2**5): CaloIdL_TrackIdL_IsoVL leg 2
         Trigger(
             name="HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL",
             id=202,
@@ -60,29 +98,29 @@ def add_triggers_2022(config: od.Config) -> None:
                 TriggerLeg(
                     pdg_id=11,
                     min_pt=24.0,
-                    trigger_bits=2**4 + 2**0,
+                    trigger_bits=2**0,
                 ),
                 TriggerLeg(
                     pdg_id=11,
                     min_pt=13.0,
-                    trigger_bits=2**4 + 2**0,
+                    trigger_bits=2**5,
                 ),
             ],
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("egamma")),
             tags={"di_e"},
         ),
     ])
 
-    # mapping of trigger columns
     config.x.trigger_map = {
         "All_Events": 0,
-        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8": 1,
-        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL": 2,
-        "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight": 3,
-        "HLT_PFMET200_BeamHaloCleaned": 4,
-        "HLT_PFHT500_PFMET100_PFMHT100_IDTight": 5,
-        "HLT_PFHT700_PFMET85_PFMHT85_IDTight": 6, 
-        "HLT_PFHT800_PFMET75_PFMHT75_IDTight": 7,
+        "HLT_IsoMu24": 1,
+        "HLT_IsoMu27": 2,
+        "HLT_Ele30_WPTight_Gsf": 3,
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8": 4,
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL": 5,
     }
+
 
 def add_triggers_2023(config: od.Config) -> None:
     """
@@ -92,43 +130,76 @@ def add_triggers_2023(config: od.Config) -> None:
     Muon Trigger: https://twiki.cern.ch/twiki/bin/view/CMS/MuonHLT2022
     """
     config.x.triggers = od.UniqueObjectIndex(Trigger, [
-   
-        #
-        # vbf
-        #
+
+        # Single muon — primary trigger for Z→μμ
+        Trigger(
+            name="HLT_IsoMu24",
+            id=101,
+            legs=[
+                TriggerLeg(
+                    pdg_id=13,
+                    min_pt=26.0,
+                    trigger_bits=2,
+                ),
+            ],
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("mu")),
+            tags={"single_mu"},
+        ),
+
+        Trigger(
+            name="HLT_IsoMu27",
+            id=103,
+            legs=[
+                TriggerLeg(
+                    pdg_id=13,
+                    min_pt=29.0,
+                    trigger_bits=2,
+                ),
+            ],
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("mu")),
+            tags={"single_mu"},
+        ),
+
+        # Single electron — primary trigger for Z→ee
+        Trigger(
+            name="HLT_Ele30_WPTight_Gsf",
+            id=201,
+            legs=[
+                TriggerLeg(
+                    pdg_id=11,
+                    min_pt=32.0,
+                    trigger_bits=2**19,
+                ),
+            ],
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("egamma")),
+            tags={"single_e"},
+        ),
+
+        # Di-muon — supplemental
         Trigger(
             name="HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8",
             id=102,
             legs=[
                 TriggerLeg(
                     pdg_id=13,
-                    min_pt=25.0,
-                    trigger_bits=8 + 32 + 4096,
+                    min_pt=18.0,
+                    trigger_bits=1,
                 ),
                 TriggerLeg(
                     pdg_id=13,
-                    min_pt=25.0,
-                    trigger_bits=8 + 32 + 4096,
+                    min_pt=10.0,
+                    trigger_bits=1,
                 ),
-                # # additional leg infos for vbf jets
-                # TriggerLeg(
-                #     min_pt=115.0,
-                #     # filter names:
-                #     # The filters are applied to the lepton
-                #     # Taking the loosest filter for the Jets with the pt cut
-                #     trigger_bits=1,
-                # ),
-                # TriggerLeg(
-                #     min_pt=40.0,
-                #     # filter names:
-                #     # The filters are applied to the lepton
-                #     trigger_bits=1,
-                # ),
             ],
-            # applies_to_dataset=(lambda dataset_inst: dataset_inst.is_data and config.has_tag("pre")),
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("mu")),
             tags={"di_mu"},
         ),
 
+        # Di-electron — supplemental
         Trigger(
             name="HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL",
             id=202,
@@ -136,26 +207,25 @@ def add_triggers_2023(config: od.Config) -> None:
                 TriggerLeg(
                     pdg_id=11,
                     min_pt=24.0,
-                    trigger_bits=2**4 + 2**0,
+                    trigger_bits=2**0,
                 ),
                 TriggerLeg(
                     pdg_id=11,
                     min_pt=13.0,
-                    trigger_bits=2**4 + 2**0,
+                    trigger_bits=2**5,
                 ),
             ],
+            applies_to_dataset=(lambda dataset_inst: dataset_inst.is_mc or
+                dataset_inst.has_tag("egamma")),
             tags={"di_e"},
         ),
     ])
 
-    # mapping of trigger columns
     config.x.trigger_map = {
         "All_Events": 0,
-        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8": 1,
-        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL": 2,
-        "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight": 3,
-        "HLT_PFMET200_BeamHaloCleaned": 4,
-        "HLT_PFHT500_PFMET100_PFMHT100_IDTight": 5,
-        "HLT_PFHT700_PFMET85_PFMHT85_IDTight": 6, 
-        "HLT_PFHT800_PFMET75_PFMHT75_IDTight": 7,
+        "HLT_IsoMu24": 1,
+        "HLT_IsoMu27": 2,
+        "HLT_Ele30_WPTight_Gsf": 3,
+        "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8": 4,
+        "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL": 5,
     }

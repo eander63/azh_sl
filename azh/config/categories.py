@@ -110,6 +110,17 @@ def add_categories_production(config: od.Config) -> None:
 
 
 @call_once_on_config()
+def add_category_2l(config: od.Config) -> None:
+    """Combined ee + mumu category."""
+    config.add_category(
+        name="2l",
+        id=30,
+        selection="catid_2l",
+        label=r"$\ell\ell$ (ee + $\mu\mu$)",
+    )
+
+
+@call_once_on_config()
 def add_categories_mz(config: od.Config) -> None:
     """
     Adds categories to a *config*, that are typically produced in `ProduceColumns`.

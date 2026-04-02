@@ -77,26 +77,21 @@ def get_dataset_lfns(
     dataset_key: str,
 ) -> list[str]:
     """
-    Custom LFN retrieval that constrains DAS queries to T2_DE_RWTH
-    where the Run3 NanoAOD files are available.
+    Custom LFN retrieval using a global DAS query.
+    Filters out broken files registered in cmsdb.
     """
     import subprocess
-    query = f"file dataset={dataset_key} site=T2_DE_RWTH"
+    broken_files = dataset_inst[shift_inst.name].get_aux("broken_files", [])
+    query = f"file dataset={dataset_key}"
     result = subprocess.run(
-        ["dasgoclient", f"--query={query}"],
+        ["/cvmfs/cms.cern.ch/common/dasgoclient", f"--query={query}"],
         capture_output=True,
         text=True,
     )
-    lfns = [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
-    if not lfns:
-        # fall back to global query if site-specific returns nothing
-        query = f"file dataset={dataset_key}"
-        result = subprocess.run(
-            ["dasgoclient", f"--query={query}"],
-            capture_output=True,
-            text=True,
-        )
-        lfns = [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+    lfns = [
+        line.strip() for line in result.stdout.strip().split("\n")
+        if line.strip() and line.strip() not in broken_files
+    ]
     return lfns
 
 
@@ -138,6 +133,7 @@ def add_config(
     cfg = analysis_azh.add_config(campaign, name=config_name, id=config_id)
     # use custom get_dataset_lfns function
     cfg.x.get_dataset_lfns = get_dataset_lfns
+    cfg.x.get_dataset_lfns_sandbox = f"bash::$CF_BASE/sandboxes/venv_columnar_dev.sh"
 
     # add processes we are interested in
 
@@ -476,13 +472,9 @@ def add_config(
 
     ######################################################################################
     dataset_names = [
-    # DY — use the jet-binned LO madgraph samples for stitching
-    # (these are what the current config already uses)
-        "dy_m10to50_madgraph",
-        "dy_m50toinf_1j_madgraph",
-        "dy_m50toinf_2j_madgraph",
-        "dy_m50toinf_3j_madgraph",
-        "dy_m50toinf_4j_madgraph",
+    # DY — use inclusive amcatnlo samples (no stitching needed)
+        "dy_m50toinf_amcatnlo",
+        "dy_m10to50_amcatnlo",
 
     # TTbar
         "tt_sl_powheg",
@@ -574,6 +566,22 @@ def add_config(
         # add aux info to datasets
         # if dataset.name.startswith("qcd"):
         #     dataset.x.is_qcd = True
+
+    # fix wrong DAS keys for amcatnlo datasets in cmsdb
+    if cfg.has_dataset("dy_m50toinf_amcatnlo"):
+        ds = cfg.get_dataset("dy_m50toinf_amcatnlo")
+        for info in ds.info.values():
+            info.keys = {"/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v5/NANOAODSIM"}
+    if cfg.has_dataset("dy_m10to50_amcatnlo"):
+        ds = cfg.get_dataset("dy_m10to50_amcatnlo")
+        for info in ds.info.values():
+            info.keys = {"/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v4/NANOAODSIM"}
+
+    # fix wrong DAS key for dy_m50toinf_1j_madgraph in cmsdb
+    if cfg.has_dataset("dy_m50toinf_1j_madgraph"):
+        ds = cfg.get_dataset("dy_m50toinf_1j_madgraph")
+        for info in ds.info.values():
+            info.keys = {"/DYto2L-4Jets_MLL-50_1J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM"}
 
     # default calibrator, selector, producer, ml model and inference model
     cfg.x.default_calibrator = "skip_jecunc"

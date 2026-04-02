@@ -67,7 +67,20 @@ def dy_producer(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # identify base process as "dy_{mass-window}"
     base_proc_name = "_".join(self.dataset_inst.name.split("_")[:2])
     # print(base_proc_name)
-    if base_proc_name == "dy_m50toinf":
+    if base_proc_name == "dy_m50toinf" and "amcatnlo" in self.dataset_inst.name and not any(f"{n}j" in self.dataset_inst.name for n in range(5)):
+        # inclusive amcatnlo sample - split by gen jet multiplicity and hf/lf
+        n_genjet = ak.num(genjet, axis=1)
+        process_masks = {
+            f"{base_proc_name}_0j_hf": ((n_genjet == 0) & is_hf),
+            f"{base_proc_name}_0j_lf": ((n_genjet == 0) & ~is_hf),
+            f"{base_proc_name}_1j_hf": ((n_genjet == 1) & is_hf),
+            f"{base_proc_name}_1j_lf": ((n_genjet == 1) & ~is_hf),
+            f"{base_proc_name}_2j_hf": ((n_genjet == 2) & is_hf),
+            f"{base_proc_name}_2j_lf": ((n_genjet == 2) & ~is_hf),
+            f"{base_proc_name}_3j_hf": ((n_genjet >= 3) & is_hf),
+            f"{base_proc_name}_3j_lf": ((n_genjet >= 3) & ~is_hf),
+        }
+    elif base_proc_name == "dy_m50toinf":
         # separate into njet and hf/lf
         process_masks = {
             f"{base_proc_name}_0j_hf": ((str(0)+"j" in self.dataset_inst.name) & is_hf),
@@ -80,12 +93,6 @@ def dy_producer(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
             f"{base_proc_name}_2j_lf": ((str(2)+"j" in self.dataset_inst.name) & ~is_hf),
             f"{base_proc_name}_3j_lf": ((str(3)+"j" in self.dataset_inst.name) & ~is_hf), 
             f"{base_proc_name}_4j_lf": ((str(4)+"j" in self.dataset_inst.name) & ~is_hf), 
-            # f"{base_proc_name}_hf": is_hf,
-            # f"{base_proc_name}_lf": ~is_hf,  # should not be assigned
-            # f"{base_proc_name}_0j": n_partons == 0,
-            # f"{base_proc_name}_1j": n_partons == 1,
-            # f"{base_proc_name}_2j": n_partons == 2,
-            # f"{base_proc_name}_3j": n_partons == 3,  # should not be assigned
         }
     elif base_proc_name == "dy_m4to10" or base_proc_name == "dy_m10to50":
         # separate into hf/lf

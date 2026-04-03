@@ -88,7 +88,7 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     if self.dataset_inst.is_mc:
         # compute electron weights
         electron_mask = (events.Electron.pt >= 75)
-        electron_mask_mid = ((events.Electron.pt < 75) & (events.Electron.pt < 20))
+        electron_mask_mid = ((events.Electron.pt >= 20) & (events.Electron.pt < 75))
 
         events = self[electron_weights](events, electron_mask=electron_mask, **kwargs)
         events = self[electron_mid_weights](events, electron_mask=electron_mask_mid, **kwargs)

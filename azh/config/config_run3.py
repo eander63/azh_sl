@@ -879,11 +879,11 @@ def add_config(
     # (used in the electron_sf producer)
     if f"{year}{corr_postfix}" == "2022postEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "RecoAbove75")
-        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
+        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "wp80iso")
     elif f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
-        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
+        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
     elif f"{year}{corr_postfix}" == "2023postBPix":
         # cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
@@ -1184,7 +1184,7 @@ def add_config(
         # "muon_weight": [],
         "muon_id_weight": [],
         "muon_iso_weight": [],
-        "pu_weight": [],
+        # "pu_weight": [],  # TODO: disabled pending fix of anomalous values
         # "btag_weight": [],
         "mur_weight": get_shifts("mur"),
         "muf_weight": get_shifts("muf"),

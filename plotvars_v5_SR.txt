@@ -1,0 +1,178 @@
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__566e30a9f4   has status   PENDING
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__566e30a9f4   has status   PENDING
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 4 processes
+INFO: Running Worker with 4 processes
+INFO: luigi-interface - [pid 1777130] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) running   cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: [pid 1777130] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) running   cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: luigi-interface - [pid 1777130] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) new requirements      cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: [pid 1777130] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) new requirements      cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy_0__a17da74a20   has status   PENDING
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy_0__a17da74a20   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__3d767f56f0   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__3d767f56f0   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__8254e81524   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__8254e81524   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__08ee2deaa1   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__08ee2deaa1   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__4c6020f694   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__4c6020f694   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__0aaee3afdf   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__0aaee3afdf   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__3557d72890   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__3557d72890   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__4fdd5a5657   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__4fdd5a5657   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__176fc97b8a   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__176fc97b8a   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__c86efa6f39   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__c86efa6f39   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__1163457513   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__1163457513   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__965f25b9f6   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__965f25b9f6   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__dd937bf1c3   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__dd937bf1c3   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__d8e97c7746   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__d8e97c7746   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__4d34fbdb6d   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__4d34fbdb6d   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__ccf1c2d779   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__ccf1c2d779   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__415ae1f7c6   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__415ae1f7c6   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__e8d79f33fc   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__e8d79f33fc   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__ed25794b8f   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__ed25794b8f   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__a3916172ed   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__a3916172ed   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__566e30a9f4   has status   PENDING
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__566e30a9f4   has status   PENDING
+INFO: luigi-interface - [pid 1777135] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) running   cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: [pid 1777135] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) running   cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+
+=============================== entering sandbox ===============================
+task   : cf.PlotVariables1D_azh_config_analy_0__a17da74a20
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1777176] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) running   cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: [pid 1777176] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) running   cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+plotting m_z in SR
+done (took 45.73 seconds)
+INFO: luigi-interface - [pid 1777176] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) done      cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: [pid 1777176] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) done      cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.PlotVariables1D_azh_config_analy_0__a17da74a20
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1777135] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) done      cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: [pid 1777135] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) done      cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy_0__a17da74a20   has status   DONE
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy_0__a17da74a20   has status   DONE
+INFO: luigi-interface - [pid 1778726] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) running   cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: [pid 1778726] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) running   cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: luigi-interface - [pid 1778726] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) done      cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: [pid 1778726] Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) done      cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v5, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=SR, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,tt_fh_powheg,wz_pythia,zz_pythia,ww_pythia,w_lnu_amcatnlo,st_tchannel_t_4f_powheg,st_tchannel_tbar_4f_powheg,st_twchannel_t_sl_powheg,st_twchannel_tbar_sl_powheg,st_twchannel_t_dl_powheg,st_twchannel_tbar_dl_powheg,data_mu_c,data_egamma_c,data_mu_d,data_egamma_d, processes=dy_lf,dy_hf,tt,w_lnu,vv,st,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__566e30a9f4   has status   DONE
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__566e30a9f4   has status   DONE
+INFO: luigi-interface - Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) was stopped. Shutting down Keep-Alive thread
+INFO: Worker Worker(salt=679241921, workers=4, host=naf-cms13.desy.de, username=eranders, pid=1776586) was stopped. Shutting down Keep-Alive thread
+INFO: luigi-interface - 
+===== Luigi Execution Summary =====
+
+Scheduled 21 tasks of which:
+* 19 complete ones were encountered:
+    - 19 cf.MergeHistograms(...)
+* 2 ran successfully:
+    - 2 cf.PlotVariables1D(...)
+
+This progress looks :) because there were no failed tasks or missing dependencies
+
+===== Luigi Execution Summary =====
+
+INFO: 
+===== Luigi Execution Summary =====
+
+Scheduled 21 tasks of which:
+* 19 complete ones were encountered:
+    - 19 cf.MergeHistograms(...)
+* 2 ran successfully:
+    - 2 cf.PlotVariables1D(...)
+
+This progress looks :) because there were no failed tasks or missing dependencies
+
+===== Luigi Execution Summary =====
+

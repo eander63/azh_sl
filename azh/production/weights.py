@@ -13,6 +13,7 @@ from columnflow.production.cms.muon import muon_weights
 from columnflow.production.normalization import normalization_weights
 from columnflow.production.cms.pileup import pu_weight
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
+from azh.production.trigger_weights import trigger_weights
 from columnflow.util import maybe_import
 
 from azh.production.gen_top import top_pt_weight
@@ -34,12 +35,9 @@ def event_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     weight = ak.Array(np.ones(len(events)))
     if self.dataset_inst.is_mc:
         for column in self.config_inst.x.event_weights:
-            print(column)
             if (self.dataset_inst.has_tag("is_ttbar") or (column != "top_pt_weight")):
                 weight = weight * Route(column).apply(events)
-        print(self.dataset_inst.x("event_weights", []))
         for column in self.dataset_inst.x("event_weights", []):
-            print(column)
             if ((self.dataset_inst.has_tag("is_ttbar")) or (column != "top_pt_weight")):
                 if has_ak_column(events, column):
                     weight = weight * Route(column).apply(events)
@@ -87,17 +85,22 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
     if self.dataset_inst.is_mc:
         # compute electron weights
+        # all post-reduction electrons already pass the tight ID selection
+        ele_all = ak.ones_like(events.Electron.pt, dtype=bool)
         electron_mask = (events.Electron.pt >= 75)
-        electron_mask_mid = ((events.Electron.pt >= 20) & (events.Electron.pt < 75))
+        electron_mask_mid = (events.Electron.pt >= 20) & (events.Electron.pt < 75)
 
         events = self[electron_weights](events, electron_mask=electron_mask, **kwargs)
         events = self[electron_mid_weights](events, electron_mask=electron_mask_mid, **kwargs)
-        events = self[electron_id_weights](events, **kwargs)
+        events = self[electron_id_weights](events, electron_mask=ele_all, **kwargs)
 
         # compute muon weights
         # events = self[muon_weights](events, **kwargs)
         events = self[muon_id_weights](events, **kwargs)
         events = self[muon_iso_weights](events, **kwargs)
+
+        # compute trigger weights
+        events = self[trigger_weights](events, **kwargs)
 
         # compute btag weights
         # events = self[split_btag_weights](events, **kwargs)
@@ -112,8 +115,9 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         # compute pu weights
         events = self[pu_weight](events, **kwargs)
-        events = self[murmuf_weights](events, **kwargs)
-        events = self[murmuf_envelope_weights](events, **kwargs)
+        if not self.dataset_inst.has_tag("no_lhe_weights"):
+            events = self[murmuf_weights](events, **kwargs)
+            events = self[murmuf_envelope_weights](events, **kwargs)
 
     return events
 
@@ -124,10 +128,11 @@ def weights_init(self: Producer) -> None:
         # dynamically add dependencies if running on MC
         self.uses |= {
             electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights # normalized_pu_weights,
-
+            normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            trigger_weights,
         }
         self.produces |= {
             electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights # normalized_pu_weights,
+            normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            trigger_weights,
         }

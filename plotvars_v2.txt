@@ -1,0 +1,1244 @@
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__45a9f8773a   has status   PENDING
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__45a9f8773a   has status   PENDING
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 4 processes
+INFO: Running Worker with 4 processes
+INFO: luigi-interface - [pid 1772555] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: [pid 1772555] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: luigi-interface - [pid 1772555] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: [pid 1772555] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy_0__ce97e9e8c7   has status   PENDING
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy_0__ce97e9e8c7   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__3d8ba77feb   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__3d8ba77feb   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__e0da9775d4   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__e0da9775d4   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__bd6af5aafb   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__bd6af5aafb   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__640fd10311   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__640fd10311   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy__1__b0d9cf12f3   has status   PENDING
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy__1__b0d9cf12f3   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.BuildBashSandbox_azh_config_analy_bash___data_dust__data_dust_user__ce0889827e   has status   DONE
+INFO: Informed scheduler that task   cf.BuildBashSandbox_azh_config_analy_bash___data_dust__data_dust_user__ce0889827e   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.BuildBashSandbox_azh_config_analy_bash___data_dust__data_dust_user__aec9f8d0be   has status   DONE
+INFO: Informed scheduler that task   cf.BuildBashSandbox_azh_config_analy_bash___data_dust__data_dust_user__aec9f8d0be   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.BundleRepo_azh_config_analy_NO_STR__e7ba394321   has status   PENDING
+INFO: Informed scheduler that task   cf.BundleRepo_azh_config_analy_NO_STR__e7ba394321   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.BundleExternalFiles_azh_config_analy_config_2022pre_5_4fd6337dbe   has status   DONE
+INFO: Informed scheduler that task   cf.BundleExternalFiles_azh_config_analy_config_2022pre_5_4fd6337dbe   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeSelectionStats_azh_config_analy__1__80cbb5a0a0   has status   DONE
+INFO: Informed scheduler that task   cf.MergeSelectionStats_azh_config_analy__1__80cbb5a0a0   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__3d9a6dc9df   has status   PENDING
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__3d9a6dc9df   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__5b4563184b   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__5b4563184b   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__0351a1e569   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__0351a1e569   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ReduceEvents_azh_config_analy__1__7f254ce847   has status   PENDING
+INFO: Informed scheduler that task   cf.ReduceEvents_azh_config_analy__1__7f254ce847   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.SelectEvents_azh_config_analy__1__5a30bf6cea   has status   DONE
+INFO: Informed scheduler that task   cf.SelectEvents_azh_config_analy__1__5a30bf6cea   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.CalibrateEvents_azh_config_analy__1__5fe8181265   has status   DONE
+INFO: Informed scheduler that task   cf.CalibrateEvents_azh_config_analy__1__5fe8181265   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.GetDatasetLFNs_azh_config_analy_config_2022pre_tt_dl_powheg_94ce1e3294   has status   DONE
+INFO: Informed scheduler that task   cf.GetDatasetLFNs_azh_config_analy_config_2022pre_tt_dl_powheg_94ce1e3294   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__5368eb861a   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__5368eb861a   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__1040752e8b   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__1040752e8b   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__c18f41eedf   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__c18f41eedf   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__40d89b3194   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__40d89b3194   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReductionStats_azh_config_analy_skip_jecunc_config_2022pre_cfd1ca8fd6   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReductionStats_azh_config_analy_skip_jecunc_config_2022pre_cfd1ca8fd6   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__1562ab7187   has status   PENDING
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__1562ab7187   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__37863d2216   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__37863d2216   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__014cd9be38   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__014cd9be38   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__509c6f2fc9   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__509c6f2fc9   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__72f709738d   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__72f709738d   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__e42d944ff9   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__e42d944ff9   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__33277fb7ea   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__33277fb7ea   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__c654f40241   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__c654f40241   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__a9967ef798   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__a9967ef798   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy__1__01d2aab021   has status   PENDING
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy__1__01d2aab021   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.MergeSelectionStats_azh_config_analy__1__6c91c27a0f   has status   DONE
+INFO: Informed scheduler that task   cf.MergeSelectionStats_azh_config_analy__1__6c91c27a0f   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__fff37bceb4   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__fff37bceb4   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__4cdb298887   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__4cdb298887   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__0687ddf88b   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__0687ddf88b   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__39c285c80b   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__39c285c80b   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__45a9f8773a   has status   PENDING
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__45a9f8773a   has status   PENDING
+INFO: luigi-interface - [pid 1772750] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.BundleRepo(include_files=, custom_checksum=NO_STR, source_path=NO_STR, analysis=azh.config.analysis_azh_run3.analysis_azh, replicas=5)
+INFO: [pid 1772750] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.BundleRepo(include_files=, custom_checksum=NO_STR, source_path=NO_STR, analysis=azh.config.analysis_azh_run3.analysis_azh, replicas=5)
+size is 2.0 MB
+uploaded AZHtt.291e047226f7e7907c5f23e8d139ae85041c9b10.0.tgz
+uploaded AZHtt.291e047226f7e7907c5f23e8d139ae85041c9b10.1.tgz
+uploaded AZHtt.291e047226f7e7907c5f23e8d139ae85041c9b10.2.tgz
+uploaded AZHtt.291e047226f7e7907c5f23e8d139ae85041c9b10.3.tgz
+uploaded AZHtt.291e047226f7e7907c5f23e8d139ae85041c9b10.4.tgz
+INFO: luigi-interface - [pid 1772750] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.BundleRepo(include_files=, custom_checksum=NO_STR, source_path=NO_STR, analysis=azh.config.analysis_azh_run3.analysis_azh, replicas=5)
+INFO: [pid 1772750] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.BundleRepo(include_files=, custom_checksum=NO_STR, source_path=NO_STR, analysis=azh.config.analysis_azh_run3.analysis_azh, replicas=5)
+INFO: luigi-interface - Informed scheduler that task   cf.BundleRepo_azh_config_analy_NO_STR__e7ba394321   has status   DONE
+INFO: Informed scheduler that task   cf.BundleRepo_azh_config_analy_NO_STR__e7ba394321   has status   DONE
+INFO: luigi-interface - [pid 1773027] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ReduceEvents(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1773027] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ReduceEvents(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - [pid 1773028] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ProduceColumns(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producer=default, workflow=htcondor)
+INFO: [pid 1773028] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ProduceColumns(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producer=default, workflow=htcondor)
+20:29:08: all: 1, pending: 0 (+0), running: 0 (+0), finished: 0 (+0), retry: 1 (+1), failed: 0 (+0), config_2022pre, tt_sl_powheg
+1 failed job(s) in task cf.ProduceColumns_azh_config_analy__1__01d2aab021:
+    job: 1, branches: [0], id: 2674264.0, status: retry, code: 0, error: via condor_rm (by user eranders), log: /data/dust/user/eranders/azh_jobs/htcondor_out/stdall_0To1.txt
+going to submit 1 htcondor job(s), config_2022pre, tt_sl_powheg
+20:29:08: all: 67, pending: 0 (+0), running: 0 (+0), finished: 65 (+65), retry: 2 (+2), failed: 0 (+0), config_2022pre, tt_dl_powheg
+2 failed job(s) in task cf.ReduceEvents_azh_config_analy__1__7f254ce847:
+    job: 62, branches: [61], id: 2674232.51, status: retry, code: 0, error: via condor_rm (by user eranders), log: /data/dust/user/eranders/azh_jobs/htcondor_out/stdall_61To62.txt
+    job: 66, branches: [65], id: 2674232.55, status: retry, code: 0, error: via condor_rm (by user eranders), log: /data/dust/user/eranders/azh_jobs/htcondor_out/stdall_65To66.txt
+going to submit 2 htcondor job(s), config_2022pre, tt_dl_powheg
+submitted 1 htcondor job(s), config_2022pre, tt_sl_powheg
+submitted 2 htcondor job(s), config_2022pre, tt_dl_powheg
+20:30:08: all: 1, pending: 0 (+0), running: 1 (+1), finished: 0 (+0), retry: 0 (-1), failed: 0 (+0), config_2022pre, tt_sl_powheg
+20:30:08: all: 67, pending: 0 (+0), running: 2 (+2), finished: 65 (+0), retry: 0 (-2), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:31:08: all: 1, pending: 0 (+0), running: 1 (+0), finished: 0 (+0), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_sl_powheg
+20:31:08: all: 67, pending: 0 (+0), running: 2 (+0), finished: 65 (+0), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:32:09: all: 1, pending: 0 (+0), running: 0 (-1), finished: 1 (+1), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_sl_powheg
+polling took 3 minutes, 1 second
+INFO: luigi-interface - [pid 1773028] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ProduceColumns(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producer=default, workflow=htcondor)
+INFO: [pid 1773028] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ProduceColumns(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producer=default, workflow=htcondor)
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy__1__01d2aab021   has status   DONE
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy__1__01d2aab021   has status   DONE
+INFO: luigi-interface - [pid 1778788] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: [pid 1778788] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: luigi-interface - [pid 1778788] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: [pid 1778788] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_0__f3b6803f7c   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_0__f3b6803f7c   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy_0__a5f18f50df   has status   DONE
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy_0__a5f18f50df   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_0__d8bc233e12   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_0__d8bc233e12   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__a9967ef798   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__a9967ef798   has status   PENDING
+INFO: luigi-interface - [pid 1778794] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1778794] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+
+=============================== entering sandbox ===============================
+task   : cf.CreateHistograms_azh_config_analy_0__f3b6803f7c
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+20:32:19: all: 67, pending: 0 (+0), running: 1 (-1), finished: 66 (+1), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1778903] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1778903] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.MergeReducedEvents/config_2022pre/tt_sl_powheg/nominal/calib__skip_jecunc/sel__default/v1/events_0.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x15010d515190>
+None
+16522
+0
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.ProduceColumns/config_2022pre/tt_sl_powheg/nominal/calib__skip_jecunc/sel__default/prod__default/v1/columns_0.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x1501093e8160>
+16522
+16522
+1
+iterate through 16522 events in 1 chunks ...
+handling chunk 0
+done (took 3.34 seconds)
+event processing in loop body took 0.03 seconds
+INFO: luigi-interface - [pid 1778903] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1778903] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.CreateHistograms_azh_config_analy_0__f3b6803f7c
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1778794] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1778794] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_0__f3b6803f7c   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_0__f3b6803f7c   has status   DONE
+INFO: luigi-interface - [pid 1780766] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: [pid 1780766] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: luigi-interface - [pid 1780766] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: [pid 1780766] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__a9967ef798   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__a9967ef798   has status   DONE
+INFO: luigi-interface - [pid 1780771] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: [pid 1780771] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: luigi-interface - [pid 1780771] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: [pid 1780771] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy_0__b50ddfeb7d   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy_0__b50ddfeb7d   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__a9967ef798   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__a9967ef798   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__c654f40241   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__c654f40241   has status   PENDING
+INFO: luigi-interface - [pid 1780776] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: [pid 1780776] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+
+=============================== entering sandbox ===============================
+task   : cf.MergeHistograms_azh_config_analy_0__b50ddfeb7d
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1780819] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: [pid 1780819] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+merging histograms for 'm_z'
+INFO: luigi-interface - [pid 1780819] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: [pid 1780819] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.MergeHistograms_azh_config_analy_0__b50ddfeb7d
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1780776] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: [pid 1780776] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy_0__b50ddfeb7d   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy_0__b50ddfeb7d   has status   DONE
+INFO: luigi-interface - [pid 1781466] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: [pid 1781466] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: luigi-interface - [pid 1781466] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: [pid 1781466] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_sl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__c654f40241   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__c654f40241   has status   DONE
+20:33:19: all: 67, pending: 0 (+0), running: 1 (+0), finished: 66 (+0), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:34:19: all: 67, pending: 0 (+0), running: 1 (+0), finished: 66 (+0), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:35:19: all: 67, pending: 0 (+0), running: 0 (-1), finished: 67 (+1), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+polling took 6 minutes, 12 seconds
+INFO: luigi-interface - [pid 1773027] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ReduceEvents(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1773027] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ReduceEvents(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - Informed scheduler that task   cf.ReduceEvents_azh_config_analy__1__7f254ce847   has status   DONE
+INFO: Informed scheduler that task   cf.ReduceEvents_azh_config_analy__1__7f254ce847   has status   DONE
+INFO: luigi-interface - [pid 1785360] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=2, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1785360] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=2, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - [pid 1785362] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1785362] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - [pid 1785363] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1785363] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - [pid 1785365] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=3, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1785365] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=3, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+20:35:20: all: 1, pending: 0 (+0), running: 0 (+0), finished: 0 (+0), retry: 1 (+1), failed: 0 (+0), config_2022pre, tt_dl_powheg
+going to submit 1 htcondor job(s), config_2022pre, tt_dl_powheg
+20:35:20: all: 1, pending: 0 (+0), running: 0 (+0), finished: 0 (+0), retry: 1 (+1), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:35:20: all: 1, pending: 0 (+0), running: 0 (+0), finished: 0 (+0), retry: 1 (+1), failed: 0 (+0), config_2022pre, tt_dl_powheg
+1 failed job(s) in task cf.MergeReducedEvents_azh_config_analy__1__c18f41eedf:
+    job: 1, branches: [0], id: dummy_job_id, status: retry, code: 0, error: unknown job id, log: /data/dust/user/eranders/azh_jobs/htcondor_out/stdall_0To1.txt
+going to submit 1 htcondor job(s), config_2022pre, tt_dl_powheg
+1 failed job(s) in task cf.MergeReducedEvents_azh_config_analy__1__1040752e8b:
+    job: 1, branches: [0], id: dummy_job_id, status: retry, code: 0, error: unknown job id, log: /data/dust/user/eranders/azh_jobs/htcondor_out/stdall_0To1.txt
+going to submit 1 htcondor job(s), config_2022pre, tt_dl_powheg
+1 failed job(s) in task cf.MergeReducedEvents_azh_config_analy__1__5368eb861a:
+    job: 1, branches: [0], id: dummy_job_id, status: retry, code: 0, error: unknown job id, log: /data/dust/user/eranders/azh_jobs/htcondor_out/stdall_0To1.txt
+going to submit 1 htcondor job(s), config_2022pre, tt_dl_powheg
+submitted 1 htcondor job(s), config_2022pre, tt_dl_powheg
+submitted 1 htcondor job(s), config_2022pre, tt_dl_powheg
+submitted 1 htcondor job(s), config_2022pre, tt_dl_powheg
+submitted 1 htcondor job(s), config_2022pre, tt_dl_powheg
+20:36:20: all: 1, pending: 0 (+0), running: 1 (+1), finished: 0 (+0), retry: 0 (-1), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:36:20: all: 1, pending: 0 (+0), running: 1 (+1), finished: 0 (+0), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:36:20: all: 1, pending: 0 (+0), running: 1 (+1), finished: 0 (+0), retry: 0 (-1), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:36:30: all: 1, pending: 0 (+0), running: 1 (+1), finished: 0 (+0), retry: 0 (-1), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:37:20: all: 1, pending: 0 (+0), running: 1 (+0), finished: 0 (+0), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:37:20: all: 1, pending: 0 (+0), running: 1 (+0), finished: 0 (+0), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:37:20: all: 1, pending: 0 (+0), running: 0 (-1), finished: 1 (+1), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+polling took 2 minutes, 1 second
+INFO: luigi-interface - [pid 1785360] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=2, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1785360] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=2, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__1040752e8b   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__1040752e8b   has status   DONE
+INFO: luigi-interface - [pid 1789304] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1789304] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+20:37:21: all: 1, pending: 0 (+0), running: 0 (+0), finished: 0 (+0), retry: 1 (+1), failed: 0 (+0), config_2022pre, tt_dl_powheg
+1 failed job(s) in task cf.MergeReducedEvents_azh_config_analy__1__40d89b3194:
+    job: 1, branches: [0], id: dummy_job_id, status: retry, code: 0, error: unknown job id, log: /data/dust/user/eranders/azh_jobs/htcondor_out/stdall_0To1.txt
+going to submit 1 htcondor job(s), config_2022pre, tt_dl_powheg
+submitted 1 htcondor job(s), config_2022pre, tt_dl_powheg
+20:37:40: all: 1, pending: 0 (+0), running: 0 (-1), finished: 1 (+1), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+polling took 2 minutes, 21 seconds
+INFO: luigi-interface - [pid 1785363] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1785363] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__c18f41eedf   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__c18f41eedf   has status   DONE
+INFO: luigi-interface - [pid 1790536] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=2, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790536] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=2, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - [pid 1790536] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=2, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790536] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=2, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__72f709738d   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__72f709738d   has status   DONE
+INFO: luigi-interface - [pid 1790541] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790541] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - [pid 1790541] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790541] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__e42d944ff9   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__e42d944ff9   has status   DONE
+INFO: luigi-interface - [pid 1790546] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=3, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790546] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=3, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - [pid 1790546] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=3, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790546] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=3, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__509c6f2fc9   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__509c6f2fc9   has status   DONE
+INFO: luigi-interface - [pid 1790551] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790551] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - [pid 1790551] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790551] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__a7770bf1de   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__a7770bf1de   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ReduceEvents_azh_config_analy__1_0_14_749d9ac160   has status   DONE
+INFO: Informed scheduler that task   cf.ReduceEvents_azh_config_analy__1_0_14_749d9ac160   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReductionStats_azh_config_analy_skip_jecunc_config_2022pre_cfd1ca8fd6   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReductionStats_azh_config_analy_skip_jecunc_config_2022pre_cfd1ca8fd6   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__33277fb7ea   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__33277fb7ea   has status   PENDING
+INFO: luigi-interface - [pid 1790556] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790556] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - [pid 1790556] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1790556] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__604eaf8a70   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__604eaf8a70   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ReduceEvents_azh_config_analy__1_54_67_d3575dcd6b   has status   DONE
+INFO: Informed scheduler that task   cf.ReduceEvents_azh_config_analy__1_54_67_d3575dcd6b   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReductionStats_azh_config_analy_skip_jecunc_config_2022pre_cfd1ca8fd6   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReductionStats_azh_config_analy_skip_jecunc_config_2022pre_cfd1ca8fd6   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__014cd9be38   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__014cd9be38   has status   PENDING
+INFO: luigi-interface - [pid 1790561] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1790561] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+
+=============================== entering sandbox ===============================
+task   : cf.MergeReducedEvents_azh_config_analy_0__a7770bf1de
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1790602] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1790602] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+start merging 14 inputs of node (0, 0)
+fetching inputs ...
+fetch file 1 / 14
+fetch file 5 / 14
+fetch file 10 / 14
+fetch file 14 / 14
+done (took 3.95 seconds)
+merging 14 parquet files ...
+20:38:22: all: 1, pending: 0 (+0), running: 0 (-1), finished: 1 (+1), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+polling took 2 minutes, 2 seconds
+INFO: luigi-interface - [pid 1785362] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1785362] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__0351a1e569   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__0351a1e569   has status   DONE
+20:38:22: all: 1, pending: 0 (+0), running: 0 (-1), finished: 1 (+1), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+polling took 3 minutes, 3 seconds
+INFO: luigi-interface - [pid 1785365] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=3, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1785365] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=3, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__5368eb861a   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__5368eb861a   has status   DONE
+INFO: luigi-interface - [pid 1791520] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1791520] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+
+=============================== entering sandbox ===============================
+task   : cf.MergeReducedEvents_azh_config_analy_0__604eaf8a70
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+done (took 11.33 seconds)
+merged file size: 456.0 MB
+INFO: luigi-interface - [pid 1790602] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1790602] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.MergeReducedEvents_azh_config_analy_0__a7770bf1de
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1790561] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1790561] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__a7770bf1de   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__a7770bf1de   has status   DONE
+INFO: luigi-interface - [pid 1792135] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1792135] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - [pid 1792135] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1792135] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__33277fb7ea   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__33277fb7ea   has status   DONE
+20:38:31: all: 1, pending: 0 (+0), running: 1 (+1), finished: 0 (+0), retry: 0 (-1), failed: 0 (+0), config_2022pre, tt_dl_powheg
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1791805] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1791805] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+start merging 13 inputs of node (4, 4)
+fetching inputs ...
+fetch file 1 / 13
+fetch file 5 / 13
+fetch file 10 / 13
+fetch file 13 / 13
+done (took 2.81 seconds)
+merging 13 parquet files ...
+done (took 8.22 seconds)
+merged file size: 338.8 MB
+INFO: luigi-interface - [pid 1791805] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1791805] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.MergeReducedEvents_azh_config_analy_0__604eaf8a70
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1791520] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1791520] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__604eaf8a70   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__604eaf8a70   has status   DONE
+INFO: luigi-interface - [pid 1792822] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1792822] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - [pid 1792822] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: [pid 1792822] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=-1, tree_index=4, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__014cd9be38   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__014cd9be38   has status   DONE
+INFO: luigi-interface - [pid 1792827] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=-1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1792827] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=-1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: luigi-interface - [pid 1792827] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=-1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1792827] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=local, branch=0, tree_index=-1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__37863d2216   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__37863d2216   has status   DONE
+INFO: luigi-interface - [pid 1792832] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ProvideReducedEvents(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, skip_merging=False, force_merging=False, workflow=local)
+INFO: [pid 1792832] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ProvideReducedEvents(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, skip_merging=False, force_merging=False, workflow=local)
+INFO: luigi-interface - [pid 1792832] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ProvideReducedEvents(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, skip_merging=False, force_merging=False, workflow=local)
+INFO: [pid 1792832] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ProvideReducedEvents(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, skip_merging=False, force_merging=False, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__1562ab7187   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__1562ab7187   has status   DONE
+20:39:32: all: 1, pending: 0 (+0), running: 0 (-1), finished: 1 (+1), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+polling took 2 minutes, 11 seconds
+INFO: luigi-interface - [pid 1789304] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: [pid 1789304] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=-1, tree_index=0, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, workflow=htcondor)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__40d89b3194   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy__1__40d89b3194   has status   DONE
+INFO: luigi-interface - [pid 1794102] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=0, tree_index=-1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1794102] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeReducedEvents(effective_workflow=htcondor, branch=0, tree_index=-1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: luigi-interface - [pid 1794102] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=0, tree_index=-1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: [pid 1794102] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeReducedEvents(effective_workflow=htcondor, branch=0, tree_index=-1, tree_depth=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__5b4563184b   has status   DONE
+INFO: Informed scheduler that task   cf.MergeReducedEvents_azh_config_analy_0__5b4563184b   has status   DONE
+INFO: luigi-interface - [pid 1794107] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ProvideReducedEvents(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, skip_merging=False, force_merging=False, workflow=htcondor)
+INFO: [pid 1794107] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ProvideReducedEvents(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, skip_merging=False, force_merging=False, workflow=htcondor)
+INFO: luigi-interface - [pid 1794107] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ProvideReducedEvents(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, skip_merging=False, force_merging=False, workflow=htcondor)
+INFO: [pid 1794107] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ProvideReducedEvents(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, skip_merging=False, force_merging=False, workflow=htcondor)
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__3d9a6dc9df   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy__1__3d9a6dc9df   has status   DONE
+INFO: luigi-interface - [pid 1794112] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ProduceColumns(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producer=default, workflow=htcondor)
+INFO: [pid 1794112] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.ProduceColumns(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producer=default, workflow=htcondor)
+going to submit 5 htcondor job(s), config_2022pre, tt_dl_powheg
+submitted 5 htcondor job(s), config_2022pre, tt_dl_powheg
+20:40:33: all: 5, pending: 0 (+0), running: 5 (+5), finished: 0 (+0), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:41:33: all: 5, pending: 0 (+0), running: 3 (-2), finished: 2 (+2), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+20:42:33: all: 5, pending: 0 (+0), running: 0 (-3), finished: 5 (+3), retry: 0 (+0), failed: 0 (+0), config_2022pre, tt_dl_powheg
+polling took 2 minutes, 1 second
+INFO: luigi-interface - [pid 1794112] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ProduceColumns(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producer=default, workflow=htcondor)
+INFO: [pid 1794112] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.ProduceColumns(effective_workflow=htcondor, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v1, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producer=default, workflow=htcondor)
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy__1__b0d9cf12f3   has status   DONE
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy__1__b0d9cf12f3   has status   DONE
+INFO: luigi-interface - [pid 1799889] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: [pid 1799889] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: luigi-interface - [pid 1799889] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: [pid 1799889] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_0__d1b0f8535a   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_0__d1b0f8535a   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy_0__15232df69d   has status   DONE
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy_0__15232df69d   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_0__72b0434d42   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_0__72b0434d42   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_1__3ff8692d9a   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_1__3ff8692d9a   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy_1__17e24f20fe   has status   DONE
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy_1__17e24f20fe   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_1__2ce52cfd3e   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_1__2ce52cfd3e   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_2__34546cfe4c   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_2__34546cfe4c   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy_2__3db3f9c9d2   has status   DONE
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy_2__3db3f9c9d2   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_2__45481a850f   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_2__45481a850f   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_3__a3e3c5b778   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_3__a3e3c5b778   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy_3__30f4de156e   has status   DONE
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy_3__30f4de156e   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_3__27c40a84b9   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_3__27c40a84b9   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_4__a6c525916f   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_4__a6c525916f   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.ProduceColumns_azh_config_analy_4__66789f8afa   has status   DONE
+INFO: Informed scheduler that task   cf.ProduceColumns_azh_config_analy_4__66789f8afa   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_4__9f50148c8f   has status   DONE
+INFO: Informed scheduler that task   cf.ProvideReducedEvents_azh_config_analy_4__9f50148c8f   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__640fd10311   has status   PENDING
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__640fd10311   has status   PENDING
+INFO: luigi-interface - [pid 1799982] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1799982] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - [pid 1799984] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - [pid 1799985] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=2, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1799985] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=2, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1799984] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - [pid 1799989] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=3, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1799989] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=3, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+
+=============================== entering sandbox ===============================
+task   : cf.CreateHistograms_azh_config_analy_2__34546cfe4c
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+
+=============================== entering sandbox ===============================
+task   : cf.CreateHistograms_azh_config_analy_0__d1b0f8535a
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+
+=============================== entering sandbox ===============================
+task   : cf.CreateHistograms_azh_config_analy_1__3ff8692d9a
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+
+=============================== entering sandbox ===============================
+task   : cf.CreateHistograms_azh_config_analy_3__a3e3c5b778
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1800380] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1800380] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.MergeReducedEvents/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/v1/events_0.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x151f8fc551f0>
+None
+493270
+0
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.ProduceColumns/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/prod__default/v1/columns_0.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x151f8c595610>
+493270
+493270
+1
+iterate through 493270 events in 5 chunks ...
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1800374] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=2, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1800374] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=2, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1800712] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=3, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1800712] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=3, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.MergeReducedEvents/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/v1/events_2.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x153fd483ad30>
+None
+176646
+0
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.ProduceColumns/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/prod__default/v1/columns_2.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x153fd4766b20>
+176646
+176646
+1
+iterate through 176646 events in 2 chunks ...
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.MergeReducedEvents/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/v1/events_3.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x1500a7b7f910>
+None
+343917
+0
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.ProduceColumns/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/prod__default/v1/columns_3.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x1500a6539160>
+343917
+343917
+1
+iterate through 343917 events in 4 chunks ...
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1800379] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1800379] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+handling chunk 0
+handling chunk 1
+done (took 4.97 seconds)
+event processing in loop body took 0.14 seconds
+INFO: luigi-interface - [pid 1800374] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=2, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1800374] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=2, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+handling chunk 0
+handling chunk 1
+handling chunk 2
+handling chunk 3
+handling chunk 4
+done (took 8.64 seconds)
+event processing in loop body took 0.48 seconds
+INFO: luigi-interface - [pid 1800380] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1800380] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.MergeReducedEvents/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/v1/events_1.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x14ddbbff43a0>
+None
+675228
+0
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.ProduceColumns/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/prod__default/v1/columns_1.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x14ddb7d14ca0>
+675228
+675228
+1
+iterate through 675228 events in 7 chunks ...
+
+=============================== leaving sandbox ================================
+task   : cf.CreateHistograms_azh_config_analy_2__34546cfe4c
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1799985] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=2, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1799985] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=2, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_2__34546cfe4c   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_2__34546cfe4c   has status   DONE
+INFO: luigi-interface - [pid 1801612] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=4, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1801612] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=4, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+handling chunk 0
+handling chunk 1
+handling chunk 2
+handling chunk 3
+done (took 6.91 seconds)
+event processing in loop body took 0.41 seconds
+
+=============================== leaving sandbox ================================
+task   : cf.CreateHistograms_azh_config_analy_0__d1b0f8535a
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1799982] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1799982] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_0__d1b0f8535a   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_0__d1b0f8535a   has status   DONE
+
+=============================== entering sandbox ===============================
+task   : cf.CreateHistograms_azh_config_analy_4__a6c525916f
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1800712] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=3, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1800712] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=3, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.CreateHistograms_azh_config_analy_3__a3e3c5b778
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1799989] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=3, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1799989] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=3, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_3__a3e3c5b778   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_3__a3e3c5b778   has status   DONE
+handling chunk 1
+handling chunk 0
+handling chunk 2
+handling chunk 3
+handling chunk 4
+handling chunk 5
+handling chunk 6
+done (took 10.86 seconds)
+event processing in loop body took 0.74 seconds
+INFO: luigi-interface - [pid 1800379] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1800379] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.CreateHistograms_azh_config_analy_1__3ff8692d9a
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1799984] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1799984] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_1__3ff8692d9a   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_1__3ff8692d9a   has status   DONE
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1801677] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=4, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1801677] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=4, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.MergeReducedEvents/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/v1/events_4.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x1479355b0520>
+None
+366317
+0
+/data/dust/user/eranders/azh_data/cf_store/analysis_azh/cf.ProduceColumns/config_2022pre/tt_dl_powheg/nominal/calib__skip_jecunc/sel__default/prod__default/v1/columns_4.parquet
+<columnflow.columnar_util.DaskArrayReader object at 0x147935566f10>
+366317
+366317
+1
+iterate through 366317 events in 4 chunks ...
+handling chunk 0
+handling chunk 1
+handling chunk 2
+handling chunk 3
+done (took 7.11 seconds)
+event processing in loop body took 0.42 seconds
+INFO: luigi-interface - [pid 1801677] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=4, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1801677] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=4, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.CreateHistograms_azh_config_analy_4__a6c525916f
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1801612] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=4, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: [pid 1801612] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=4, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy_4__a6c525916f   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy_4__a6c525916f   has status   DONE
+INFO: luigi-interface - [pid 1803045] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: [pid 1803045] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: luigi-interface - [pid 1803045] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: [pid 1803045] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.CreateHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__640fd10311   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__640fd10311   has status   DONE
+INFO: luigi-interface - [pid 1803050] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: [pid 1803050] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: luigi-interface - [pid 1803050] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: [pid 1803050] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) new requirements      cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy_0__0a4281d631   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy_0__0a4281d631   has status   PENDING
+INFO: luigi-interface - Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__640fd10311   has status   DONE
+INFO: Informed scheduler that task   cf.CreateHistograms_azh_config_analy__1__640fd10311   has status   DONE
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__bd6af5aafb   has status   PENDING
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__bd6af5aafb   has status   PENDING
+INFO: luigi-interface - [pid 1803055] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: [pid 1803055] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+
+=============================== entering sandbox ===============================
+task   : cf.MergeHistograms_azh_config_analy_0__0a4281d631
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1803096] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: [pid 1803096] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+merging histograms for 'm_z'
+INFO: luigi-interface - [pid 1803096] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: [pid 1803096] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.MergeHistograms_azh_config_analy_0__0a4281d631
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1803055] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: [pid 1803055] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy_0__0a4281d631   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy_0__0a4281d631   has status   DONE
+INFO: luigi-interface - [pid 1803803] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: [pid 1803803] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: luigi-interface - [pid 1803803] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: [pid 1803803] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.MergeHistograms(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, dataset=tt_dl_powheg, calibrators=skip_jecunc, selector=default, producers=default, variables=m_z, weight_producer=all_weights, only_missing=False, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__bd6af5aafb   has status   DONE
+INFO: Informed scheduler that task   cf.MergeHistograms_azh_config_analy__1__bd6af5aafb   has status   DONE
+INFO: luigi-interface - [pid 1803810] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: [pid 1803810] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+
+=============================== entering sandbox ===============================
+task   : cf.PlotVariables1D_azh_config_analy_0__ce97e9e8c7
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+start
+1
+2
+This is the Selection categorizer
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2022_Summer22EE
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+Weclome
+CORRR TAAGGGGGGGGGG
+2023_Summer23BPix
+INFO: luigi-interface - Done scheduling tasks
+INFO: Done scheduling tasks
+INFO: luigi-interface - Running Worker with 1 processes
+INFO: Running Worker with 1 processes
+INFO: luigi-interface - [pid 1803876] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: [pid 1803876] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+plotting m_z in cat_incl
+done (took 58.87 seconds)
+INFO: luigi-interface - [pid 1803876] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: [pid 1803876] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: luigi-interface - This progress looks :) because there were no failed tasks or missing dependencies
+INFO: This progress looks :) because there were no failed tasks or missing dependencies
+
+=============================== leaving sandbox ================================
+task   : cf.PlotVariables1D_azh_config_analy_0__ce97e9e8c7
+sandbox: bash::$CF_BASE/sandboxes/venv_columnar_dev.sh
+================================================================================
+
+INFO: luigi-interface - [pid 1803810] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: [pid 1803810] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.PlotVariables1D(effective_workflow=local, branch=0, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR)
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy_0__ce97e9e8c7   has status   DONE
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy_0__ce97e9e8c7   has status   DONE
+INFO: luigi-interface - [pid 1807039] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: [pid 1807039] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) running   cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: luigi-interface - [pid 1807039] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: [pid 1807039] Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) done      cf.PlotVariables1D(effective_workflow=local, branch=-1, analysis=azh.config.analysis_azh_run3.analysis_azh, version=v2, config=config_2022pre, shift=nominal, local_shift=nominal, calibrators=skip_jecunc, selector=default, producers=default, categories=cat_incl, variables=m_z, datasets=dy_m50toinf_amcatnlo,dy_m10to50_amcatnlo,tt_sl_powheg,tt_dl_powheg,data_mu_c,data_egamma_c, processes=dy_lf,dy_hf,tt,data, weight_producer=all_weights, hist_hooks=, file_types=pdf, plot_suffix=NO_STR, workflow=local)
+INFO: luigi-interface - Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__45a9f8773a   has status   DONE
+INFO: Informed scheduler that task   cf.PlotVariables1D_azh_config_analy__1__45a9f8773a   has status   DONE
+INFO: luigi-interface - Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) was stopped. Shutting down Keep-Alive thread
+INFO: Worker Worker(salt=9607180828, workers=4, host=naf-cms14.desy.de, username=eranders, pid=1771938) was stopped. Shutting down Keep-Alive thread
+INFO: luigi-interface - 
+===== Luigi Execution Summary =====
+
+Scheduled 63 tasks of which:
+* 29 complete ones were encountered:
+    - 2 cf.BuildBashSandbox(...)
+    - 1 cf.BundleExternalFiles(...)
+    - 1 cf.CalibrateEvents(...)
+    - 1 cf.GetDatasetLFNs(...)
+    - 4 cf.MergeHistograms(...)
+    ...
+* 34 ran successfully:
+    - 1 cf.BundleRepo(...)
+    - 8 cf.CreateHistograms(...)
+    - 4 cf.MergeHistograms(...)
+    - 14 cf.MergeReducedEvents(...)
+    - 2 cf.PlotVariables1D(...)
+    ...
+
+This progress looks :) because there were no failed tasks or missing dependencies
+
+===== Luigi Execution Summary =====
+
+INFO: 
+===== Luigi Execution Summary =====
+
+Scheduled 63 tasks of which:
+* 29 complete ones were encountered:
+    - 2 cf.BuildBashSandbox(...)
+    - 1 cf.BundleExternalFiles(...)
+    - 1 cf.CalibrateEvents(...)
+    - 1 cf.GetDatasetLFNs(...)
+    - 4 cf.MergeHistograms(...)
+    ...
+* 34 ran successfully:
+    - 1 cf.BundleRepo(...)
+    - 8 cf.CreateHistograms(...)
+    - 4 cf.MergeHistograms(...)
+    - 14 cf.MergeReducedEvents(...)
+    - 2 cf.PlotVariables1D(...)
+    ...
+
+This progress looks :) because there were no failed tasks or missing dependencies
+
+===== Luigi Execution Summary =====
+

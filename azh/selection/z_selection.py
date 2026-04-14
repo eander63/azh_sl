@@ -90,15 +90,16 @@ def z_selection(
 
     m_z = 91.188
 
-    loose_leptons = ak.concatenate([
-        events.Electron[ele_mask_loose] * 1,
-        events.Muon[muo_mask_loose] * 1,
-    ], axis=1)
+    # same-flavor OS pairs only (ee or mumu separately)
+    def ossf_z_sel(collection, mask):
+        pairs = ak.combinations(collection[mask], 2, fields=["l1", "l2"])
+        os = pairs.l1.charge * pairs.l2.charge < 0
+        m_inv = (pairs.l1 + pairs.l2).mass
+        return ak.any(os & (abs(m_inv - m_z) <= 5), axis=1)
 
-    lepton_pairs = ak.combinations(loose_leptons, 2)
-    l1, l2 = ak.unzip(lepton_pairs)
-    lepton_pairs["m_inv"] = (l1 + l2).mass
-    z_sel = ak.any((abs(lepton_pairs.m_inv - m_z) <= 5), axis=1)
+    ee_z_sel   = ossf_z_sel(events.Electron, ele_mask_loose)
+    mumu_z_sel = ossf_z_sel(events.Muon,     muo_mask_loose)
+    z_sel = ak.fill_none(ee_z_sel | mumu_z_sel, False)
 
     # build and return selection results plus new columns
     return events, SelectionResult(

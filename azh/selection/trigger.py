@@ -36,25 +36,19 @@ def trigger_selection(
 
     # index of TrigObj's to repeatedly convert masks to indices
     index = ak.local_index(events.TrigObj)
-    print(index)
 
     for trigger in self.config_inst.x.triggers:
-        print(trigger)
         # skip the trigger if it does not apply to the dataset
         if not trigger.applies_to_dataset(self.dataset_inst):
             continue
-        print(trigger.applies_to_dataset(self.dataset_inst))
         # get bare decisions
         fired = events.HLT[trigger.hlt_field] == 1
-        print(fired)
         if trigger.run_range:
             fired = fired & (
                 ((trigger.run_range[0] is None) | (trigger.run_range[0] <= events.run)) &
                 ((trigger.run_range[1] is None) | (trigger.run_range[1] >= events.run))
             )
-        print(trigger.run_range)
         any_fired = any_fired | fired
-        print(any_fired)
 
         # get trigger objects for fired events per leg
         leg_masks = []

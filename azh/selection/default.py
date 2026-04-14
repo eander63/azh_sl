@@ -85,8 +85,7 @@ def default(
     # jet selection
     events, results_jet = self[jet_selection](events, **kwargs)
     results += results_jet
-    # print(results.BJet)
-
+    #
     # trigger selection
     # Uses pt_avg and the probe jet
     # if self.dataset_inst.is_data:
@@ -97,11 +96,13 @@ def default(
 
     # events, results_azh = self[azh_selection](events, **kwargs)
     # results += results_azh
-    results.steps['no_trig'] = (
+    results.steps['baseline'] = (
         results.steps.Lepton &
         results.steps.met_filter &
-        results.steps.jet_veto_map
-        )
+        results.steps.jet_veto_map &
+        results.steps.trigger
+    )
+    results.steps['no_trig'] = results.steps['baseline']  # alias for compatibility
     # create process ids
     events = self[process_ids](events, **kwargs)
 
@@ -113,7 +114,7 @@ def default(
 
     # results.event contains full selection mask. Sum over all steps.
     # Make sure all nans are present, otherwise next tasks fail
-    results.event = results.steps["no_trig"]
+    results.event = results.steps["baseline"]
     results.event = ak.fill_none(results.event, False)
 
     weight_map = {

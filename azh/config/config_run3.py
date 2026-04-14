@@ -568,6 +568,29 @@ def add_config(
         #     dataset.x.is_qcd = True
 
     # fix wrong DAS keys for amcatnlo datasets in cmsdb
+    # fix wrong file counts in cmsdb
+    if cfg.has_dataset("wz_pythia"):
+        cfg.get_dataset("wz_pythia").get_info("nominal").n_files = 45
+    if cfg.has_dataset("st_twchannel_tbar_sl_powheg"):
+        cfg.get_dataset("st_twchannel_tbar_sl_powheg").get_info("nominal").n_files = 49
+    if cfg.has_dataset("st_twchannel_tbar_dl_powheg"):
+        cfg.get_dataset("st_twchannel_tbar_dl_powheg").get_info("nominal").n_files = 24
+    # fix wrong DAS keys for ttz datasets in cmsdb (v3 not v2)
+    if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
+        cfg.get_dataset("ttz_zll_m50toinf_amcatnlo").get_info("nominal").keys = {
+            "/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM"
+        }
+    if cfg.has_dataset("ttz_zll_m4to50_amcatnlo"):
+        cfg.get_dataset("ttz_zll_m4to50_amcatnlo").get_info("nominal").keys = {
+            "/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM"
+        }
+        cfg.get_dataset("ttz_zll_m4to50_amcatnlo").get_info("nominal").n_files = 21
+    if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
+        cfg.get_dataset("ttz_zll_m50toinf_amcatnlo").get_info("nominal").n_files = 7
+    # tag pythia diboson samples that have no LHEScaleWeight
+    for ds_name in ["ww_pythia", "wz_pythia", "zz_pythia"]:
+        if cfg.has_dataset(ds_name):
+            cfg.get_dataset(ds_name).add_tag("no_lhe_weights")
     if cfg.has_dataset("dy_m50toinf_amcatnlo"):
         ds = cfg.get_dataset("dy_m50toinf_amcatnlo")
         for info in ds.info.values():
@@ -904,6 +927,8 @@ def add_config(
     # cfg.x.muon_sf_names = ("NUM_TightRelTkIso_DEN_HighPtID", f"{year}{corr_postfix}_UL")
     cfg.x.muon_sf_id_names = ("NUM_HighPtID_DEN_TrackerMuons", f"{year}{corr_postfix}")
     cfg.x.muon_sf_iso_names = ("NUM_TightRelTkIso_DEN_HighPtID", f"{year}{corr_postfix}")
+    cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose", f"{year}{corr_postfix}")
+    cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2022Re-recoBCD", "HLT_SF_Ele30_MVAiso80ID")
 
     cfg.x.top_pt_reweighting_params = {
         "a": 0.0615,
@@ -940,6 +965,10 @@ def add_config(
     cfg.add_shift(name="e_sf_down", id=41, type="shape")
     cfg.add_shift(name="e_trig_sf_up", id=42, type="shape")
     cfg.add_shift(name="e_trig_sf_down", id=43, type="shape")
+    add_aliases("e_trig_sf", {"electron_trig_weight": "electron_trig_weight_{direction}"}, selection_dependent=False)
+    cfg.add_shift(name="mu_trig_sf_up", id=53, type="shape")
+    cfg.add_shift(name="mu_trig_sf_down", id=54, type="shape")
+    add_aliases("mu_trig_sf", {"muon_trig_weight": "muon_trig_weight_{direction}"}, selection_dependent=False)
     add_aliases("e_sf", {"electron_weight": "electron_weight_{direction}"}, selection_dependent=False)
 
     cfg.add_shift(name="muon_up", id=51, type="shape")
@@ -1037,6 +1066,7 @@ def add_config(
 
         # muon scale factors
         "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_Z.json.gz", "v1"),
+        "electron_sf_hlt": (f"{json_mirror}/POG/EGM/{corr_tag}/electronHlt.json.gz", "v1"),
 
         # btag scale factor
         # "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
@@ -1060,8 +1090,8 @@ def add_config(
                 "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
-                # "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileup_JSON.txt", "v1"),  # noqa
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),  # noqa
+                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileup_JSON.txt", "v1"),  # noqa
+                # "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),  # noqa
                 "mc_profile": ("https://raw.githubusercontent.com/cms-sw/cmssw/bb525104a7ddb93685f8ced6fed1ab793b2d2103/SimGeneral/MixingModule/python/Run3_2022_LHC_Simulation_10h_2h_cfi.py", "v1"),  # noqa
                 "data_profile": {
                     # "nominal": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileupHistogram-Cert_Collisions2022_355100_357900_eraBCD_GoldenJson-13p6TeV-69200ub-99bins.root", "v1"),  # noqa
@@ -1178,16 +1208,19 @@ def add_config(
     get_shifts = functools.partial(get_shifts_from_sources, cfg)
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
-        "electron_weight": [],
-        "electron_mid_weight": [],
-        "electron_id_weight": [],
+        # "electron_trig_weight": [],
+        # "muon_trig_weight": [],
+        "electron_weight": [],      # adding electron reco above 75
+        "electron_mid_weight": [],  # adding electron reco 20-75
+        "electron_id_weight": [],   # adding electron ID
         # "muon_weight": [],
         "muon_id_weight": [],
         "muon_iso_weight": [],
-        # "pu_weight": [],  # TODO: disabled pending fix of anomalous values
+        "pu_weight": [],
         # "btag_weight": [],
-        "mur_weight": get_shifts("mur"),
-        "muf_weight": get_shifts("muf"),
+        # mur/muf kept as systematics only, not applied at nominal
+        # "mur_weight": get_shifts("mur"),
+        # "muf_weight": get_shifts("muf"),
         # "top_pt_weight": [],
         # "muon_weight": get_shifts("muon"),
     })

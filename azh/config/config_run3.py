@@ -925,9 +925,12 @@ def add_config(
     # names of muon correction sets and working points
     # (used in the muon producer)
     # cfg.x.muon_sf_names = ("NUM_TightRelTkIso_DEN_HighPtID", f"{year}{corr_postfix}_UL")
-    cfg.x.muon_sf_id_names = ("NUM_HighPtID_DEN_TrackerMuons", f"{year}{corr_postfix}")
-    cfg.x.muon_sf_iso_names = ("NUM_TightRelTkIso_DEN_HighPtID", f"{year}{corr_postfix}")
-    cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose", f"{year}{corr_postfix}")
+    # high-pT muon SF chain (from muon_HighPt.json):
+    # SF(Global|Tracker) x SF(HighPtID|Global) x SF(TightTkIso|HighPtID) x SF(HLT|HighPtID+TkIso)
+    cfg.x.muon_sf_reco_names = ("NUM_GlobalMuons_DEN_TrackerMuonProbes", f"{year}{corr_postfix}")
+    cfg.x.muon_sf_id_names = ("NUM_HighPtID_DEN_GlobalMuonProbes", f"{year}{corr_postfix}")
+    cfg.x.muon_sf_iso_names = ("NUM_probe_TightRelTkIso_DEN_HighPtProbes", f"{year}{corr_postfix}")
+    cfg.x.muon_sf_trig_names = ("NUM_HLT_DEN_HighPtTightRelIsoProbes", f"{year}{corr_postfix}")
     cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2022Re-recoBCD", "HLT_SF_Ele30_MVAiso80ID")
 
     cfg.x.top_pt_reweighting_params = {
@@ -1065,7 +1068,7 @@ def add_config(
         "electron_sf": (f"{json_mirror}/POG/EGM/{corr_tag}/electron.json.gz", "v1"),
 
         # muon scale factors
-        "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_Z.json.gz", "v1"),
+        "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_HighPt.json.gz", "v1"),
         "electron_sf_hlt": (f"{json_mirror}/POG/EGM/{corr_tag}/electronHlt.json.gz", "v1"),
 
         # btag scale factor
@@ -1208,14 +1211,15 @@ def add_config(
     get_shifts = functools.partial(get_shifts_from_sources, cfg)
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
-        # "electron_trig_weight": [],
-        # "muon_trig_weight": [],
-        "electron_weight": [],      # adding electron reco above 75
-        "electron_mid_weight": [],  # adding electron reco 20-75
-        "electron_id_weight": [],   # adding electron ID
-        # "muon_weight": [],
-        "muon_id_weight": [],
-        "muon_iso_weight": [],
+        "channel_lumi_weight": [],   # per-channel lumi correction (muon: x0.9344, ee: x1.0023)
+        "electron_trig_weight": [],
+        "muon_trig_weight": [],
+        "electron_weight": [],       # electron reco above 75
+        "electron_mid_weight": [],   # electron reco 20-75
+        "electron_id_weight": [],    # electron MVA WP80iso
+        "muon_reco_weight": [],      # muon Global/Tracker reco SF (high-pT chain)
+        "muon_id_weight": [],        # muon HighPtID
+        "muon_iso_weight": [],       # muon TightRelTkIso
         "pu_weight": [],
         # "btag_weight": [],
         # mur/muf kept as systematics only, not applied at nominal

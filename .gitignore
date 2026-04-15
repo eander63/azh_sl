@@ -41,3 +41,9 @@ data
 .setups
 .mypy_cache
 .vscode
+# generated outputs that shouldn't be committed
+plotvars_*.txt
+pipeline_*.txt
+selectevents_*.txt
+test_amcatnlo*.txt
+*.bak

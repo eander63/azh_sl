@@ -96,12 +96,16 @@ def default(
 
     # events, results_azh = self[azh_selection](events, **kwargs)
     # results += results_azh
-    results.steps['baseline'] = (
+    baseline = (
         results.steps.Lepton &
         results.steps.met_filter &
         results.steps.jet_veto_map &
         results.steps.trigger
     )
+    # enforce golden JSON for data; MC always passes
+    if self.dataset_inst.is_data:
+        baseline = baseline & results.steps.json
+    results.steps['baseline'] = baseline
     results.steps['no_trig'] = results.steps['baseline']  # alias for compatibility
     # create process ids
     events = self[process_ids](events, **kwargs)

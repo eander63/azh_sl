@@ -14,6 +14,7 @@ from columnflow.production.normalization import normalization_weights
 from columnflow.production.cms.pileup import pu_weight
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from azh.production.trigger_weights import trigger_weights
+from azh.production.channel_lumi_weight import channel_lumi_weight
 from columnflow.util import maybe_import
 
 from azh.production.gen_top import top_pt_weight
@@ -72,6 +73,11 @@ muon_iso_weights = muon_weights.derive("muon_iso_weights", cls_dict={
     "get_muon_config": (lambda self: self.config_inst.x.muon_sf_iso_names),
 })
 
+muon_reco_weights = muon_weights.derive("muon_reco_weights", cls_dict={
+    "weight_name": "muon_reco_weight",
+    "get_muon_config": (lambda self: self.config_inst.x.muon_sf_reco_names),
+})
+
 # normalized_pu_weights = normalized_weight_factory(
 #     producer_name="normalized_pu_weights",
 #     weight_producers={pu_weight},
@@ -96,11 +102,15 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         # compute muon weights
         # events = self[muon_weights](events, **kwargs)
+        events = self[muon_reco_weights](events, **kwargs)
         events = self[muon_id_weights](events, **kwargs)
         events = self[muon_iso_weights](events, **kwargs)
 
         # compute trigger weights
         events = self[trigger_weights](events, **kwargs)
+
+        # apply per-channel luminosity correction
+        events = self[channel_lumi_weight](events, **kwargs)
 
         # compute btag weights
         # events = self[split_btag_weights](events, **kwargs)
@@ -127,12 +137,14 @@ def weights_init(self: Producer) -> None:
     if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
         # dynamically add dependencies if running on MC
         self.uses |= {
-            electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
+            electron_weights, electron_id_weights, electron_mid_weights,
+            muon_reco_weights, muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
-            trigger_weights,
+            trigger_weights, channel_lumi_weight,
         }
         self.produces |= {
-            electron_weights, electron_id_weights, electron_mid_weights, muon_id_weights, muon_iso_weights,
+            electron_weights, electron_id_weights, electron_mid_weights,
+            muon_reco_weights, muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
-            trigger_weights,
+            trigger_weights, channel_lumi_weight,
         }

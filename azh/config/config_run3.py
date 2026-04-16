@@ -1213,13 +1213,13 @@ def add_config(
         "normalization_weight": [],
         "channel_lumi_weight": [],   # per-channel lumi correction (muon: x0.9344, ee: x1.0023)
         "electron_trig_weight": [],
-        "muon_trig_weight": [],
+        # "muon_trig_weight": [],    # disabled: HLT SF binning starts at 50 GeV (high-pT chain)
         "electron_weight": [],       # electron reco above 75
         "electron_mid_weight": [],   # electron reco 20-75
         "electron_id_weight": [],    # electron MVA WP80iso
-        "muon_reco_weight": [],      # muon Global/Tracker reco SF (high-pT chain)
-        "muon_id_weight": [],        # muon HighPtID
-        "muon_iso_weight": [],       # muon TightRelTkIso
+        # "muon_reco_weight": [],   # disabled: SF expects p not pt
+        # "muon_id_weight": [],     # disabled: SF binning starts at 50 GeV
+        # "muon_iso_weight": [],    # disabled: same as above
         "pu_weight": [],
         # "btag_weight": [],
         # mur/muf kept as systematics only, not applied at nominal

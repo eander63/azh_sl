@@ -36,21 +36,11 @@ def trigger_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     ones = ak.ones_like(events.event, dtype=np.float32)
 
     # --- Muon trigger SF ---
-    is_mumu = events.cutflow.n_muo_loose >= 2
-
-    padded_muo = ak.pad_none(events.Muon, 1, axis=1)
-    lead_muo_pt  = ak.to_numpy(ak.fill_none(padded_muo[:, 0].pt,  30.0))
-    lead_muo_eta = ak.to_numpy(ak.fill_none(padded_muo[:, 0].eta, 0.0))
-
-    lead_muo_pt = np.clip(lead_muo_pt, 26.1, 199.9)
-
-    muo_sf    = self.muon_trig_corr.evaluate(lead_muo_eta, lead_muo_pt, "nominal")
-    muo_sf_up = self.muon_trig_corr.evaluate(lead_muo_eta, lead_muo_pt, "systup")
-    muo_sf_dn = self.muon_trig_corr.evaluate(lead_muo_eta, lead_muo_pt, "systdown")
-
-    muon_trig_weight    = ak.where(is_mumu, ak.Array(muo_sf),    ones)
-    muon_trig_weight_up = ak.where(is_mumu, ak.Array(muo_sf_up), ones)
-    muon_trig_weight_dn = ak.where(is_mumu, ak.Array(muo_sf_dn), ones)
+    # DISABLED: muon_HighPt.json HLT SFs only valid pT > 50 GeV; selection has muons down to 35.
+    # Producing ones so downstream wiring stays intact; not in event_weights dict anyway.
+    muon_trig_weight    = ones
+    muon_trig_weight_up = ones
+    muon_trig_weight_dn = ones
 
     events = set_ak_column(events, "muon_trig_weight",      ak.values_astype(muon_trig_weight,    np.float32))
     events = set_ak_column(events, "muon_trig_weight_up",   ak.values_astype(muon_trig_weight_up, np.float32))

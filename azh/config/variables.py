@@ -157,6 +157,22 @@ def add_variables(config: od.Config) -> None:
     )
 
     config.add_variable(
+        name="m_z_fine",
+        expression="m_z",
+        binning=(100, 80.0, 100.0),
+        unit="GeV",
+        x_title=r"$m_{\ell\ell}$ [GeV]",
+    )
+
+    config.add_variable(
+        name="pt_z_fine",
+        expression="pt_z",
+        binning=(100, 0.0, 100.0),
+        unit="GeV",
+        x_title=r"$p_{T}^{Z}$ [GeV]",
+    )
+
+    config.add_variable(
         name="delta_b_z",
         expression="delta_b_z",
         binning=(50, 0, 10),

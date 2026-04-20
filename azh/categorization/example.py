@@ -24,3 +24,15 @@ def cat_incl(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
 def cat_2j(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     # two or more jets
     return events, ak.num(events.Jet.pt, axis=1) >= 2
+
+
+@categorizer(uses={"cutflow.n_muo_loose", "cutflow.n_ele_loose"})
+def cat_mumu(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    # dimuon channel
+    return events, events.cutflow.n_muo_loose >= 2
+
+
+@categorizer(uses={"cutflow.n_muo_loose", "cutflow.n_ele_loose"})
+def cat_ee(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    # dielectron channel
+    return events, events.cutflow.n_ele_loose >= 2

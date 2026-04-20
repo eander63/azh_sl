@@ -48,15 +48,15 @@ def lepton_selection(
     muo_mask = (
         (events.Muon.pt > 20) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.highPtId == 2) &
-        (events.Muon.tkIsoId == 2)
+        (events.Muon.tightId) &
+        (events.Muon.pfRelIso04_all < 0.15)
     )
 
     muo_mask_high = (
         (events.Muon.pt > 35) &
         (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.highPtId == 2) &
-        (events.Muon.tkIsoId == 2)
+        (events.Muon.tightId) &
+        (events.Muon.pfRelIso04_all < 0.15)
     )
 
     muo_mask_loose = (

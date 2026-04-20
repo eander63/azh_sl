@@ -96,16 +96,10 @@ def default(
 
     # events, results_azh = self[azh_selection](events, **kwargs)
     # results += results_azh
-    baseline = (
-        results.steps.Lepton &
-        results.steps.met_filter &
-        results.steps.jet_veto_map &
-        results.steps.trigger
-    )
-    # enforce golden JSON for data; MC always passes
-    if self.dataset_inst.is_data:
-        baseline = baseline & results.steps.json
-    results.steps['baseline'] = baseline
+    # combine ALL selection steps into the event mask (includes json filter for data)
+    from functools import reduce
+    from operator import and_
+    results.event = reduce(and_, results.steps.values())
     results.steps['no_trig'] = results.steps['baseline']  # alias for compatibility
     # create process ids
     events = self[process_ids](events, **kwargs)

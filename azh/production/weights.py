@@ -102,9 +102,9 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         # compute muon weights
         # events = self[muon_weights](events, **kwargs)
-        # events = self[muon_reco_weights](events, **kwargs)  # disabled: SF expects 'p' not 'pt' (see Muon POG wiki, considered ~1)
-        # events = self[muon_id_weights](events, **kwargs)   # disabled: SF JSON binning starts at 50 GeV; selection has muons down to 35 GeV
-        # events = self[muon_iso_weights](events, **kwargs)  # disabled: same as above
+        # events = self[muon_reco_weights](events, **kwargs)  # disabled: not needed for TightID
+        events = self[muon_id_weights](events, **kwargs)
+        events = self[muon_iso_weights](events, **kwargs)
 
         # compute trigger weights
         events = self[trigger_weights](events, **kwargs)
@@ -138,13 +138,13 @@ def weights_init(self: Producer) -> None:
         # dynamically add dependencies if running on MC
         self.uses |= {
             electron_weights, electron_id_weights, electron_mid_weights,
-            # muon_id_weights, muon_iso_weights,  # disabled: SF binning starts at 50 GeV
+            muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
             trigger_weights, channel_lumi_weight,
         }
         self.produces |= {
             electron_weights, electron_id_weights, electron_mid_weights,
-            # muon_id_weights, muon_iso_weights,  # disabled: SF binning starts at 50 GeV
+            muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
             trigger_weights, channel_lumi_weight,
         }

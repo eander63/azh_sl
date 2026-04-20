@@ -924,13 +924,12 @@ def add_config(
         # cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
     # names of muon correction sets and working points
     # (used in the muon producer)
-    # cfg.x.muon_sf_names = ("NUM_TightRelTkIso_DEN_HighPtID", f"{year}{corr_postfix}_UL")
-    # high-pT muon SF chain (from muon_HighPt.json):
-    # SF(Global|Tracker) x SF(HighPtID|Global) x SF(TightTkIso|HighPtID) x SF(HLT|HighPtID+TkIso)
-    cfg.x.muon_sf_reco_names = ("NUM_GlobalMuons_DEN_TrackerMuonProbes", f"{year}{corr_postfix}")
-    cfg.x.muon_sf_id_names = ("NUM_HighPtID_DEN_GlobalMuonProbes", f"{year}{corr_postfix}")
-    cfg.x.muon_sf_iso_names = ("NUM_probe_TightRelTkIso_DEN_HighPtProbes", f"{year}{corr_postfix}")
-    cfg.x.muon_sf_trig_names = ("NUM_HLT_DEN_HighPtTightRelIsoProbes", f"{year}{corr_postfix}")
+    # TightID muon SF chain (from muon_Z.json):
+    # SF(TightID|Tracker) x SF(TightPFIso|TightID) x SF(IsoMu24|TightID+PFIso)
+    # Valid down to ~15 GeV (Z tag-and-probe), matching our selection threshold
+    cfg.x.muon_sf_id_names = ("NUM_TightID_DEN_TrackerMuons", f"{year}{corr_postfix}")
+    cfg.x.muon_sf_iso_names = ("NUM_TightPFIso_DEN_TightID", f"{year}{corr_postfix}")
+    cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdTight_and_PFIsoTight", f"{year}{corr_postfix}")
     cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2022Re-recoBCD", "HLT_SF_Ele30_MVAiso80ID")
 
     cfg.x.top_pt_reweighting_params = {
@@ -1068,7 +1067,7 @@ def add_config(
         "electron_sf": (f"{json_mirror}/POG/EGM/{corr_tag}/electron.json.gz", "v1"),
 
         # muon scale factors
-        "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_HighPt.json.gz", "v1"),
+        "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_Z.json.gz", "v1"),
         "electron_sf_hlt": (f"{json_mirror}/POG/EGM/{corr_tag}/electronHlt.json.gz", "v1"),
 
         # btag scale factor
@@ -1213,13 +1212,12 @@ def add_config(
         "normalization_weight": [],
         "channel_lumi_weight": [],   # per-channel lumi correction (muon: x0.9344, ee: x1.0023)
         "electron_trig_weight": [],
-        # "muon_trig_weight": [],    # disabled: HLT SF binning starts at 50 GeV (high-pT chain)
+        "muon_trig_weight": [],     # re-enabled: muon_Z.json HLT SFs valid down to ~15 GeV
         "electron_weight": [],       # electron reco above 75
         "electron_mid_weight": [],   # electron reco 20-75
         "electron_id_weight": [],    # electron MVA WP80iso
-        # "muon_reco_weight": [],   # disabled: SF expects p not pt
-        # "muon_id_weight": [],     # disabled: SF binning starts at 50 GeV
-        # "muon_iso_weight": [],    # disabled: same as above
+        "muon_id_weight": [],       # TightID SF (muon_Z.json, valid 15+ GeV)
+        "muon_iso_weight": [],      # TightPFIso SF (muon_Z.json, valid 15+ GeV)
         "pu_weight": [],
         # "btag_weight": [],
         # mur/muf kept as systematics only, not applied at nominal
@@ -1290,6 +1288,15 @@ def add_config(
     #     selection="cat_2j",
     #     label="2 jets",
     # )
+
+    # Override NLO DY xsec with NNLO prediction (DYTurbo + NNPDF 3.1)
+    # NLO from amcatnlo: 6275 pb; NNLO: ~6688 pb (k=1.066)
+    # Reference: SMP-22-017 uses NNLO normalization
+    from scinum import Number
+    if cfg.has_process("dy_m50toinf"):
+        cfg.get_process("dy_m50toinf").set_xsec(13.6, Number(6688.0, {"tot": 0.02j}))
+    if cfg.has_process("dy_m10to50"):
+        cfg.get_process("dy_m10to50").set_xsec(13.6, Number(21050.0, {"tot": 0.02j}))
 
     add_variables(cfg)
     add_categories_selection(cfg)

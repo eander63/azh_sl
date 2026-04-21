@@ -591,6 +591,20 @@ def add_config(
     for ds_name in ["ww_pythia", "wz_pythia", "zz_pythia"]:
         if cfg.has_dataset(ds_name):
             cfg.get_dataset(ds_name).add_tag("no_lhe_weights")
+    # remove non-nominal dataset infos (extension, hdamp, tune variations)
+    # to avoid indexing errors when running from scratch
+    for ds_name in [
+        "st_twchannel_t_sl_powheg", "st_twchannel_tbar_sl_powheg",
+        "st_twchannel_t_dl_powheg", "st_twchannel_tbar_dl_powheg",
+        "tt_sl_powheg", "tt_dl_powheg", "tt_fh_powheg",
+    ]:
+        if not cfg.has_dataset(ds_name):
+            continue
+        ds = cfg.get_dataset(ds_name)
+        for info_name in list(ds.info.keys()):
+            if info_name != "nominal":
+                del ds.info[info_name]
+
     if cfg.has_dataset("dy_m50toinf_amcatnlo"):
         ds = cfg.get_dataset("dy_m50toinf_amcatnlo")
         for info in ds.info.values():

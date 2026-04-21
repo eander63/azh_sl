@@ -1292,7 +1292,6 @@ def add_config(
     # Override NLO DY xsec with NNLO prediction (DYTurbo + NNPDF 3.1)
     # NLO from amcatnlo: 6275 pb; NNLO: ~6688 pb (k=1.066)
     # Reference: SMP-22-017 uses NNLO normalization
-    from scinum import Number
     if cfg.has_process("dy_m50toinf"):
         cfg.get_process("dy_m50toinf").set_xsec(13.6, Number(6688.0, {"tot": 0.02j}))
     if cfg.has_process("dy_m10to50"):

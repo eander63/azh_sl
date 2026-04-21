@@ -100,6 +100,7 @@ def default(
     from functools import reduce
     from operator import and_
     results.event = reduce(and_, results.steps.values())
+    results.steps['baseline'] = results.event  # keep for downstream compatibility
     results.steps['no_trig'] = results.steps['baseline']  # alias for compatibility
     # create process ids
     events = self[process_ids](events, **kwargs)

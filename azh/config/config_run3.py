@@ -103,7 +103,6 @@ def add_config(
     limit_dataset_files: int | None = None,
 ) -> od.Config:
     # validations
-    print("Weclome")
     assert campaign.x.year in [2022, 2023]
     if campaign.x.year == 2022:
         assert campaign.x.EE in ["pre", "post"]
@@ -1067,8 +1066,6 @@ def add_config(
         corr_tag = f"{year}_Summer22{jerc_postfix}"
     if year == 2023:
         corr_tag = f"{year}_Summer23{jerc_postfix}"
-    print("CORRR TAAGGGGGGGGGG")
-    print(corr_tag)
     cfg.x.external_files = DotDict.wrap({
         # pileup weight corrections
         "pu_sf": (f"{json_mirror}/POG/LUM/{corr_tag}/puWeights.json.gz", "v1"),
@@ -1092,7 +1089,13 @@ def add_config(
         #"vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
 
         # jet veto map
-        "jet_veto_map": (f"{json_mirror}/POG/JME/{corr_tag}/jetvetomaps.json.gz", "v1")
+        "jet_veto_map": (f"{json_mirror}/POG/JME/{corr_tag}/jetvetomaps.json.gz", "v1"),
+
+        # muon Rochester-like scale & smearing
+        "muon_scalesmearing": "/data/dust/user/eranders/AZHtt/data/json/muon_scalesmearing.json.gz",
+
+        # electron scale & smearing
+        "electron_ss": (f"{json_mirror}/POG/EGM/{corr_tag}/electronSS.json.gz", "v1"),
     })
 
     # external files with more complex year dependence
@@ -1233,6 +1236,7 @@ def add_config(
         "muon_id_weight": [],       # TightID SF (muon_Z.json, valid 15+ GeV)
         "muon_iso_weight": [],      # TightPFIso SF (muon_Z.json, valid 15+ GeV)
         "pu_weight": [],
+        "zpt_weight": [],
         # "btag_weight": [],
         # mur/muf kept as systematics only, not applied at nominal
         # "mur_weight": get_shifts("mur"),

@@ -205,7 +205,6 @@ def add_categories_njets(config: od.Config) -> None:
         selection="catid_6jets",
         label="6 or more Jets",
     )
-    print("NJets")
     category_groups = {
         "lepton": [
             config.get_category(name)

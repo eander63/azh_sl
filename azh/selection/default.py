@@ -38,6 +38,7 @@ ak = maybe_import("awkward")
         mc_weight, category_ids,  # not opened per default but always required in Cutflow tasks
         jet_selection, lepton_selection,  # azh_selection,
         increment_stats, trigger_selection,
+        "Jet.btagDeepFlavB", "Jet.pt", "Jet.eta",
         met_filters, json_filter, jet_veto_map,
     },
     produces={
@@ -96,10 +97,21 @@ def default(
 
     # events, results_azh = self[azh_selection](events, **kwargs)
     # results += results_azh
-    # combine ALL selection steps into the event mask (includes json filter for data)
+
+    # b-jet veto for ZMass: reject events with any medium b-tagged jet (suppresses tt/tW)
+    wp_med = self.config_inst.x.btag_working_points.deepjet.medium
+    bjet_veto_mask = (
+        (events.Jet.pt > 20) &
+        (abs(events.Jet.eta) < 2.4) &
+        (events.Jet.btagDeepFlavB >= wp_med)
+    )
+    results.steps["bjet_veto"] = ak.num(events.Jet[bjet_veto_mask]) == 0
+
+    # combine Z-relevant selection steps only (skip full jet cuts for ZMass measurement)
     from functools import reduce
     from operator import and_
-    results.event = reduce(and_, results.steps.values())
+    z_sel_steps = [v for k, v in results.steps.items() if k != "Jet"]
+    results.event = reduce(and_, z_sel_steps)
     results.steps['baseline'] = results.event  # keep for downstream compatibility
     results.steps['no_trig'] = results.steps['baseline']  # alias for compatibility
     # create process ids

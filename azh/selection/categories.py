@@ -16,7 +16,6 @@ from columnflow.categorization import Categorizer, categorizer
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
-print("This is the Selection categorizer")
 
 
 @categorizer(uses={"event"}, call_force=True)

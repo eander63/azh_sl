@@ -53,6 +53,29 @@ def event_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     return events
 
 
+@producer(
+    uses={"pt_z"},
+    produces={"zpt_weight"},
+    mc_only=True,
+)
+def zpt_reweight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Z pT reweighting to correct NLO DY modeling deficiency at 5-15 GeV.
+    PLACEHOLDER: derive bin weights from v3 data/MC ratio in pt_z.
+    Set all weights to 1.0 until you have the real values.
+    """
+    # Derived from v3 data/MC ratio in pt_z_fine (inclusive, all 22 datasets)
+    pt_bins = np.array([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 23, 26, 30, 35, 40, 50, 60, 100], dtype=np.float32)
+    wt_vals = np.array([1.0122, 0.9431, 0.9144, 0.9531, 1.0157, 1.0734, 1.1036, 1.1138, 1.1090, 1.0926, 1.0779, 1.0472, 1.0073, 0.9771, 0.9625, 0.9677, 0.9835, 1.0], dtype=np.float32)
+
+    pt = ak.to_numpy(events.pt_z)
+    idx = np.clip(np.searchsorted(pt_bins, pt) - 1, 0, len(wt_vals) - 1)
+    w = ak.Array(wt_vals[idx])
+
+    events = set_ak_column(events, "zpt_weight", ak.values_astype(w, np.float32))
+    return events
+
+
 electron_id_weights = electron_weights.derive("electron_id_weights", cls_dict={
     "weight_name": "electron_id_weight",
     "get_electron_config": (lambda self: self.config_inst.x.electron_sf_id_names),
@@ -125,6 +148,9 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         # compute pu weights
         events = self[pu_weight](events, **kwargs)
+
+        # Z pT reweighting (NLO DY modeling correction)
+        events = self[zpt_reweight](events, **kwargs)
         if not self.dataset_inst.has_tag("no_lhe_weights"):
             events = self[murmuf_weights](events, **kwargs)
             events = self[murmuf_envelope_weights](events, **kwargs)
@@ -140,11 +166,13 @@ def weights_init(self: Producer) -> None:
             electron_weights, electron_id_weights, electron_mid_weights,
             muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            zpt_reweight,
             trigger_weights, channel_lumi_weight,
         }
         self.produces |= {
             electron_weights, electron_id_weights, electron_mid_weights,
             muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            zpt_reweight,
             trigger_weights, channel_lumi_weight,
         }

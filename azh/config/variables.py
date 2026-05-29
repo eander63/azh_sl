@@ -294,6 +294,22 @@ def add_variables(config: od.Config) -> None:
         x_title=r"Number of b-taggeg jets ($p_{T}$ > 30 GeV, $|\eta| < 2.4$)",
     )
     config.add_variable(
+        name="n_jet_loose",
+        expression="cutflow.n_jet_loose",
+        binning=(12, -0.5, 11.5),
+        x_title=r"Number of jets ($p_{T}$ > 15 GeV, $|\eta| < 4.7$)",
+        discrete_x=True,
+    )
+
+    config.add_variable(
+        name="cf_n_jet_loose",
+        expression="cutflow.n_jet_loose",
+        binning=(12, -0.5, 11.5),
+        x_title=r"Number of jets ($p_{T}$ > 15 GeV, $|\eta| < 4.7$)",
+        discrete_x=True,
+    )
+
+    config.add_variable(
         name="cf_n_ele",
         expression="cutflow.n_ele",
         binning=(5, -0.5, 4.5),
@@ -381,4 +397,34 @@ def add_variables(config: od.Config) -> None:
         binning=(21, -0.5, 20.5),
         unit="",
         x_title="Trigger IDs",
+    )
+
+    # ── 3-lepton variables ──
+    config.add_variable(
+        name="n_tight_leptons",
+        expression="n_tight_leptons",
+        binning=(7, -0.5, 6.5),
+        x_title="Number of tight leptons ($p_{T} > 10$ GeV)",
+        discrete_x=True,
+    )
+    config.add_variable(
+        name="min_mll",
+        expression="min_mll",
+        binning=(50, 0, 200),
+        unit="GeV",
+        x_title=r"Min($m_{\ell\ell}$) [GeV]",
+    )
+    config.add_variable(
+        name="charge_sum",
+        expression="charge_sum",
+        binning=(7, -3.5, 3.5),
+        x_title=r"$\sum q_{\ell}$",
+        discrete_x=True,
+    )
+    config.add_variable(
+        name="w_lepton_pt",
+        expression="w_lepton_pt",
+        binning=(40, 0, 200),
+        unit="GeV",
+        x_title=r"W lepton $p_{T}$ [GeV]",
     )

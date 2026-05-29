@@ -47,3 +47,4 @@ pipeline_*.txt
 selectevents_*.txt
 test_amcatnlo*.txt
 *.bak
+backups/

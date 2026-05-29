@@ -117,3 +117,207 @@ def choose_lepton(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     leptons = ak.with_name(leptons, "PtEtaPhiMLorentzVector")
     events = set_ak_column(events, "Leptons", leptons)
     return events
+ 
+ 
+# ──────────────────────────────────────────────────────────────────
+# Three-lepton producer: computes 3L columns for category decisions
+# ──────────────────────────────────────────────────────────────────
+ 
+@producer(
+    uses={
+        "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
+        "Electron.charge", "Electron.pdgId",
+        "Electron.mvaIso_WP80",
+        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
+        "Muon.charge", "Muon.pdgId",
+        "Muon.tightId", "Muon.pfRelIso04_all",
+        choose_lepton,
+    },
+    produces={
+        choose_lepton,
+        "min_mll", "n_tight_leptons", "charge_sum",
+        "w_lepton_pt", "w_lepton_eta", "w_lepton_phi",
+    },
+)
+def three_lepton_info(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Compute columns needed for 3-lepton categorisation.
+ 
+    Does NOT cut events. Adds:
+      - n_tight_leptons: count of all tight e/mu with pT > 10
+      - min_mll: min dilepton mass over all 3-lepton pairings
+      - charge_sum: sum of charges of the 3 leading tight leptons
+      - w_lepton_{pt,eta,phi}: kinematics of the W-candidate lepton
+    """
+    # Ensure Leptons (Z candidate) is built
+    events = self[choose_lepton](events, **kwargs)
+ 
+    # Tight lepton masks — same IDs as lepton_selection.py
+    # Lower pT floor to 10 GeV for the 4th-lepton veto count
+    ele_tight = (
+        (events.Electron.pt > 10)
+        & (abs(events.Electron.eta) < 2.4)
+        & (events.Electron.mvaIso_WP80)
+    )
+    mu_tight = (
+        (events.Muon.pt > 10)
+        & (abs(events.Muon.eta) < 2.4)
+        & (events.Muon.tightId)
+        & (events.Muon.pfRelIso04_all < 0.15)
+    )
+    tight_ele = events.Electron[ele_tight]
+    tight_mu = events.Muon[mu_tight]
+ 
+    n_tight = ak.num(tight_ele) + ak.num(tight_mu)
+    events = set_ak_column(events, "n_tight_leptons", n_tight)
+ 
+    # Build flat array of all tight leptons
+    def _fields(coll):
+        return ak.zip({
+            "pt": coll.pt, "eta": coll.eta, "phi": coll.phi,
+            "mass": coll.mass, "charge": coll.charge,
+            "pdgId": coll.pdgId,
+        })
+ 
+    all_lep = ak.concatenate([_fields(tight_ele), _fields(tight_mu)], axis=1)
+    sort_idx = ak.argsort(all_lep.pt, ascending=False, axis=1)
+    all_lep = all_lep[sort_idx]
+ 
+    # Charge sum of up-to-3 leading leptons
+    padded3 = ak.pad_none(all_lep, 3, axis=1)
+    q1 = ak.fill_none(padded3[:, 0].charge, 0)
+    q2 = ak.fill_none(padded3[:, 1].charge, 0)
+    q3 = ak.fill_none(padded3[:, 2].charge, 0)
+    charge_sum = q1 + q2 + q3
+    events = set_ak_column(events, "charge_sum", charge_sum)
+ 
+    # Min(mll) over all pairings of the 3 leading leptons
+    has3 = (ak.num(all_lep) >= 3)
+ 
+    def _mll(a, b):
+        return invariant_mass(
+            a.pt, a.eta, a.phi, a.mass,
+            b.pt, b.eta, b.phi, b.mass,
+        )
+ 
+    m01 = ak.where(has3, _mll(padded3[:, 0], padded3[:, 1]), 999.0)
+    m02 = ak.where(has3, _mll(padded3[:, 0], padded3[:, 2]), 999.0)
+    m12 = ak.where(has3, _mll(padded3[:, 1], padded3[:, 2]), 999.0)
+    min_mll = np.minimum(np.minimum(m01, m02), m12)
+    min_mll = ak.fill_none(min_mll, 999.0)
+    events = set_ak_column(events, "min_mll", min_mll)
+ 
+    # W-lepton candidate (3rd-highest-pT tight lepton)
+    # Approximate: assumes Z pair are the two hardest same-flavor leptons.
+    # TODO: cross-reference with Z candidate for exact assignment.
+    w_pt  = ak.fill_none(padded3[:, 2].pt, -1.0)
+    w_eta = ak.fill_none(padded3[:, 2].eta, 0.0)
+    w_phi = ak.fill_none(padded3[:, 2].phi, 0.0)
+ 
+    events = set_ak_column(events, "w_lepton_pt", w_pt)
+    events = set_ak_column(events, "w_lepton_eta", w_eta)
+    events = set_ak_column(events, "w_lepton_phi", w_phi)
+ 
+    return events
+ 
+ 
+# ──────────────────────────────────────────────────────────────────
+# Three-lepton producer: computes 3L columns for category decisions
+# ──────────────────────────────────────────────────────────────────
+ 
+@producer(
+    uses={
+        "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
+        "Electron.charge", "Electron.pdgId",
+        "Electron.mvaIso_WP80",
+        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
+        "Muon.charge", "Muon.pdgId",
+        "Muon.tightId", "Muon.pfRelIso04_all",
+        choose_lepton,
+    },
+    produces={
+        choose_lepton,
+        "min_mll", "n_tight_leptons", "charge_sum",
+        "w_lepton_pt", "w_lepton_eta", "w_lepton_phi",
+    },
+)
+def three_lepton_info(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Compute columns needed for 3-lepton categorisation.
+ 
+    Does NOT cut events. Adds:
+      - n_tight_leptons: count of all tight e/mu with pT > 10
+      - min_mll: min dilepton mass over all 3-lepton pairings
+      - charge_sum: sum of charges of the 3 leading tight leptons
+      - w_lepton_{pt,eta,phi}: kinematics of the W-candidate lepton
+    """
+    # Ensure Leptons (Z candidate) is built
+    events = self[choose_lepton](events, **kwargs)
+ 
+    # Tight lepton masks — same IDs as lepton_selection.py
+    # Lower pT floor to 10 GeV for the 4th-lepton veto count
+    ele_tight = (
+        (events.Electron.pt > 10)
+        & (abs(events.Electron.eta) < 2.4)
+        & (events.Electron.mvaIso_WP80)
+    )
+    mu_tight = (
+        (events.Muon.pt > 10)
+        & (abs(events.Muon.eta) < 2.4)
+        & (events.Muon.tightId)
+        & (events.Muon.pfRelIso04_all < 0.15)
+    )
+    tight_ele = events.Electron[ele_tight]
+    tight_mu = events.Muon[mu_tight]
+ 
+    n_tight = ak.num(tight_ele) + ak.num(tight_mu)
+    events = set_ak_column(events, "n_tight_leptons", n_tight)
+ 
+    # Build flat array of all tight leptons
+    def _fields(coll):
+        return ak.zip({
+            "pt": coll.pt, "eta": coll.eta, "phi": coll.phi,
+            "mass": coll.mass, "charge": coll.charge,
+            "pdgId": coll.pdgId,
+        })
+ 
+    all_lep = ak.concatenate([_fields(tight_ele), _fields(tight_mu)], axis=1)
+    sort_idx = ak.argsort(all_lep.pt, ascending=False, axis=1)
+    all_lep = all_lep[sort_idx]
+ 
+    # Charge sum of up-to-3 leading leptons
+    padded3 = ak.pad_none(all_lep, 3, axis=1)
+    q1 = ak.fill_none(padded3[:, 0].charge, 0)
+    q2 = ak.fill_none(padded3[:, 1].charge, 0)
+    q3 = ak.fill_none(padded3[:, 2].charge, 0)
+    charge_sum = q1 + q2 + q3
+    events = set_ak_column(events, "charge_sum", charge_sum)
+ 
+    # Min(mll) over all pairings of the 3 leading leptons
+    has3 = (ak.num(all_lep) >= 3)
+ 
+    def _mll(a, b):
+        return invariant_mass(
+            a.pt, a.eta, a.phi, a.mass,
+            b.pt, b.eta, b.phi, b.mass,
+        )
+ 
+    m01 = ak.where(has3, _mll(padded3[:, 0], padded3[:, 1]), 999.0)
+    m02 = ak.where(has3, _mll(padded3[:, 0], padded3[:, 2]), 999.0)
+    m12 = ak.where(has3, _mll(padded3[:, 1], padded3[:, 2]), 999.0)
+    min_mll = np.minimum(np.minimum(m01, m02), m12)
+    min_mll = ak.fill_none(min_mll, 999.0)
+    events = set_ak_column(events, "min_mll", min_mll)
+ 
+    # W-lepton candidate (3rd-highest-pT tight lepton)
+    # Approximate: assumes Z pair are the two hardest same-flavor leptons.
+    # TODO: cross-reference with Z candidate for exact assignment.
+    w_pt  = ak.fill_none(padded3[:, 2].pt, -1.0)
+    w_eta = ak.fill_none(padded3[:, 2].eta, 0.0)
+    w_phi = ak.fill_none(padded3[:, 2].phi, 0.0)
+ 
+    events = set_ak_column(events, "w_lepton_pt", w_pt)
+    events = set_ak_column(events, "w_lepton_eta", w_eta)
+    events = set_ak_column(events, "w_lepton_phi", w_phi)
+ 
+    return events

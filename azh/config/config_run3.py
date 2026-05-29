@@ -153,6 +153,7 @@ def add_config(
         "w_lnu": "#82FF28",  # green
         "higgs": "#984ea3",  # purple
         "st": "#3E00FB",  # dark purple
+        "wz": "#FF6B9D",  # hot pink for WZ
         "vv": "#B900FC",  # pink
         # "azh": "#984ea3",
         "azh_htt_zll_a1000_h600": "#C7FF33",
@@ -173,6 +174,7 @@ def add_config(
         "ttv",
         "st",
         "w_lnu",
+        "wz",
         "vv",
         # "vvv",
         "data",
@@ -483,6 +485,9 @@ def add_config(
     # TTZ
         "ttz_zll_m4to50_amcatnlo",
         "ttz_zll_m50toinf_amcatnlo",
+    # TTH
+        "tth_hbb_powheg",
+        "tth_hnonbb_powheg",
 
     # Single top
         "st_tchannel_t_4f_powheg",
@@ -507,6 +512,8 @@ def add_config(
         "data_egamma_d",
         "data_muoneg_c",
         "data_muoneg_d",
+        "ttw_amcatnlo",
+        "wwz_pythia",
     ]),
     *if_era(year=2022, tag="postEE", values=[
         "data_mu_e",
@@ -898,7 +905,7 @@ def add_config(
     from columnflow.production.cms.btag import SplitBTagSFConfig
     cfg.x.btag_sf = SplitBTagSFConfig(
         # correction_set=("deepJet_light", "deepJet_comb"),
-        correction_set=("particleNet_light", "particleNet_comb"),
+        correction_set=("deepJet_light", "deepJet_comb"),
         discriminator="btagDeepFlavB",
         corrector_kwargs={"working_point": "M"},
     )
@@ -1188,27 +1195,25 @@ def add_config(
             "Pileup.nTrueInt",
             "LHEScaleWeight",
             "GenPart.*",
-        }# | set(  # Jets
-         #   f"{jet_obj}.{field}"
-         #   for jet_obj in ["Jet"]
-            # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-         #   for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor", "btagDeepFlavQG","btagDeepFlavQG"]
-       # ) | set(  # BJets
-         #   f"{jet_obj}.{field}"
-         #   for jet_obj in ["BJet"]
-            # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-         #   for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB", "hadronFlavour"]
-        #)
+        } | set(  # Jets
+            f"{jet_obj}.{field}"
+            for jet_obj in ["Jet"]
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor", "btagDeepFlavQG"]
+        ) | set(  # BJets
+            f"{jet_obj}.{field}"
+            for jet_obj in ["BJet"]
+            for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB", "hadronFlavour"]
+        )
           | set(  # Muons
             f"{mu_obj}.{field}"
             for mu_obj in ["Muon"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "pdgId", "charge"]
+            for field in ["pt", "eta", "phi", "mass", "pdgId", "charge", "tightId", "pfRelIso04_all"]
         ) | set(  # Electrons
             f"{e_obj}.{field}"
             for e_obj in ["Electron"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
-            for field in ["pt", "eta", "phi", "mass", "pdgId", "deltaEtaSC", "charge"]
+            for field in ["pt", "eta", "phi", "mass", "pdgId", "deltaEtaSC", "charge", "mvaIso_WP80"]
         ) | set(  # MET
             f"MET.{field}"
             for field in ["pt", "phi"]
@@ -1236,7 +1241,7 @@ def add_config(
         "muon_id_weight": [],       # TightID SF (muon_Z.json, valid 15+ GeV)
         "muon_iso_weight": [],      # TightPFIso SF (muon_Z.json, valid 15+ GeV)
         "pu_weight": [],
-        "zpt_weight": [],
+        #         "zpt_weight": [],
         # "btag_weight": [],
         # mur/muf kept as systematics only, not applied at nominal
         # "mur_weight": get_shifts("mur"),

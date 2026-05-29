@@ -53,7 +53,7 @@ def lepton_selection(
     )
 
     muo_mask_high = (
-        (events.Muon.pt > 35) &
+        (events.Muon.pt > 25) &
         (abs(events.Muon.eta) < 2.4) &
         (events.Muon.tightId) &
         (events.Muon.pfRelIso04_all < 0.15)
@@ -75,7 +75,7 @@ def lepton_selection(
     )
 
     ele_mask_high = (
-        (events.Electron.pt > 35) &
+        (events.Electron.pt > 25) &
         (abs(events.Electron.eta) < 2.4) &
         (events.Electron.mvaIso_WP80)
     )

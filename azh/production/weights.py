@@ -6,7 +6,7 @@ Producers related to event weights.
 
 from columnflow.production import Producer, producer
 from columnflow.columnar_util import set_ak_column, has_ak_column, Route
-# from columnflow.production.cms.btag import split_btag_weights
+from columnflow.production.cms.btag import split_btag_weights
 from columnflow.production.cms.electron import electron_weights
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
@@ -136,7 +136,7 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[channel_lumi_weight](events, **kwargs)
 
         # compute btag weights
-        # events = self[split_btag_weights](events, **kwargs)
+        events = self[split_btag_weights](events, **kwargs)
 
         # # compute top pT weights (disabled for now)
         if self.dataset_inst.has_tag("is_ttbar"):
@@ -149,8 +149,8 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # compute pu weights
         events = self[pu_weight](events, **kwargs)
 
-        # Z pT reweighting (NLO DY modeling correction)
-        events = self[zpt_reweight](events, **kwargs)
+        # Z pT reweighting (NLO DY modeling correction) — DISABLED
+        # events = self[zpt_reweight](events, **kwargs)
         if not self.dataset_inst.has_tag("no_lhe_weights"):
             events = self[murmuf_weights](events, **kwargs)
             events = self[murmuf_envelope_weights](events, **kwargs)
@@ -166,13 +166,15 @@ def weights_init(self: Producer) -> None:
             electron_weights, electron_id_weights, electron_mid_weights,
             muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
-            zpt_reweight,
+            # zpt_reweight,  # DISABLED
+            split_btag_weights,
             trigger_weights, channel_lumi_weight,
         }
         self.produces |= {
             electron_weights, electron_id_weights, electron_mid_weights,
             muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
-            zpt_reweight,
+            # zpt_reweight,  # DISABLED
+            split_btag_weights,
             trigger_weights, channel_lumi_weight,
         }

@@ -12,7 +12,7 @@ ak = maybe_import("awkward")
 @selector(
     uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.btagDeepFlavB"},
     produces={
-        "cutflow.n_jet", "cutflow.n_bjet",
+        "cutflow.n_jet", "cutflow.n_jet_loose", "cutflow.n_bjet",
         "cutflow.jet1_pt", "cutflow.jet2_pt", "cutflow.jet3_pt", "cutflow.jet4_pt",
         "cutflow.jet1_eta", "cutflow.jet2_eta", "cutflow.jet3_eta", "cutflow.jet4_eta",
     },
@@ -23,32 +23,34 @@ def jet_selection(
     events: ak.Array,
     **kwargs,
 ) -> Tuple[ak.Array, SelectionResult]:
-    # DiJet jet selection
-    # - require ...
 
-    # assign local index to all Jets - stored after masks for matching
-    # TODO: Drop for dijet ?
+    # assign local index to all Jets
     events = set_ak_column(events, "Jet.local_index", ak.local_index(events.Jet))
 
-    # jets
-    # TODO: Correct jets
-    # Selection by UHH2 framework
-    # https://github.com/UHH2/DiJetJERC/blob/ff98eebbd44931beb016c36327ab174fdf11a83f/src/AnalysisModule_DiJetTrg.cxx#L692
-    # IDs in NanoAOD https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD
-    #  & JME NanoAOD https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html
+    # ── Loose jets (paper Table 1: pT > 15 GeV, |eta| < 4.7) ──
+    # Used only for the ≥4-jet multiplicity cut
+    loose_jet_mask = (
+        (events.Jet.pt > 15) &
+        (abs(events.Jet.eta) < 4.7) &
+        (events.Jet.jetId >= 2)  # at least tight
+    )
+    loose_jet_sel = ak.num(events.Jet[loose_jet_mask]) >= 4
+    # also store a version that always passes (jet cut moved to categories)
+    loose_jet_pass = ak.ones_like(loose_jet_sel)
+    events = set_ak_column(events, "cutflow.n_jet_loose", ak.sum(loose_jet_mask, axis=1))
+
+    # ── Tight jets (pT > 30 GeV, |eta| < 2.5, tightLepVeto) ──
+    # Used for b-tagging and the main jet collection
     jet_mask = (
         (events.Jet.pt > 30) &
-        (abs(events.Jet.eta) < 2.4) &
-        # IDs in NanoAOD https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD
-        (events.Jet.jetId == 6)  # 2: fail tight LepVeto and 6: pass tightLepVeto
+        (abs(events.Jet.eta) < 2.5) &
+        (events.Jet.jetId == 6)  # tightLepVeto
     )
-    jet_sel = ak.num(events.Jet[jet_mask]) >= 4
-
     events = set_ak_column(events, "cutflow.n_jet", ak.sum(jet_mask, axis=1))
-    # btagging
+
+    # ── B-tagging (medium DeepJet on tight jets) ──
     wp_med = self.config_inst.x.btag_working_points.deepjet.medium
     bjet_mask = jet_mask & (events.Jet.btagDeepFlavB >= wp_med)
-    bjet_sel = ak.num(events.Jet[bjet_mask]) >= 2
     events = set_ak_column(events, "cutflow.n_bjet", ak.sum(bjet_mask, axis=1))
 
     jet_indices = masked_sorted_indices(jet_mask, events.Jet.pt)
@@ -62,13 +64,13 @@ def jet_selection(
         events = set_ak_column(events, f"cutflow.jet{i+1}_eta",
         ak.where((ak.is_none(padded_jets.eta[:, {i}][:, 0])), -100, (padded_jets.eta[:, {i}][:, 0])))
 
-    jet_sel = ak.fill_none(jet_sel, False)
-    bjet_sel = ak.fill_none(bjet_sel, False)
+    loose_jet_sel = ak.fill_none(loose_jet_sel, False)
     jet_mask = ak.fill_none(jet_mask, False)
-    # build and return selection results plus new columns
+
+    # Selection step uses LOOSE jets (≥4 with pT>15, |eta|<4.7)
     return events, SelectionResult(
         steps={
-            "Jet": jet_sel,
+            "Jet": loose_jet_pass,  # always pass; jet mult cut is now in categories
         },
         objects={
             "Jet": {

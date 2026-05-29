@@ -17,6 +17,7 @@ from azh.production.z_boson import z_boson
 from azh.production.higgs_reco import higgs_reco
 from azh.production.prepare_objects import prepare_objects
 from azh.production.leptons import choose_lepton
+from azh.production.leptons import three_lepton_info
 from azh.production.ml_inputs import ml_inputs
 from azh.production.dy_producer import dy_producer
 from azh.production.trigger import trigger
@@ -25,6 +26,9 @@ from azh.config.categories import add_categories_mz
 from azh.config.categories import add_categories_bjets
 from azh.config.categories import add_categories_njets
 from azh.config.categories import add_category_2l
+from azh.config.categories import add_categories_3l
+from azh.config.categories import add_categories_met
+from azh.config.categories import add_categories_n1
 
 
 ak = maybe_import("awkward")
@@ -36,12 +40,12 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 @producer(
     uses={
         category_ids, normalization_weights, trigger,
-        weights, z_boson, higgs_reco, choose_lepton, ml_inputs,
+        weights, z_boson, higgs_reco, choose_lepton, three_lepton_info, ml_inputs,
         prepare_objects, event_weight, "MET.pt","MET.phi","process_id","cutflow*",
     },
     produces={
         category_ids, normalization_weights, trigger,
-        weights, z_boson, choose_lepton,
+        weights, z_boson, choose_lepton, three_lepton_info,
         higgs_reco, event_weight, "event_number","process_id",
     },
 )
@@ -50,6 +54,7 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # category ids
     # events = self[category_ids](events, **kwargs)
     events = self[choose_lepton](events, **kwargs)
+    events = self[three_lepton_info](events, **kwargs)
     events = self[prepare_objects](events, **kwargs)
     events = self[z_boson](events, **kwargs)
     # from IPython import embed; embed()
@@ -115,6 +120,9 @@ def default_init(self: Producer) -> None:
     # if not self.config_inst.get_aux("has_categories_production", False):
     add_categories_mz(self.config_inst)
     add_category_2l(self.config_inst)
-    # add_categories_bjets(self.config_inst)
-    # add_categories_njets(self.config_inst)
+    add_categories_bjets(self.config_inst)
+    add_categories_njets(self.config_inst)
+    add_categories_3l(self.config_inst)
+    add_categories_met(self.config_inst)
+    add_categories_n1(self.config_inst)
     # self.config_inst.x.has_categories_production = True

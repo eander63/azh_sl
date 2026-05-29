@@ -93,10 +93,19 @@ def add_lepton_categories(config: od.Config) -> None:
 
 
 @call_once_on_config()
+# imported below
 def add_categories_production(config: od.Config) -> None:
     """
     Adds categories to a *config*, that are typically produced in `ProduceColumns`.
     """
+    add_lepton_categories(config)
+    add_incl_cat(config)
+    add_categories_mz(config)
+    add_categories_bjets(config)
+    add_categories_njets(config)
+    add_categories_3l(config)
+    add_categories_met(config)
+    add_categories_n1(config)
 
     #
     # switch existing categories to different production module
@@ -235,3 +244,75 @@ def add_categories_njets(config: od.Config) -> None:
 #         for name in ["SR", "CR"]
 #     ]
 # }
+ 
+ 
+@call_once_on_config()
+def add_categories_3l(config: od.Config) -> None:
+    """Three-lepton and jet-cut categories for v2."""
+ 
+    config.add_category(
+        name="geq4jets",
+        id=40000,
+        selection="catid_geq4jets",
+        label=r"$\geq$4 jets ($p_T>15$)",
+    )
+    config.add_category(
+        name="3l",
+        id=50000,
+        selection="catid_3l",
+        label="3 leptons",
+    )
+    config.add_category(
+        name="2l_only",
+        id=60000,
+        selection="catid_2l_only",
+        label="2 leptons (excl.)",
+    )
+
+
+@call_once_on_config()
+def add_categories_met(config: od.Config) -> None:
+    """MET threshold categories for normalization debugging."""
+
+    config.add_category(
+        name="met40",
+        id=70000,
+        selection="catid_met40",
+        label=r"MET $>$ 40 GeV",
+    )
+    config.add_category(
+        name="nomet",
+        id=80000,
+        selection="catid_nomet",
+        label=r"MET $\leq$ 40 GeV",
+    )
+
+
+@call_once_on_config()
+def add_categories_n1(config: od.Config) -> None:
+    """N-1 categories: all cuts except one."""
+
+    config.add_category(
+        name="n1_no_met",
+        id=90000,
+        selection="catid_n1_no_met",
+        label=r"N-1: no MET cut",
+    )
+    config.add_category(
+        name="n1_no_jets",
+        id=91000,
+        selection="catid_n1_no_jets",
+        label=r"N-1: no jet cut",
+    )
+    config.add_category(
+        name="n1_no_btag",
+        id=92000,
+        selection="catid_n1_no_btag",
+        label=r"N-1: no b-tag cut",
+    )
+    config.add_category(
+        name="n1_all",
+        id=93000,
+        selection="catid_n1_all",
+        label=r"All cuts",
+    )

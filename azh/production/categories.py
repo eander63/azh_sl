@@ -37,7 +37,7 @@ def catid_2l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
 @categorizer(uses={"event"}, call_force=True)
 def catid_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     if "m_z" not in events.fields or "pt_z" not in events.fields:
-        return events, ak.zeros_like(events.event, dtype=bool)
+        return events, ak.zeros_like(events.event) > 0
     mask = (
         (events.m_z >= (z_mass - mass_window)) &
         (events.m_z <= (z_mass + mass_window)) &
@@ -49,7 +49,7 @@ def catid_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
 @categorizer(uses={"event"}, call_force=True)
 def catid_CR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     if "m_z" not in events.fields or "pt_z" not in events.fields:
-        return events, ak.zeros_like(events.event, dtype=bool)
+        return events, ak.zeros_like(events.event) > 0
     mask = (
         ((events.m_z < (z_mass - mass_window)) | (events.m_z > (z_mass + mass_window))) &
         (events.m_z > 30) &
@@ -112,7 +112,7 @@ def catid_3l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
     """
     for col in ("n_tight_leptons", "min_mll", "charge_sum"):
         if col not in events.fields:
-            return events, ak.zeros_like(events.event, dtype=bool)
+            return events, ak.zeros_like(events.event) > 0
     mask = (
         (events.n_tight_leptons == 3)
         & (abs(events.charge_sum) == 1)
@@ -125,7 +125,7 @@ def catid_3l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
 def catid_2l_only(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     """Exactly 2 tight leptons (the existing 2L phase space)."""
     if "n_tight_leptons" not in events.fields:
-        return events, ak.zeros_like(events.event, dtype=bool)
+        return events, ak.zeros_like(events.event) > 0
     return events, events.n_tight_leptons == 2
 
 

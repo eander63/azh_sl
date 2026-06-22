@@ -102,20 +102,17 @@ def add_categories_production(config: od.Config) -> None:
     add_incl_cat(config)
     add_categories_mz(config)
     add_categories_bjets(config)
+
+    # switch lepton categories to their PRODUCTION categorizers BEFORE building
+    # the combination, so the combined leaves freeze catid_2e/2mu (which read
+    # produced columns) rather than the selection-time catid_selection_2e/2mu.
+    config.get_category("2e").selection = "catid_2e"
+    config.get_category("2mu").selection = "catid_2mu"
+
     add_categories_njets(config)
     add_categories_3l(config)
     add_categories_met(config)
-    add_categories_n1(config)
-
-    #
-    # switch existing categories to different production module
-    #
-
-    cat_2e = config.get_category("2e")
-    cat_2e.selection = "catid_2e"
-
-    cat_2mu = config.get_category("2mu")
-    cat_2mu.selection = "catid_2mu"
+    #add_categories_n1(config)
 
 
 @call_once_on_config()
@@ -214,6 +211,11 @@ def add_categories_njets(config: od.Config) -> None:
         selection="catid_6jets",
         label="6 or more Jets",
     )
+    # ensure the met and n_lep axis categories exist before combining
+    # (call_once_on_config makes these idempotent)
+    add_categories_met(config)
+    add_categories_3l(config)
+
     category_groups = {
         "lepton": [
             config.get_category(name)
@@ -229,10 +231,18 @@ def add_categories_njets(config: od.Config) -> None:
         ],
         "jets": [
             config.get_category(name)
-            for name in ["5jets", "6jets","4jets"]
+            for name in ["5jets", "6jets", "4jets"]
+        ],
+        "met": [
+            config.get_category(name)
+            for name in ["met40", "nomet"]
+        ],
+        "nlep": [
+            config.get_category(name)
+            for name in ["3l", "2l_only"]
         ],
     }
-    create_category_combinations(config, category_groups, name_fn, kwargs_fn)
+    create_category_combinations(config, category_groups, name_fn=name_fn, kwargs_fn=kwargs_fn, skip_existing=False)
 
 # category_groups = {
 #     "lepton": [
@@ -250,21 +260,16 @@ def add_categories_njets(config: od.Config) -> None:
 def add_categories_3l(config: od.Config) -> None:
     """Three-lepton and jet-cut categories for v2."""
  
-    config.add_category(
-        name="geq4jets",
-        id=40000,
-        selection="catid_geq4jets",
-        label=r"$\geq$4 jets ($p_T>15$)",
-    )
+    # geq4jets dropped: redundant with the jets axis (4/5/6 jets) in the combination
     config.add_category(
         name="3l",
-        id=50000,
+        id=1000000,
         selection="catid_3l",
         label="3 leptons",
     )
     config.add_category(
         name="2l_only",
-        id=60000,
+        id=2000000,
         selection="catid_2l_only",
         label="2 leptons (excl.)",
     )
@@ -276,13 +281,13 @@ def add_categories_met(config: od.Config) -> None:
 
     config.add_category(
         name="met40",
-        id=70000,
+        id=100000,
         selection="catid_met40",
         label=r"MET $>$ 40 GeV",
     )
     config.add_category(
         name="nomet",
-        id=80000,
+        id=200000,
         selection="catid_nomet",
         label=r"MET $\leq$ 40 GeV",
     )

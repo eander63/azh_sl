@@ -19,7 +19,7 @@ from cmsdb.util import add_decay_process
 # import functools
 # from dijet.config.datasets import get_dataset_lfns
 from azh.config.analysis_azh_run3 import analysis_azh
-from azh.config.categories import add_categories_selection
+from azh.config.categories import add_categories_selection, add_categories_production
 from azh.config.variables import add_variables
 # from azh.config.cutflow_variables import add_cutflow_variables
 from columnflow.config_util import (
@@ -568,31 +568,17 @@ def add_config(
             dataset.add_tag("egamma")
         if dataset.name.startswith("data_muoneg"):
             dataset.add_tag({"mu", "egamma"})
+        # For 2023, data JEC keys have no run-dependent segment in the JSON
+        if dataset.name.startswith("data") and year == 2023:
+            dataset.set_aux("jec_era", "")
 
         # add aux info to datasets
         # if dataset.name.startswith("qcd"):
         #     dataset.x.is_qcd = True
 
-    # fix wrong DAS keys for amcatnlo datasets in cmsdb
-    # fix wrong file counts in cmsdb
-    if cfg.has_dataset("wz_pythia"):
-        cfg.get_dataset("wz_pythia").get_info("nominal").n_files = 45
-    if cfg.has_dataset("st_twchannel_tbar_sl_powheg"):
-        cfg.get_dataset("st_twchannel_tbar_sl_powheg").get_info("nominal").n_files = 49
-    if cfg.has_dataset("st_twchannel_tbar_dl_powheg"):
-        cfg.get_dataset("st_twchannel_tbar_dl_powheg").get_info("nominal").n_files = 24
-    # fix wrong DAS keys for ttz datasets in cmsdb (v3 not v2)
-    if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
-        cfg.get_dataset("ttz_zll_m50toinf_amcatnlo").get_info("nominal").keys = {
-            "/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM"
-        }
-    if cfg.has_dataset("ttz_zll_m4to50_amcatnlo"):
-        cfg.get_dataset("ttz_zll_m4to50_amcatnlo").get_info("nominal").keys = {
-            "/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM"
-        }
-        cfg.get_dataset("ttz_zll_m4to50_amcatnlo").get_info("nominal").n_files = 21
-    if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
-        cfg.get_dataset("ttz_zll_m50toinf_amcatnlo").get_info("nominal").n_files = 7
+    # ------------------------------------------------------------------
+    # Era-agnostic dataset patches (apply to every era)
+    # ------------------------------------------------------------------
     # tag pythia diboson samples that have no LHEScaleWeight
     for ds_name in ["ww_pythia", "wz_pythia", "zz_pythia"]:
         if cfg.has_dataset(ds_name):
@@ -611,20 +597,76 @@ def add_config(
             if info_name != "nominal":
                 del ds.info[info_name]
 
-    if cfg.has_dataset("dy_m50toinf_amcatnlo"):
-        ds = cfg.get_dataset("dy_m50toinf_amcatnlo")
-        for info in ds.info.values():
-            info.keys = {"/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v5/NANOAODSIM"}
-    if cfg.has_dataset("dy_m10to50_amcatnlo"):
-        ds = cfg.get_dataset("dy_m10to50_amcatnlo")
-        for info in ds.info.values():
-            info.keys = {"/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v4/NANOAODSIM"}
-
-    # fix wrong DAS key for dy_m50toinf_1j_madgraph in cmsdb
-    if cfg.has_dataset("dy_m50toinf_1j_madgraph"):
-        ds = cfg.get_dataset("dy_m50toinf_1j_madgraph")
-        for info in ds.info.values():
-            info.keys = {"/DYto2L-4Jets_MLL-50_1J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM"}
+    # ------------------------------------------------------------------
+    # Era-specific dataset overrides
+    # ------------------------------------------------------------------
+    # These are workarounds for wrong DAS keys / wrong n_files in the
+    # cmsdb campaign objects. They are *era-specific* — the values below
+    # were derived for 2022preEE and would corrupt other eras if applied
+    # blindly. For each new era, either (a) confirm cmsdb already has the
+    # right values and leave the branch empty, or (b) re-derive via DAS
+    # and add an analogous block.
+    if year == 2022 and campaign.x.EE == "pre":
+        if cfg.has_dataset("wz_pythia"):
+            cfg.get_dataset("wz_pythia").get_info("nominal").n_files = 45
+        if cfg.has_dataset("st_twchannel_tbar_sl_powheg"):
+            cfg.get_dataset("st_twchannel_tbar_sl_powheg").get_info("nominal").n_files = 49
+        if cfg.has_dataset("st_twchannel_tbar_dl_powheg"):
+            cfg.get_dataset("st_twchannel_tbar_dl_powheg").get_info("nominal").n_files = 24
+        # fix wrong DAS keys for ttz datasets in cmsdb (v3 not v2)
+        if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
+            cfg.get_dataset("ttz_zll_m50toinf_amcatnlo").get_info("nominal").keys = {
+                "/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM"
+            }
+            cfg.get_dataset("ttz_zll_m50toinf_amcatnlo").get_info("nominal").n_files = 7
+        if cfg.has_dataset("ttz_zll_m4to50_amcatnlo"):
+            cfg.get_dataset("ttz_zll_m4to50_amcatnlo").get_info("nominal").keys = {
+                "/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM"
+            }
+            cfg.get_dataset("ttz_zll_m4to50_amcatnlo").get_info("nominal").n_files = 21
+        # DY DAS key fixups
+        if cfg.has_dataset("dy_m50toinf_amcatnlo"):
+            ds = cfg.get_dataset("dy_m50toinf_amcatnlo")
+            for info in ds.info.values():
+                info.keys = {"/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v5/NANOAODSIM"}
+        if cfg.has_dataset("dy_m10to50_amcatnlo"):
+            ds = cfg.get_dataset("dy_m10to50_amcatnlo")
+            for info in ds.info.values():
+                info.keys = {"/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v4/NANOAODSIM"}
+        # fix wrong DAS key for dy_m50toinf_1j_madgraph in cmsdb
+        if cfg.has_dataset("dy_m50toinf_1j_madgraph"):
+            ds = cfg.get_dataset("dy_m50toinf_1j_madgraph")
+            for info in ds.info.values():
+                info.keys = {"/DYto2L-4Jets_MLL-50_1J_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v3/NANOAODSIM"}
+    elif year == 2022 and campaign.x.EE == "post":
+        # cmsdb has these samples pinned to -v2, but DAS shows the
+        # campaign was reprocessed: DY -> -v5, TTZ -> -v3. Override.
+        if cfg.has_dataset("dy_m50toinf_amcatnlo"):
+            ds = cfg.get_dataset("dy_m50toinf_amcatnlo")
+            for info in ds.info.values():
+                info.keys = {"/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v5/NANOAODSIM"}
+                info.n_files = 1682
+        if cfg.has_dataset("dy_m10to50_amcatnlo"):
+            ds = cfg.get_dataset("dy_m10to50_amcatnlo")
+            for info in ds.info.values():
+                info.keys = {"/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v5/NANOAODSIM"}
+                info.n_files = 1573
+        if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
+            ds = cfg.get_dataset("ttz_zll_m50toinf_amcatnlo")
+            ds.get_info("nominal").keys = {"/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v3/NANOAODSIM"}
+            ds.get_info("nominal").n_files = 50
+        if cfg.has_dataset("ttz_zll_m4to50_amcatnlo"):
+            # cmsdb also has a trailing-space bug in this key (postEE);
+            # setting it explicitly cleans both issues at once.
+            ds = cfg.get_dataset("ttz_zll_m4to50_amcatnlo")
+            ds.get_info("nominal").keys = {"/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v3/NANOAODSIM"}
+            ds.get_info("nominal").n_files = 40
+    elif year == 2023 and campaign.x.BPix == "pre":
+        # TODO(2023preBPix): add per-era overrides if needed.
+        pass
+    elif year == 2023 and campaign.x.BPix == "post":
+        # TODO(2023postBPix): add per-era overrides if needed.
+        pass
 
     # default calibrator, selector, producer, ml model and inference model
     cfg.x.default_calibrator = "skip_jecunc"
@@ -725,6 +767,26 @@ def add_config(
             })
     else:
         raise NotImplementedError(f"Luminosity for year {year} is not defined.")
+
+    # Per-channel effective lumi for `channel_lumi_weight` (see
+    # production/channel_lumi_weight.py for derivation procedure).
+    # The 2022preEE numbers were derived with brilcalc against the golden
+    # JSON Cert_Collisions2022_355100_362760_Golden.json. For the other
+    # eras the muon and egamma PDs run end-to-end, so the ratio is ~1.0
+    # by default — re-derive with brilcalc per era to refine, then update
+    # below. Leaving any entry equal to ``nominal`` is a no-op (SF=1).
+    nominal = float(cfg.x.luminosity.nominal)
+    if year == 2022 and campaign.x.EE == "pre":
+        cfg.x.channel_lumis = {"muon": 7448.0, "egamma": 7989.5, "nominal": nominal}
+    elif year == 2022 and campaign.x.EE == "post":
+        # TODO(2022postEE): re-derive with brilcalc; both PDs run E/F/G.
+        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
+    elif year == 2023 and campaign.x.BPix == "pre":
+        # TODO(2023preBPix): re-derive with brilcalc on C1..C4.
+        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
+    elif year == 2023 and campaign.x.BPix == "post":
+        # TODO(2023postBPix): re-derive with brilcalc on D1..D2.
+        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
 
     # MET filters
     # TODO: Different Met filters for different years
@@ -924,24 +986,24 @@ def add_config(
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "wp80iso")
+        cfg.x.electron_ss_names = ("Scale", "Smearing")
     elif f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
+        cfg.x.electron_ss_names = ("Scale", "Smearing")
     elif f"{year}{corr_postfix}" == "2023postBPix":
-        # cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
-        # cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptD", "Reco20to75")
-        # cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptD", "wp80iso")
-        cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
-        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
-        cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
+        # VERIFY period/WP strings against the JSON (see introspection cmd)
+        cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
+        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptD", "Reco20to75")
+        cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptD", "wp80iso")
+        cfg.x.electron_ss_names = ("2023PromptD_ScaleJSON", "2023PromptD_SmearingJSON")
     elif f"{year}{corr_postfix}" == "2023preBPix":
-        # cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
-        cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
-        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
-        cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
-        # cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
-        # cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
+        # VERIFY period/WP strings against the JSON (see introspection cmd)
+        cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
+        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
+        cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
+        cfg.x.electron_ss_names = ("2023PromptC_ScaleJSON", "2023PromptC_SmearingJSON")
     # names of muon correction sets and working points
     # (used in the muon producer)
     # TightID muon SF chain (from muon_Z.json):
@@ -950,7 +1012,16 @@ def add_config(
     cfg.x.muon_sf_id_names = ("NUM_TightID_DEN_TrackerMuons", f"{year}{corr_postfix}")
     cfg.x.muon_sf_iso_names = ("NUM_TightPFIso_DEN_TightID", f"{year}{corr_postfix}")
     cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdTight_and_PFIsoTight", f"{year}{corr_postfix}")
-    cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2022Re-recoBCD", "HLT_SF_Ele30_MVAiso80ID")
+    # era-branched HLT electron SF. VERIFY the period string AND the HLT category
+    # ("HLT_SF_Ele30_MVAiso80ID") against electronHlt.json per era (introspection cmd).
+    if f"{year}{corr_postfix}" == "2022preEE":
+        cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2022Re-recoBCD", "HLT_SF_Ele30_MVAiso80ID")
+    elif f"{year}{corr_postfix}" == "2022postEE":
+        cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2022Re-recoE+PromptFG", "HLT_SF_Ele30_MVAiso80ID")
+    elif f"{year}{corr_postfix}" == "2023preBPix":
+        cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2023PromptC", "HLT_SF_Ele30_MVAiso80ID")
+    elif f"{year}{corr_postfix}" == "2023postBPix":
+        cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2023PromptD", "HLT_SF_Ele30_MVAiso80ID")
 
     cfg.x.top_pt_reweighting_params = {
         "a": 0.0615,
@@ -1098,8 +1169,15 @@ def add_config(
         # jet veto map
         "jet_veto_map": (f"{json_mirror}/POG/JME/{corr_tag}/jetvetomaps.json.gz", "v1"),
 
-        # muon Rochester-like scale & smearing
-        "muon_scalesmearing": "/data/dust/user/eranders/AZHtt/data/json/muon_scalesmearing.json.gz",
+        # muon Rochester-like scale & smearing — per-era JSON.
+        # Run tasks/check_muon_scalesmearing.py at DESY to verify these
+        # exist. Source: https://github.com/cms-muon-pog/MuonScaRe
+        "muon_scalesmearing": ({
+            "2022preEE":   "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2022_Summer22/muon_scalesmearing.json.gz",
+            "2022postEE":  "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2022_Summer22EE/muon_scalesmearing.json.gz",
+            "2023preBPix": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2023_Summer23/muon_scalesmearing.json.gz",
+            "2023postBPix":"/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2023_Summer23BPix/muon_scalesmearing.json.gz",
+        }[f"{year}{corr_postfix}"], "v1"),
 
         # electron scale & smearing
         "electron_ss": (f"{json_mirror}/POG/EGM/{corr_tag}/electronSS.json.gz", "v1"),
@@ -1151,22 +1229,44 @@ def add_config(
                 },
             },
         }))
-    elif year == 2023:
+    elif year == 2023 and campaign.x.BPix == "pre":
         cfg.x.external_files.update(DotDict.wrap({
-            # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
             "lumi": {
                 "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json", "v1"),
             },
             "pu": {
-                # "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileup_JSON.txt", "v1"),  # noqa
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/BCD/pileup_JSON.txt", "v1"),  # noqa
+                # TODO(2023): switch mc_profile to the 2023 Simulation file
+                # (Run3_2023_LHC_Simulation_*) once you have the right
+                # cmssw revision pinned. The 2022 file is used as a
+                # fallback here.
                 "mc_profile": ("https://raw.githubusercontent.com/cms-sw/cmssw/bb525104a7ddb93685f8ced6fed1ab793b2d2103/SimGeneral/MixingModule/python/Run3_2022_LHC_Simulation_10h_2h_cfi.py", "v1"),  # noqa
+                # NOTE: the histograms below currently use the combined
+                # 2023 golden-JSON pileup (Collisions2023_366442_370790).
+                # For a fully era-resolved correction, regenerate against
+                # only the preBPix run range (Cv1234, runs <= 370580)
+                # using pileupCalc and update these paths.
                 "data_profile": {
-                    # data profiles were produced with 99 bins instead of 100 --> use custom produced data profiles instead  # noqa
-                    # "nominal": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileupHistogram-Cert_Collisions2022_359022_362760_eraEFG_GoldenJson-13p6TeV-69200ub-99bins.root", "v1"),  # noqa
-                    # "minbias_xs_up": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileupHistogram-Cert_Collisions2022_359022_362760_eraEFG_GoldenJson-13p6TeV-72400ub-99bins.root", "v1"),  # noqa
-                    # "minbias_xs_down": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileupHistogram-Cert_Collisions2022_359022_362760_eraEFG_GoldenJson-13p6TeV-66000ub-99bins.root", "v1"),  # noqa
+                    "nominal": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions23/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-69200ub-100bins.root", "v1"),  # noqa
+                    "minbias_xs_up": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions23/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-72400ub-100bins.root", "v1"),  # noqa
+                    "minbias_xs_down": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions23/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-66000ub-100bins.root", "v1"),  # noqa
+                },
+            },
+        }))
+    elif year == 2023 and campaign.x.BPix == "post":
+        cfg.x.external_files.update(DotDict.wrap({
+            "lumi": {
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json", "v1"),
+            },
+            "pu": {
+                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/BCD/pileup_JSON.txt", "v1"),  # noqa
+                # See preBPix block above re: mc_profile.
+                "mc_profile": ("https://raw.githubusercontent.com/cms-sw/cmssw/bb525104a7ddb93685f8ced6fed1ab793b2d2103/SimGeneral/MixingModule/python/Run3_2022_LHC_Simulation_10h_2h_cfi.py", "v1"),  # noqa
+                # NOTE: see preBPix block re: data_profile histograms.
+                # For postBPix specifically you want runs >= 370581.
+                "data_profile": {
                     "nominal": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions23/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-69200ub-100bins.root", "v1"),  # noqa
                     "minbias_xs_up": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions23/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-72400ub-100bins.root", "v1"),  # noqa
                     "minbias_xs_down": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions23/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-66000ub-100bins.root", "v1"),  # noqa
@@ -1322,6 +1422,21 @@ def add_config(
 
     add_variables(cfg)
     add_categories_selection(cfg)
+    # build the combined leaf categories (and the 'unblinded' group) at config-build
+    # time so --categories resolves them during task param resolution, not only
+    # after producer init. @call_once_on_config makes the later producer call a no-op.
+    add_categories_production(cfg)
+
+    # unblinded group: all 0b leaf categories. Data is blinded in >=1 b-jet
+    # regions, so plots of data use --categories unblinded. MC/inference may
+    # still use the 1b/2b SR leaves, which remain defined.
+    def _walk_cats(cats):
+        for c in cats:
+            yield c
+            yield from _walk_cats(c.categories)
+    cfg.x.category_groups["unblinded"] = sorted(
+        {c.name for c in _walk_cats(cfg.categories) if "0bjets" in c.name.split("__")}
+    )
     # add_cutflow_variables(cfg)
     if year == 2022:
         from azh.config.triggers import add_triggers_2022

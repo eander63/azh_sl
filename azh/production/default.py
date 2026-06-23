@@ -58,7 +58,7 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = self[prepare_objects](events, **kwargs)
     events = self[z_boson](events, **kwargs)
     # from IPython import embed; embed()
-    # events = self[higgs_reco](events, **kwargs)
+    events = self[higgs_reco](events, **kwargs)
     events = self[category_ids](events, **kwargs)
     # events = self[trigger](events, **kwargs)
     # mc-only weights

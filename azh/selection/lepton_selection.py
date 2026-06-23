@@ -93,16 +93,15 @@ def lepton_selection(
     events = set_ak_column(events, "cutflow.n_ele_high", ak.sum(ele_mask_high, axis=1))
     events = set_ak_column(events, "cutflow.n_muo_high", ak.sum(muo_mask_high, axis=1))
 
-    # select only events with exactly 2 same-flavor OS loose leptons,
-    # with at least one passing the high-pT threshold
+    # BASELINE (superset): >=2 same-flavor loose leptons of one flavor,
+    # with >=1 passing the high-pT leg. Exact lepton count, OS-charge,
+    # min(mll), and 4th-lepton veto are applied downstream as categories.
     lep_sel = (
         (
-            (events.cutflow.n_ele_loose == 2) &
-            (events.cutflow.n_muo_loose == 0) &
+            (events.cutflow.n_ele_loose >= 2) &
             (events.cutflow.n_ele_high > 0)
         ) | (
-            (events.cutflow.n_muo_loose == 2) &
-            (events.cutflow.n_ele_loose == 0) &
+            (events.cutflow.n_muo_loose >= 2) &
             (events.cutflow.n_muo_high > 0)
         )
     )

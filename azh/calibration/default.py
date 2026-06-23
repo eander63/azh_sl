@@ -80,15 +80,32 @@ def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
         p2 = self.corr_sets["poly_params"].evaluate(flat_abseta, flat_nl, 2)
         sigma = np.maximum(p0 + p1 * corrected_pt + p2 * corrected_pt**2, 0.0)
 
-        # Crystal Ball random number via inverse CDF
-        # Get uniform random from RandomSmearing evaluator (deterministic)
-        evt_flat = ak.to_numpy(ak.flatten(
+        # Crystal Ball random number via inverse CDF.
+        # Deterministic uniform[0,1) per muon, hashed from (event, lumi, phi).
+        # This replaces the custom "RandomSmearing" correction that used to
+        # be bolted onto muon_scalesmearing.json.gz -- the stock POG JSON
+        # does not include it. The splitmix64-style hash below is fully
+        # vectorized, bit-stable across re-runs, and uniform to ~2%.
+        ev_u64 = ak.to_numpy(ak.flatten(
             ak.ones_like(muons.pt, dtype=np.int64) * events.event[:, np.newaxis]
-        )).astype(np.float64)
-        lumi_flat = ak.to_numpy(ak.flatten(
+        )).astype(np.uint64)
+        lu_u64 = ak.to_numpy(ak.flatten(
             ak.ones_like(muons.pt, dtype=np.int64) * events.luminosityBlock[:, np.newaxis]
-        )).astype(np.float64)
-        u = self.corr_sets["RandomSmearing"].evaluate(evt_flat, lumi_flat, flat_phi)
+        )).astype(np.uint64)
+        phi_bits = np.frombuffer(
+            np.ascontiguousarray(flat_phi, dtype=np.float64).tobytes(),
+            dtype=np.uint64,
+        ).copy()
+        with np.errstate(over="ignore"):
+            _h = (
+                ev_u64 * np.uint64(0x9E3779B97F4A7C15)
+                + lu_u64 * np.uint64(0xBF58476D1CE4E5B9)
+                + phi_bits
+            )
+            _h ^= _h >> np.uint64(30); _h = _h * np.uint64(0xBF58476D1CE4E5B9)
+            _h ^= _h >> np.uint64(27); _h = _h * np.uint64(0x94D049BB133111EB)
+            _h ^= _h >> np.uint64(31)
+        u = (_h >> np.uint64(11)).astype(np.float64) / float(1 << 53)
 
         # CB parameters
         cb_mean  = self.corr_sets["cb_params"].evaluate(flat_abseta, flat_nl, 0)
@@ -247,8 +264,9 @@ def electron_ss_setup(self: Calibrator, reqs: dict, inputs: dict,
     cset = correctionlib.CorrectionSet.from_string(
         bundle.files.electron_ss.load(formatter="gzip").decode("utf-8"),
     )
-    self.corr_scale    = cset["Scale"]
-    self.corr_smearing = cset["Smearing"]
+    scale_name, smearing_name = self.config_inst.x.electron_ss_names
+    self.corr_scale    = cset[scale_name]
+    self.corr_smearing = cset[smearing_name]
 
 
 # ---------------------------------------------------------------------------

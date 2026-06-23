@@ -154,6 +154,13 @@ config_2023post_limited = add_config(
     config_id=42,
     limit_dataset_files=1,
 )
+
+# config group: fan out across all four Run 3 eras with --configs run3.
+# NOTE: cf resolves these entries with law.util.brace_expand (strings), so use
+# config *names* here, not the Config objects.
+analysis_azh.x.config_groups["run3"] = [
+    "config_2022pre", "config_2022post", "config_2023pre", "config_2023post",
+]
 # # get all root processes
 # procs = get_root_processes_from_campaign(campaign)
 

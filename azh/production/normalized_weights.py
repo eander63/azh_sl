@@ -97,6 +97,13 @@ def normalized_weight_factory(
     def normalized_weight_setup(self: Producer, reqs: dict, inputs: dict, reader_targets: InsertableDict) -> None:
         # load the selection stats
         stats = inputs["selection_stats"]["collection"][0]["stats"].load(formatter="json")
+        # only normalize weights whose per-process sums were actually booked in
+        # the selection stats; pileup systematic shifts (e.g. pu_weight_minbias_xs_up)
+        # are absent from the preEE stats and must not be required for nominal plots
+        self.weight_names = {
+            w for w in self.weight_names
+            if f"sum_mc_weight_{w}_per_process" in stats
+        }
         # get the unique process ids in that dataset
         key = "sum_mc_weight_per_process"
         self.unique_process_ids = list(map(int, stats[key].keys()))

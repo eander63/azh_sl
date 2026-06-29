@@ -5,6 +5,7 @@ Producers related to event weights.
 """
 
 from columnflow.production import Producer, producer
+from azh.production.normalized_weights import normalized_weight_factory
 from columnflow.columnar_util import set_ak_column, has_ak_column, Route
 from columnflow.production.cms.btag import split_btag_weights
 from columnflow.production.cms.electron import electron_weights
@@ -19,8 +20,7 @@ from columnflow.util import maybe_import
 
 from azh.production.gen_top import top_pt_weight
 # from azh.production.gen_top import gen_parton_top
-# from azh.production.normalized_weights import normalized_weight_factory
-
+# 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
 
@@ -91,6 +91,11 @@ muon_id_weights = muon_weights.derive("muon_id_weights", cls_dict={
     "get_muon_config": (lambda self: self.config_inst.x.muon_sf_id_names),
 })
 
+normalized_pu_weight = normalized_weight_factory(
+    producer_name="normalized_pu_weight",
+    weight_producers={pu_weight},
+)
+
 muon_iso_weights = muon_weights.derive("muon_iso_weights", cls_dict={
     "weight_name": "muon_iso_weight",
     "get_muon_config": (lambda self: self.config_inst.x.muon_sf_iso_names),
@@ -149,6 +154,9 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # compute pu weights
         events = self[pu_weight](events, **kwargs)
 
+        # normalize pu weight per process (produces 'normalized_pu_weight')
+        events = self[normalized_pu_weight](events, **kwargs)
+
         # Z pT reweighting (NLO DY modeling correction) — DISABLED
         # events = self[zpt_reweight](events, **kwargs)
         if not self.dataset_inst.has_tag("no_lhe_weights"):
@@ -165,7 +173,7 @@ def weights_init(self: Producer) -> None:
         self.uses |= {
             electron_weights, electron_id_weights, electron_mid_weights,
             muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
             # zpt_reweight,  # DISABLED
             split_btag_weights,
             trigger_weights, channel_lumi_weight,
@@ -173,7 +181,7 @@ def weights_init(self: Producer) -> None:
         self.produces |= {
             electron_weights, electron_id_weights, electron_mid_weights,
             muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
             # zpt_reweight,  # DISABLED
             split_btag_weights,
             trigger_weights, channel_lumi_weight,

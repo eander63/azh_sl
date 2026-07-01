@@ -664,6 +664,16 @@ def add_config(
             ds.get_info("nominal").keys = {"/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v3/NANOAODSIM"}
             ds.get_info("nominal").n_files = 40
     elif year == 2023 and campaign.x.BPix == "pre":
+        if cfg.has_dataset("dy_m50toinf_amcatnlo"):
+            ds = cfg.get_dataset("dy_m50toinf_amcatnlo")
+            for info in ds.info.values():
+                info.keys = {"/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v2/NANOAODSIM"}
+                info.n_files = 506
+        if cfg.has_dataset("dy_m10to50_amcatnlo"):
+            ds = cfg.get_dataset("dy_m10to50_amcatnlo")
+            for info in ds.info.values():
+                info.keys = {"/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14_ext1-v4/NANOAODSIM"}
+                info.n_files = 657
         if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
             ds = cfg.get_dataset("ttz_zll_m50toinf_amcatnlo")
             ds.get_info("nominal").keys = {"/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v3/NANOAODSIM"}
@@ -673,6 +683,16 @@ def add_config(
             ds.get_info("nominal").keys = {"/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v4/NANOAODSIM"}
             ds.get_info("nominal").n_files = 18
     elif year == 2023 and campaign.x.BPix == "post":
+        if cfg.has_dataset("dy_m50toinf_amcatnlo"):
+            ds = cfg.get_dataset("dy_m50toinf_amcatnlo")
+            for info in ds.info.values():
+                info.keys = {"/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v4/NANOAODSIM"}
+                info.n_files = 312
+        if cfg.has_dataset("dy_m10to50_amcatnlo"):
+            ds = cfg.get_dataset("dy_m10to50_amcatnlo")
+            for info in ds.info.values():
+                info.keys = {"/DYto2L-2Jets_MLL-10to50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2_ext1-v4/NANOAODSIM"}
+                info.n_files = 342
         if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
             ds = cfg.get_dataset("ttz_zll_m50toinf_amcatnlo")
             ds.get_info("nominal").keys = {"/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v3/NANOAODSIM"}

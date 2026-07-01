@@ -151,6 +151,7 @@ def add_config(
         "tt": "#E04F21",  # red
         "ttv": "#5E8FFC",  # blue
         "w_lnu": "#82FF28",  # green
+        "tth": "#FFA500",  # orange
         "higgs": "#984ea3",  # purple
         "st": "#3E00FB",  # dark purple
         "wz": "#FF6B9D",  # hot pink for WZ
@@ -174,6 +175,7 @@ def add_config(
         "ttv",
         "st",
         "w_lnu",
+        "tth",
         "wz",
         "vv",
         # "vvv",
@@ -662,11 +664,23 @@ def add_config(
             ds.get_info("nominal").keys = {"/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v3/NANOAODSIM"}
             ds.get_info("nominal").n_files = 40
     elif year == 2023 and campaign.x.BPix == "pre":
-        # TODO(2023preBPix): add per-era overrides if needed.
-        pass
+        if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
+            ds = cfg.get_dataset("ttz_zll_m50toinf_amcatnlo")
+            ds.get_info("nominal").keys = {"/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v3/NANOAODSIM"}
+            ds.get_info("nominal").n_files = 5
+        if cfg.has_dataset("ttz_zll_m4to50_amcatnlo"):
+            ds = cfg.get_dataset("ttz_zll_m4to50_amcatnlo")
+            ds.get_info("nominal").keys = {"/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v4/NANOAODSIM"}
+            ds.get_info("nominal").n_files = 18
     elif year == 2023 and campaign.x.BPix == "post":
-        # TODO(2023postBPix): add per-era overrides if needed.
-        pass
+        if cfg.has_dataset("ttz_zll_m50toinf_amcatnlo"):
+            ds = cfg.get_dataset("ttz_zll_m50toinf_amcatnlo")
+            ds.get_info("nominal").keys = {"/TTLL_MLL-50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v3/NANOAODSIM"}
+            ds.get_info("nominal").n_files = 7
+        if cfg.has_dataset("ttz_zll_m4to50_amcatnlo"):
+            ds = cfg.get_dataset("ttz_zll_m4to50_amcatnlo")
+            ds.get_info("nominal").keys = {"/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v3/NANOAODSIM"}
+            ds.get_info("nominal").n_files = 7
 
     # default calibrator, selector, producer, ml model and inference model
     cfg.x.default_calibrator = "skip_jecunc"
@@ -747,13 +761,14 @@ def add_config(
 
     # lumi values in inverse pb
     # https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2?rev=2#Combination_and_correlations
+    # 2022preEE, 2022postEE, 2023preBPix, 2023postBPix all brilcalc verified (jun 29 2026)
     if year == 2022:
         if campaign.x.EE == "pre":
-            cfg.x.luminosity = Number(7971, {
+            cfg.x.luminosity = Number(7990, {
                 "lumi_13TeV_correlated": 0.014j,
             })
         elif campaign.x.EE == "post":
-            cfg.x.luminosity = Number(26337, {
+            cfg.x.luminosity = Number(26675, {
                 "lumi_13TeV_correlated": 0.014j,
             })
     elif year == 2023:
@@ -779,13 +794,10 @@ def add_config(
     if year == 2022 and campaign.x.EE == "pre":
         cfg.x.channel_lumis = {"muon": 7448.0, "egamma": 7989.5, "nominal": nominal}
     elif year == 2022 and campaign.x.EE == "post":
-        # TODO(2022postEE): re-derive with brilcalc; both PDs run E/F/G.
         cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
     elif year == 2023 and campaign.x.BPix == "pre":
-        # TODO(2023preBPix): re-derive with brilcalc on C1..C4.
         cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
     elif year == 2023 and campaign.x.BPix == "post":
-        # TODO(2023postBPix): re-derive with brilcalc on D1..D2.
         cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
 
     # MET filters
@@ -1340,7 +1352,7 @@ def add_config(
         "electron_id_weight": [],    # electron MVA WP80iso
         "muon_id_weight": [],       # TightID SF (muon_Z.json, valid 15+ GeV)
         "muon_iso_weight": [],      # TightPFIso SF (muon_Z.json, valid 15+ GeV)
-        "pu_weight": [],
+        "normalized_pu_weight": [],
         #         "zpt_weight": [],
         # "btag_weight": [],
         # mur/muf kept as systematics only, not applied at nominal

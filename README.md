@@ -2,7 +2,7 @@
 
 Search for a heavy pseudoscalar **A → ZH**, with H → tt̄ and Z → ℓℓ, in CMS Run 3
 data (2022 + 2023, NanoAOD v12). Built on
-[columnflow](https://github.com/columnflow/columnflow).
+[columnflow](https://github.com/columnflow/columnflow). Note that the directions are for use on DESY.
 
 **Status: work in progress.** The chain runs end to end and produces validation
 plots. It is not ready for limits.
@@ -102,6 +102,18 @@ across all four full eras: `--configs run3`.
 ---
 
 ## Running
+
+### Example
+
+```bash
+law run cf.PlotVariables1D \
+    --config config_2022pre \
+    --version v1 \
+    --datasets tt_sl_powheg,dy_m50toinf_amcatnlo,data_mu_c \
+    --variables m_z,n_jets \
+    --categories cat_incl \
+    --
+```
 
 ### `--version` is mandatory
 

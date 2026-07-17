@@ -109,7 +109,7 @@ def add_categories_production(config: od.Config) -> None:
     config.get_category("2e").selection = "catid_2e"
     config.get_category("2mu").selection = "catid_2mu"
 
-    add_categories_njets(config)
+    # add_categories_njets(config)  # disabled: 72-combo explosion triggers ak.concatenate IndexError
     add_categories_3l(config)
     add_categories_met(config)
     #add_categories_n1(config)

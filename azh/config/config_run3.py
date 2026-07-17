@@ -701,6 +701,8 @@ def add_config(
             ds = cfg.get_dataset("ttz_zll_m4to50_amcatnlo")
             ds.get_info("nominal").keys = {"/TTLL_MLL-4to50_TuneCP5_13p6TeV_amcatnlo-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v6-v3/NANOAODSIM"}
             ds.get_info("nominal").n_files = 7
+        if cfg.has_dataset("tth_hnonbb_powheg"):
+            cfg.get_dataset("tth_hnonbb_powheg").get_info("nominal").n_files = 135
 
     # default calibrator, selector, producer, ml model and inference model
     cfg.x.default_calibrator = "skip_jecunc"

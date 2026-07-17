@@ -19,6 +19,7 @@ from columnflow.selection.cms.jets import jet_veto_map
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
+from columnflow.production.cms.pileup import pu_weight
 from columnflow.production.processes import process_ids
 
 from azh.selection.jet_selection import jet_selection
@@ -38,7 +39,7 @@ ak = maybe_import("awkward")
         process_ids, attach_coffea_behavior,
         mc_weight, category_ids,
         jet_selection, lepton_selection,
-        increment_stats, trigger_selection,
+        increment_stats, trigger_selection, pu_weight,
         "Jet.btagDeepFlavB", "Jet.pt", "Jet.eta",
         "MET.pt",
         met_filters, json_filter, jet_veto_map,
@@ -47,7 +48,7 @@ ak = maybe_import("awkward")
         process_ids, attach_coffea_behavior,
         mc_weight, category_ids,
         jet_selection, lepton_selection,
-        increment_stats, trigger_selection,
+        increment_stats, trigger_selection, pu_weight,
         met_filters, json_filter, jet_veto_map,
     },
     exposed=True,
@@ -63,6 +64,7 @@ def default(
 
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
+        events = self[pu_weight](events, **kwargs)
 
     # ensure coffea behavior
     events = self[attach_coffea_behavior](events, **kwargs)
@@ -117,6 +119,8 @@ def default(
             **weight_map,
             "sum_mc_weight": (events.mc_weight, Ellipsis),
             "sum_mc_weight_selected": (events.mc_weight, results.event),
+            "sum_mc_weight_pu_weight": (events.mc_weight * events.pu_weight, Ellipsis),
+            "sum_mc_weight_pu_weight_selected": (events.mc_weight * events.pu_weight, results.event),
         }
         group_map = {
             "process": {

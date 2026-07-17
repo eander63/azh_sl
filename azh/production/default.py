@@ -121,8 +121,8 @@ def default_init(self: Producer) -> None:
     add_categories_mz(self.config_inst)
     add_category_2l(self.config_inst)
     add_categories_bjets(self.config_inst)
-    add_categories_njets(self.config_inst)
+    # add_categories_njets(self.config_inst)  # disabled: combo explosion -> ak.concatenate IndexError
     add_categories_3l(self.config_inst)
     add_categories_met(self.config_inst)
-    add_categories_n1(self.config_inst)
+    # add_categories_n1(self.config_inst)
     # self.config_inst.x.has_categories_production = True

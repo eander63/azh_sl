@@ -42,8 +42,6 @@ voms-proxy-init --voms cms --valid 192:00
 ```
 
 - The exports must come **before** `source setup.sh` — they're read during setup.
-- `setup.sh` refuses to run twice in one shell. *"the AZH analysis was already
-  succesfully setup"* means open a new shell.
 - The first run builds the software stack under `$CF_DATA/software` and is slow.
   Later runs are fast.
 - Everything is written to `$CF_DATA`. No CERN EOS, no Tier-2 — `naf_el9` jobs
@@ -110,55 +108,13 @@ across all four full eras: `--configs run3`.
 There is no default version — omitting it raises
 `MissingParameterException: requires the 'version' parameter to be set`.
 
-### Pin the calibration version
-
-The existing store is **not** uniform: `cf.CalibrateEvents` is at `v0`,
-everything downstream is at `v1`. To reuse the existing calibration:
-
-```bash
-law run cf.PlotVariables1D \
-    --config config_2022pre \
-    --version v1 \
-    --cf.CalibrateEvents-version v0 \
-    --datasets tt_sl_powheg \
-    --variables m_z
-```
-
-**Omit `--cf.CalibrateEvents-version v0` and law will regenerate 1.1 TB of
-calibration.** This is the most expensive mistake available in this repo.
+### Make sure that version number choice is consistent
 
 Store layout:
 
 ```
 $CF_DATA/cf_store/analysis_azh/{task}/{config}/{dataset}/{shift}/{calib}/{version}/
 ```
-
-Disk is tight (2 TB dust quota, `CalibrateEvents` is ~1.1 TB of it). Check with
-`my-dust-quota`. The `_limited` configs are ~65 GB and regenerate in minutes.
-
----
-
-## Before you trust output
-
-Three things are wrong in ways that are invisible from the code path. Details
-are in the files; the pointers are here so you don't have to find them by
-accident.
-
-1. **No JEC uncertainties exist.** The default calibrator `skip_jecunc` produces
-   only nominal JEC, while the config registers `jec_Total_up/down` shifts that
-   are never filled. All processed data, all four eras.
-   → `azh/calibration/jets.py`
-
-2. **Pileup weights are broken** (values 0–160). Still computed and applied.
-   → `azh/config/config_run3.py`, search `fix pu_weight`
-
-3. **There is no inference model.** It was removed; `default_inference_model`
-   still points at the deleted `"example"`. Limits need rebuilding from scratch.
-   → `azh/config/config_run3.py`, search `default_inference_model`
-
-`modules/columnflow` is a flattened snapshot of ~upstream v0.2.4 with no shared
-history — upstream docs describe a newer API. See
-`modules/columnflow/VENDORED_FROM`.
 
 ---
 
@@ -170,13 +126,6 @@ bash tests/run_linting   # flake8 only; there are no unit tests
 ```
 
 `law index -q` silent = success. The post-commit hook lints but never blocks.
-
-A cleanup removed ~5,900 lines (ML model, inference model, Run 2 config chain,
-template examples, debug scripts). All recoverable:
-
-```bash
-git show pre-cleanup-full-tree:azh/ml/PNN.py > /tmp/PNN.py
-```
 
 ## Resources
 

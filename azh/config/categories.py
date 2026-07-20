@@ -3,18 +3,22 @@
 """
 Definition of categories.
 
-Categories are assigned a unique integer ID according to a fixed numbering
-scheme, with digits/groups of digits indicating the different category groups:
+Category IDs follow a fixed additive scheme so that combined categories get a
+unique ID from the sum of their parts:
 
+    flavor:  2e = 10,  2mu = 20
+    region:  wz_cr = 4000,  sr_1b = 5000,  sr_2b = 6000
+
+    -> combined leaves:  2e__wz_cr = 4010,  2mu__sr_2b = 6020,  etc.
+
+    other standalone:  cat_incl = 1
 """
 
 import law
 
 from columnflow.util import maybe_import
-# from columnflow.categorization import Categorizer, categorizer
 from columnflow.config_util import create_category_combinations
 from azh.util import call_once_on_config
-
 
 import order as od
 
@@ -34,9 +38,7 @@ def kwargs_fn(categories: dict[str, od.Category]):
     return {
         "id": sum(cat.id for cat in categories.values()),
         "selection": [cat.selection for cat in categories.values()],
-        "label": "\n".join(
-            cat.label for cat in categories.values()
-        ),
+        "label": "\n".join(cat.label for cat in categories.values()),
     }
 
 
@@ -44,29 +46,13 @@ def skip_fn(categories: dict[str, od.Category]):
     """Custom function for skipping certain category combinations."""
     return False  # don't skip
 
-
-@call_once_on_config()
-def add_categories_selection(config: od.Config) -> None:
-    add_lepton_categories(config)
-    add_incl_cat(config)
-    # add_categories_bjets(config)
-
-# def add_categories(config: od.Config) -> None:
-#     @categorizer(uses={"event"})
-#     def cat_incl(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-#         # fully inclusive selection
-#         return events, ak.ones_like(events.event) == 1
-
-    # @categorizer(uses={"Jet.pt"})
-    # def cat_2j(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    #     # two or more jets
-    #     return events, ak.num(events.Jet.pt, axis=1) >= 2
-
+# ---------------------------------------------------------------------
+# Base categories (single-axis)
+# ---------------------------------------------------------------------
 
 @call_once_on_config()
 def add_incl_cat(config: od.Config) -> None:
-
-    cat_incl = config.add_category(  # noqa
+    config.add_category(
         name="cat_incl",
         id=1,
         selection="catid_incl",
@@ -76,248 +62,78 @@ def add_incl_cat(config: od.Config) -> None:
 
 @call_once_on_config()
 def add_lepton_categories(config: od.Config) -> None:
-
-    cat_2e = config.add_category(  # noqa
+    config.add_category(
         name="2e",
         id=10,
         selection="catid_selection_2e",
         label="2 Electron",
     )
-
-    cat_2mu = config.add_category(  # noqa
+    config.add_category(
         name="2mu",
         id=20,
         selection="catid_selection_2mu",
         label="2 Muon",
     )
 
+# ---------------------------------------------------------------------
+# Selection-time categories (used in SelectEvents)
+# ---------------------------------------------------------------------
 
 @call_once_on_config()
-# imported below
+def add_categories_selection(config: od.Config) -> None:
+    add_lepton_categories(config)
+    add_incl_cat(config)
+
+# ---------------------------------------------------------------------
+# Production-time categories (used in ProduceColumns)
+# ---------------------------------------------------------------------
+
+@call_once_on_config()
 def add_categories_production(config: od.Config) -> None:
     """
-    Adds categories to a *config*, that are typically produced in `ProduceColumns`.
+    Categories that depend on produced columns (m_z, pt_z, n_tight_leptons, ...).
+
+    Rebinds the lepton categories to their PRODUCTION categorizers before the
+    region combination is built, so the combined leaves freeze catid_2e/2mu
+    (which read produced columns) rather than the selection-time
+    catid_selection_2e/2mu.
     """
     add_lepton_categories(config)
     add_incl_cat(config)
-    add_categories_mz(config)
-    add_categories_bjets(config)
 
-    # switch lepton categories to their PRODUCTION categorizers BEFORE building
-    # the combination, so the combined leaves freeze catid_2e/2mu (which read
-    # produced columns) rather than the selection-time catid_selection_2e/2mu.
     config.get_category("2e").selection = "catid_2e"
     config.get_category("2mu").selection = "catid_2mu"
 
-    # add_categories_njets(config)  # disabled: 72-combo explosion triggers ak.concatenate IndexError
-    add_categories_3l(config)
-    add_categories_met(config)
-    #add_categories_n1(config)
-
+    add_categories_regions(config)
 
 @call_once_on_config()
-def add_category_2l(config: od.Config) -> None:
-    """Combined ee + mumu category."""
-    config.add_category(
-        name="2l",
-        id=30,
-        selection="catid_2l",
-        label=r"$\ell\ell$ (ee + $\mu\mu$)",
-    )
-
-
-@call_once_on_config()
-def add_categories_mz(config: od.Config) -> None:
+def add_categories_regions(config: od.Config) -> None:
     """
-    Adds categories to a *config*, that are typically produced in `ProduceColumns`.
+    Analysis regions from the B2G-24-002 SR/CR table, split by lepton flavor.
+
+        2e__wz_cr,  2mu__wz_cr    (0 b-jets,   data + MC)
+        2e__sr_1b,  2mu__sr_1b    (1 b-jet,    MC only — blinded)
+        2e__sr_2b,  2mu__sr_2b    (>=2 b-jets, MC only — blinded)
+
+    Blinding lives in the categorizers (catid_sr_1b / catid_sr_2b), not here:
+    data events fall out of the SRs structurally.
     """
+    add_lepton_categories(config)
 
-    #
-    # switch existing categories to different production module
-    #
-    cat_SR = config.add_category(  # noqa
-        name="SR",
-        id=100,
-        selection="catid_SR",
-        label="In Z window",
-    )
-
-    cat_CR= config.add_category(  # noqa
-        name="CR",
-        id=200,
-        selection="catid_CR",
-        label="m(ll) sidebands",
-    )
-
-
-@call_once_on_config()
-def add_categories_bjets(config: od.Config) -> None:
-    """
-    Adds categories to a *config*, that are typically produced in `ProduceColumns`.
-    """
-
-    #
-    # switch existing categories to different production module
-    #
-    cat_SR = config.add_category(  # noqa
-        name="2bjets",
-        id=3000,
-        selection="catid_2bjets",
-        label=">=2 B-Jets",
-    )
-
-    cat_CR= config.add_category(  # noqa
-        name="1bjets",
-        id=2000,
-        selection="catid_1bjets",
-        label="1 B-Jets",
-    )
-
-    cat_CR= config.add_category(  # noqa
-        name="0bjets",
-        id=1000,
-        selection="catid_0bjets",
-        label="0 B-Jets",
-    )
-
-
-@call_once_on_config()
-def add_categories_njets(config: od.Config) -> None:
-    """
-    Adds categories to a *config*, that are typically produced in `ProduceColumns`.
-    """
-
-    #
-    # switch existing categories to different production module
-    #
-
-    cat_SR = config.add_category(  # noqa
-        name="4jets",
-        id=30000,
-        selection="catid_4jets",
-        label="4 Jets",
-    )
-
-    cat_SR = config.add_category(  # noqa
-        name="5jets",
-        id=10000,
-        selection="catid_5jets",
-        label="5 Jets",
-    )
-
-    cat_CR= config.add_category(  # noqa
-        name="6jets",
-        id=20000,
-        selection="catid_6jets",
-        label="6 or more Jets",
-    )
-    # ensure the met and n_lep axis categories exist before combining
-    # (call_once_on_config makes these idempotent)
-    add_categories_met(config)
-    add_categories_3l(config)
+    config.add_category(name="wz_cr", id=4000, selection="catid_wz_cr", label="WZ CR (0b)")
+    config.add_category(name="sr_1b", id=5000, selection="catid_sr_1b", label="1b SR")
+    config.add_category(name="sr_2b", id=6000, selection="catid_sr_2b", label=r"$\geq$2b SR")
 
     category_groups = {
-        "lepton": [
-            config.get_category(name)
-            for name in ["2e", "2mu"]
-        ],
-        "z_mass": [
-            config.get_category(name)
-            for name in ["SR", "CR"]
-        ],
-        "b_jets": [
-            config.get_category(name)
-            for name in ["2bjets", "1bjets", "0bjets"]
-        ],
-        "jets": [
-            config.get_category(name)
-            for name in ["5jets", "6jets", "4jets"]
-        ],
-        "met": [
-            config.get_category(name)
-            for name in ["met40", "nomet"]
-        ],
-        "nlep": [
-            config.get_category(name)
-            for name in ["3l", "2l_only"]
-        ],
+        "lepton": [config.get_category(n) for n in ["2e", "2mu"]],
+        "region": [config.get_category(n) for n in ["wz_cr", "sr_1b", "sr_2b"]],
     }
-    create_category_combinations(config, category_groups, name_fn=name_fn, kwargs_fn=kwargs_fn, skip_existing=False)
-
-# category_groups = {
-#     "lepton": [
-#         config.get_category(name)
-#         for name in ["2e", "2mu"]
-#     ],
-#     "mz": [
-#         config.get_category(name)
-#         for name in ["SR", "CR"]
-#     ]
-# }
- 
- 
-@call_once_on_config()
-def add_categories_3l(config: od.Config) -> None:
-    """Three-lepton and jet-cut categories for v2."""
- 
-    # geq4jets dropped: redundant with the jets axis (4/5/6 jets) in the combination
-    config.add_category(
-        name="3l",
-        id=1000000,
-        selection="catid_3l",
-        label="3 leptons",
-    )
-    config.add_category(
-        name="2l_only",
-        id=2000000,
-        selection="catid_2l_only",
-        label="2 leptons (excl.)",
+    create_category_combinations(
+        config,
+        category_groups,
+        name_fn=name_fn,
+        kwargs_fn=kwargs_fn,
+        skip_existing=False,
     )
 
 
-@call_once_on_config()
-def add_categories_met(config: od.Config) -> None:
-    """MET threshold categories for normalization debugging."""
-
-    config.add_category(
-        name="met40",
-        id=100000,
-        selection="catid_met40",
-        label=r"MET $>$ 40 GeV",
-    )
-    config.add_category(
-        name="nomet",
-        id=200000,
-        selection="catid_nomet",
-        label=r"MET $\leq$ 40 GeV",
-    )
-
-
-@call_once_on_config()
-def add_categories_n1(config: od.Config) -> None:
-    """N-1 categories: all cuts except one."""
-
-    config.add_category(
-        name="n1_no_met",
-        id=90000,
-        selection="catid_n1_no_met",
-        label=r"N-1: no MET cut",
-    )
-    config.add_category(
-        name="n1_no_jets",
-        id=91000,
-        selection="catid_n1_no_jets",
-        label=r"N-1: no jet cut",
-    )
-    config.add_category(
-        name="n1_no_btag",
-        id=92000,
-        selection="catid_n1_no_btag",
-        label=r"N-1: no b-tag cut",
-    )
-    config.add_category(
-        name="n1_all",
-        id=93000,
-        selection="catid_n1_all",
-        label=r"All cuts",
-    )

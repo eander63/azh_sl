@@ -15,90 +15,63 @@ ak = maybe_import("awkward")
 z_mass = 91.188
 mass_window = 25
 pt_z_cut = 15
+met_cut = 40
+n_jets_min = 4
 
-
-@categorizer(uses={"cutflow.*"}, call_force=True)
-def catid_2l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    """Combined ee + mumu category for Z mass plots."""
-    mask = (
-        (
-            (events.cutflow.n_ele_loose == 2) &
-            (events.cutflow.n_muo_loose == 0) &
-            (events.cutflow.n_ele_high > 0)
-        ) | (
-            (events.cutflow.n_muo_loose == 2) &
-            (events.cutflow.n_ele_loose == 0) &
-            (events.cutflow.n_muo_high > 0)
-        )
-    )
-    return events, mask
-
-
-@categorizer(uses={"event"}, call_force=True)
-def catid_SR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+@categorizer(
+    uses={"m_z", "pt_z", "MET.pt", "cutflow.n_jet_loose", "n_tight_leptons"},
+    call_force=True,
+)
+def catid_baseline(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    """
+    B2G-24-002 "Base event selection" table, minus the b-jet count.
+        |m_ll - m_Z| < 25   (mass_window)
+        pt_z >= 15          (pt_z_cut)
+        MET  >  40          (met_cut)
+        n_jet_loose >= 4    (n_jets_min)   [pT>15, |eta|<4.7 jets]
+        exactly 2 tight leptons
+    """
     if "m_z" not in events.fields or "pt_z" not in events.fields:
         return events, ak.zeros_like(events.event) > 0
+
     mask = (
-        (events.m_z >= (z_mass - mass_window)) &
-        (events.m_z <= (z_mass + mass_window)) &
-        (events.pt_z >= pt_z_cut)
+        (abs(events.m_z - z_mass) < mass_window) &
+        (events.pt_z >= pt_z_cut) &
+        (events.MET.pt > met_cut) &
+        (events.cutflow.n_jet_loose >= n_jets_min) &
+        (events.n_tight_leptons == 2)
     )
+    return events, ak.fill_none(mask, False)
+
+# ---------------------------------------------------------------------
+# Region categorizers, blinded in the b \geq 1 SRs.
+# The WZ CR (0 b-jets) unblinded
+# ---------------------------------------------------------------------
+
+@categorizer(uses={catid_baseline, "cutflow.n_bjet"}, call_force=True)
+def catid_sr_2b(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    events, base = self[catid_baseline](events, **kwargs)
+    mask = base & (events.cutflow.n_bjet >= 2)
+    if self.dataset_inst.is_data:
+        mask = ak.zeros_like(mask) > 0   # blind
     return events, mask
 
 
-@categorizer(uses={"event"}, call_force=True)
-def catid_CR(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    if "m_z" not in events.fields or "pt_z" not in events.fields:
-        return events, ak.zeros_like(events.event) > 0
-    mask = (
-        ((events.m_z < (z_mass - mass_window)) | (events.m_z > (z_mass + mass_window))) &
-        (events.m_z > 30) &
-        (events.pt_z >= pt_z_cut)
-    )
+@categorizer(uses={catid_baseline, "cutflow.n_bjet"}, call_force=True)
+def catid_sr_1b(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    """Exactly 1 b-jet signal region. BLINDED: MC only."""
+    events, base = self[catid_baseline](events, **kwargs)
+    mask = base & (events.cutflow.n_bjet == 1)
+    if self.dataset_inst.is_data:
+        mask = ak.zeros_like(mask) > 0   # blind
     return events, mask
 
 
-# ── B-tag categories (using cutflow.n_bjet from jet_selection) ──
-
-@categorizer(uses={"cutflow.n_bjet"}, call_force=True)
-def catid_0bjets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    return events, events.cutflow.n_bjet == 0
-
-
-@categorizer(uses={"cutflow.n_bjet"}, call_force=True)
-def catid_1bjets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    return events, events.cutflow.n_bjet == 1
-
-
-@categorizer(uses={"cutflow.n_bjet"}, call_force=True)
-def catid_2bjets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    return events, events.cutflow.n_bjet >= 2
-
-
-# ── Jet multiplicity categories ──
-
-@categorizer(uses={"cutflow.n_jet_loose"}, call_force=True)
-def catid_4jets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    return events, events.cutflow.n_jet_loose == 4
-
-
-@categorizer(uses={"cutflow.n_jet_loose"}, call_force=True)
-def catid_5jets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    return events, events.cutflow.n_jet_loose == 5
-
-
-@categorizer(uses={"cutflow.n_jet_loose"}, call_force=True)
-def catid_6jets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    return events, events.cutflow.n_jet_loose >= 6
- 
- 
-# ── Category: >=4 loose jets (replaces old selection cut) ──
- 
-@categorizer(uses={"cutflow.n_jet_loose"}, call_force=True)
-def catid_geq4jets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    """Events with >=4 loose jets (pT>15, |eta|<4.7)."""
-    return events, events.cutflow.n_jet_loose >= 4
- 
+@categorizer(uses={catid_baseline, "cutflow.n_bjet"}, call_force=True)
+def catid_wz_cr(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    """0 b-jet WZ control region. Data + MC (NOT blinded)."""
+    events, base = self[catid_baseline](events, **kwargs)
+    return events, base & (events.cutflow.n_bjet == 0)
  
 # ── 3-lepton categories ──
  
@@ -118,58 +91,4 @@ def catid_3l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
         & (abs(events.charge_sum) == 1)
         & (events.min_mll > 12.0)
     )
-    return events, mask
- 
- 
-@categorizer(uses={"event"}, call_force=True)
-def catid_2l_only(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    """Exactly 2 tight leptons (the existing 2L phase space)."""
-    if "n_tight_leptons" not in events.fields:
-        return events, ak.zeros_like(events.event) > 0
-    return events, events.n_tight_leptons == 2
-
-
-# ── MET categories ──
-
-@categorizer(uses={"MET.pt"}, call_force=True)
-def catid_met40(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    """Events passing MET > 40 GeV cut."""
-    return events, events.MET.pt > 40
-
-
-@categorizer(uses={"MET.pt"}, call_force=True)
-def catid_nomet(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    """Events with MET <= 40 GeV (below cut)."""
-    return events, events.MET.pt <= 40
-
-
-# ── N-1 categories ──
-# Apply all baseline cuts EXCEPT one, to see the effect of each cut
-# Uses >=1 jet and >=0 b-tag as baseline (not full SR) for sufficient statistics
-
-@categorizer(uses={"cutflow.n_jet_loose"}, call_force=True)
-def catid_n1_no_met(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    """All baseline cuts except MET: >=1 loose jet."""
-    mask = (events.cutflow.n_jet_loose >= 1)
-    return events, mask
-
-
-@categorizer(uses={"MET.pt"}, call_force=True)
-def catid_n1_no_jets(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    """All baseline cuts except jet multiplicity: MET > 40."""
-    mask = (events.MET.pt > 40)
-    return events, mask
-
-
-@categorizer(uses={"MET.pt", "cutflow.n_jet_loose"}, call_force=True)
-def catid_n1_no_btag(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    """All baseline cuts except b-tag: MET > 40 AND >=1 loose jet."""
-    mask = (events.MET.pt > 40) & (events.cutflow.n_jet_loose >= 1)
-    return events, mask
-
-
-@categorizer(uses={"MET.pt", "cutflow.n_jet_loose", "cutflow.n_bjet"}, call_force=True)
-def catid_n1_all(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
-    """All baseline cuts: MET > 40 AND >=1 loose jet AND >=1 b-jet."""
-    mask = (events.MET.pt > 40) & (events.cutflow.n_jet_loose >= 1) & (events.cutflow.n_bjet >= 1)
     return events, mask

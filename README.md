@@ -132,12 +132,68 @@ $CF_DATA/cf_store/analysis_azh/{task}/{config}/{dataset}/{shift}/{calib}/{versio
 
 ## Development
 
-```bash
-law index -q             # imports every module in law.cfg — the real smoke test
-bash tests/run_linting   # flake8 only; there are no unit tests
-```
+*Last updated: 2026-07 — update this when the plan below changes.*
 
-`law index -q` silent = success. The post-commit hook lints but never blocks.
+The chain runs end to end and produces validation plots. The categorization
+has been rewritten into blinded analysis regions (see `azh/production/categories.py`
+and `azh/config/categories.py`), but **the base selection does not yet match the
+target analysis** (B2G-24-002).
+
+1. **The selection is 2-lepton; the analysis is 3-lepton.** The target final
+   state is A → ZH → ℓℓ + tt̄(semileptonic): two leptons from the Z, one from
+   the leptonic top → three tight leptons, with a fourth-lepton veto and
+   Σcharge = ±1. The current selector builds only the OSSF Z pair
+   (`n_tight_leptons == 2` in `catid_baseline`). Consequences:
+   - No third lepton → no leptonic-W → no neutrino → no m_tt̄, no m_A, **no Δm**.
+     Δm × pT_Z is the final observable of the search, so it cannot yet be built.
+   - The 0b "WZ CR" is a 3-lepton region in the analysis. The current 2-lepton
+     version is a **Z+jets sanity check, not the WZ CR** — it can't validate the
+     WZ normalization, because WZ's third lepton is what defines that background.
+   - The columns needed for 3-lepton (`n_tight_leptons`, `charge_sum`, `min_mll`)
+     are already built in `azh/production/leptons.py`; `catid_3l` already encodes
+     the cut. They're just not wired into the baseline yet.
+
+2. **No JEC/JER/b-tag/lepton/trigger systematics.** All processed data used
+   `skip_jecunc` (nominal JEC only). Because the analysis regions are b-jet
+   multiplicity slices, JES/JER directly migrate events across the SR/CR
+   boundary — so this is a missing *migration effect*, not just a missing
+   nuisance. See `azh/calibration/jets.py`.
+
+###TODO
+
+**the 3-lepton overhaul and the final reprocessing are one step,
+not two.** The CR can't be validated until the selection is 3-lepton.
+
+1. 2-lepton Z-validation plots on the existing
+   v0/v1 store: confirm calibration and Z reconstruction are sane (`m_z`, `pt_z`,
+   `n_jets`, `n_bjets` data/MC agreement). This is a sanity check on the current
+   store, *not* the analysis CR.
+
+2. Move to 3-lepton base selection; turn on real JEC
+   (stock `jec`, source "Total"); add lepton / b-tag / trigger scale factors.
+   These are entangled — the selection changes which events exist, JEC changes
+   their kinematics, SFs reweight them — so they must land together to avoid
+   reprocessing three times.
+
+3. Reprocess into a fresh version. **Then** delete the
+   old `skip_jecunc` calibration store.
+
+4. Build Δm and pT_Z × Δm; run the fit. The
+   systematics-laden store from step 3 is the input the fit consumes.
+
+### Open questions to resolve before overhaul
+
+- **Do the NanoAOD / MC samples actually contain the third lepton?** If upstream
+  skimming dropped it for a 2-lepton selection, no reselection recovers it. Test
+  on ttZ (which genuinely has 3 leptons) before investing in the 3-lepton work —
+  if `n_tight_leptons == 3` is never populated there, that's the first problem.
+- **`choose_lepton` pairing rule.** The analysis forms the Z from the OSSF pair
+  closest to m_Z. Confirm `azh/production/leptons.py::choose_lepton` does this,
+  not just leading-pT, before trusting m_z in 3-lepton events.
+- **Which lepton selector?** `azh/selection/lepton_selection.py`
+  (wired in, tightId, pT>25 high leg) vs `azh/selection/z_selection.py`
+  (not wired in, highPtId, pT>35, proper OSSF Z pairing). Pick one, delete the
+  other.
 
 ## Resources
 

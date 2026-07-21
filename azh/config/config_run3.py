@@ -1,5 +1,5 @@
 """
-Configuration of the Run 2 AZH analysis.
+Configuration of the Run 3 AZH analysis.
 """
 
 from __future__ import annotations
@@ -16,12 +16,9 @@ import functools
 
 from columnflow.util import DotDict
 from cmsdb.util import add_decay_process
-# import functools
-# from dijet.config.datasets import get_dataset_lfns
 from azh.config.analysis_azh_run3 import analysis_azh
 from azh.config.categories import add_categories_selection, add_categories_production
 from azh.config.variables import add_variables
-# from azh.config.cutflow_variables import add_cutflow_variables
 from columnflow.config_util import (
     get_root_processes_from_campaign, add_shift_aliases,get_shifts_from_sources
 )
@@ -55,9 +52,6 @@ def modify_cmsdb_processes():
     ):
         add_production_mode_parent = dy_proc_inst.name != "dy"
         for flavour in ("hf", "lf"):
-            # print(flavour)
-            # print(dy_proc_inst)
-            # the 'add_decay_process' function helps us to create all parent-daughter relationships
             add_decay_process(
                 dy_proc_inst,
                 decay_map[flavour],
@@ -102,16 +96,11 @@ def add_config(
     config_id: int | None = None,
     limit_dataset_files: int | None = None,
 ) -> od.Config:
-    # validations
     assert campaign.x.year in [2022, 2023]
     if campaign.x.year == 2022:
         assert campaign.x.EE in ["pre", "post"]
     elif campaign.x.year == 2023:
         assert campaign.x.BPix in ["pre", "post"]
-
-    # gather campaign data
-    # modify_cmsdb_processes()
-
     year = campaign.x.year
     year2 = year % 100
     corr_postfix = ""
@@ -125,26 +114,19 @@ def add_config(
     if year not in implemented_years:
         raise NotImplementedError("For now, only 2022+2023 campaign is fully implemented")
 
-    # get all root processes
     procs = get_root_processes_from_campaign(campaign)
 
-    # create a config by passing the campaign, so id and name will be identical
     cfg = analysis_azh.add_config(campaign, name=config_name, id=config_id)
     # use custom get_dataset_lfns function
     cfg.x.get_dataset_lfns = get_dataset_lfns
     cfg.x.get_dataset_lfns_sandbox = f"bash::$CF_BASE/sandboxes/venv_columnar_dev.sh"
 
-    # add processes we are interested in
-
-    # set color of some processes
-    # set color of some processes
     labels = {
         "tt": "$t\\bar{t}$",
         "ttv": "$t\\bar{t}$ + V",
     }
 
     colors = {
-        # "dy": "#FBFF36",  # yellow
         "dy_hf": "#C7FF33",
         "dy_lf": "#FBFF36",
         "data": "#000000",  # black
@@ -156,7 +138,6 @@ def add_config(
         "st": "#3E00FB",  # dark purple
         "wz": "#FF6B9D",  # hot pink for WZ
         "vv": "#B900FC",  # pink
-        # "azh": "#984ea3",
         "azh_htt_zll_a1000_h600": "#C7FF33",
         "azh_htt_zll_a1600_h1500": "#2FC917",
         "azh_htt_zll_a650_h550": "#1752C9",
@@ -166,9 +147,7 @@ def add_config(
         "other": "#999999",  # grey
     }
 
-    # add datasets we need to study
     process_names = [
-        # "dy",
         "dy_hf",
         "dy_lf",
         "tt",
@@ -178,7 +157,6 @@ def add_config(
         "tth",
         "wz",
         "vv",
-        # "vvv",
         "data",
         "azh_htt_zll_a1000_h330",
         "azh_htt_zll_a1600_h1500",

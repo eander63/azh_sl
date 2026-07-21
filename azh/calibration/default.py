@@ -1,5 +1,4 @@
 from columnflow.calibration import Calibrator, calibrator
-from columnflow.calibration.cms.jets import jets
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.seeds import deterministic_seeds
 from columnflow.util import maybe_import, InsertableDict
@@ -10,30 +9,17 @@ from azh.calibration.jets import jet_energy, jet_lepton_cleaner
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
 
+"""
+MuonScaRe (Rochester-like) momentum scale & smearing calibrator
 
-@calibrator(
-    uses={mc_weight, deterministic_seeds, jets},
-    produces={mc_weight, deterministic_seeds, jets},
-)
-def default(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
-    if self.dataset_inst.is_mc:
-        events = self[mc_weight](events, **kwargs)
-    events = self[deterministic_seeds](events, **kwargs)
-    events = self[jets](events, **kwargs)
+Data:  pt_corr = (pt + a_data) * m_data
+MC:    pt_corr = (pt + a_mc)   * m_mc,  then extra gaussian smearing
+       using k_mc and the Crystal Ball sigma from cb_params/poly_params.
 
-    return events
+JSON: muon_scalesmearing.json.gz
+Evaluators: m_data, a_data, m_mc, a_mc, k_data, k_mc, cb_params, poly_params
+"""
 
-
-# ---------------------------------------------------------------------------
-# MuonScaRe (Rochester-like) momentum scale & smearing calibrator
-#
-# Data:  pt_corr = (pt + a_data) * m_data
-# MC:    pt_corr = (pt + a_mc)   * m_mc,  then extra gaussian smearing
-#        using k_mc and the Crystal Ball sigma from cb_params/poly_params.
-#
-# JSON: muon_scalesmearing.json.gz
-# Evaluators: m_data, a_data, m_mc, a_mc, k_data, k_mc, cb_params, poly_params
-# ---------------------------------------------------------------------------
 @calibrator(
     uses={
         "Muon.pt", "Muon.eta", "Muon.phi", "Muon.charge",
@@ -192,16 +178,16 @@ def muon_scare_setup(self: Calibrator, reqs: dict, inputs: dict,
     self.corr_sets = {name: cset[name] for name in cset}
 
 
-# ---------------------------------------------------------------------------
-# EGM electron scale (data) & smearing (MC) calibrator
-#
-# Data:  pt_corr = pt * Scale(valtype, gain, run, eta, r9, et)
-# MC:    sigma = Smearing(valtype, eta, r9)
-#        pt_corr = pt * (1 + sigma * gauss)
-#
-# JSON: electronSS.json.gz
-# Evaluators: Scale, Smearing
-# ---------------------------------------------------------------------------
+"""
+EGM electron scale (data) & smearing (MC) calibrator
+
+Data:  pt_corr = pt * Scale(valtype, gain, run, eta, r9, et)
+MC:    sigma = Smearing(valtype, eta, r9)
+       pt_corr = pt * (1 + sigma * gauss)
+
+JSON: electronSS.json.gz
+Evaluators: Scale, Smearing
+"""
 @calibrator(
     uses={
         "Electron.pt", "Electron.eta", "Electron.r9",

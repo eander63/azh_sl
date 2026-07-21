@@ -132,7 +132,7 @@ $CF_DATA/cf_store/analysis_azh/{task}/{config}/{dataset}/{shift}/{calib}/{versio
 
 ## Development
 
-*Last updated: 2026-07 — update this when the plan below changes.*
+*Last updated: 2026-07*
 
 The chain runs end to end and produces validation plots. The categorization
 has been rewritten into blinded analysis regions (see `azh/production/categories.py`

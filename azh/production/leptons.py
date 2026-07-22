@@ -136,6 +136,7 @@ def choose_lepton(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     produces={
         choose_lepton,
         "min_mll", "n_tight_leptons", "charge_sum",
+        "n_leptons_pt10", "lep1_pt", "lep2_pt", "lep3_pt",
         "w_lepton_pt", "w_lepton_eta", "w_lepton_phi",
     },
 )
@@ -152,25 +153,23 @@ def three_lepton_info(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # Ensure Leptons (Z candidate) is built
     events = self[choose_lepton](events, **kwargs)
  
-    # Tight lepton masks — same IDs as lepton_selection.py
-    # Lower pT floor to 10 GeV for the 4th-lepton veto count
-    ele_tight = (
-        (events.Electron.pt > 10)
-        & (abs(events.Electron.eta) < 2.4)
-        & (events.Electron.mvaIso_WP80)
-    )
-    mu_tight = (
-        (events.Muon.pt > 10)
-        & (abs(events.Muon.eta) < 2.4)
-        & (events.Muon.tightId)
-        & (events.Muon.pfRelIso04_all < 0.15)
-    )
+    # Acceptance and the pT > 10 floor are guaranteed by lepton_selection --
+    # every lepton surviving reduction already passes them. Only the tight ID
+    # is applied here, so the WP stays tunable without reprocessing.
+    ele_tight = events.Electron.mvaIso_WP80
+    mu_tight = (events.Muon.tightId) & (events.Muon.pfRelIso04_all < 0.15)
     tight_ele = events.Electron[ele_tight]
     tight_mu = events.Muon[mu_tight]
  
     n_tight = ak.num(tight_ele) + ak.num(tight_mu)
     events = set_ak_column(events, "n_tight_leptons", n_tight)
- 
+
+    # The paper vetoes events with an additional *isolated* (loose) lepton above
+    # 10 GeV -- not an additional tight one. After reduction every kept lepton is
+    # loose and above 10, so this is just the total kept count.
+    n_lep_pt10 = ak.num(events.Electron, axis=1) + ak.num(events.Muon, axis=1)
+    events = set_ak_column(events, "n_leptons_pt10", n_lep_pt10)
+
     # Build flat array of all tight leptons
     def _fields(coll):
         return ak.zip({
@@ -185,6 +184,10 @@ def three_lepton_info(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
  
     # Charge sum of up-to-3 leading leptons
     padded3 = ak.pad_none(all_lep, 3, axis=1)
+    for i in range(3):
+    events = set_ak_column(
+        events, f"lep{i + 1}_pt", ak.fill_none(padded3[:, i].pt, -1.0),
+    )
     q1 = ak.fill_none(padded3[:, 0].charge, 0)
     q2 = ak.fill_none(padded3[:, 1].charge, 0)
     q3 = ak.fill_none(padded3[:, 2].charge, 0)

@@ -315,7 +315,6 @@ def add_variables(config: od.Config) -> None:
         x_title=r"Number of jets ($p_{T}$ > 15 GeV, $|\eta| < 4.7$)",
         discrete_x=True,
     )
-
     config.add_variable(
         name="cf_n_jet_loose",
         expression="cutflow.n_jet_loose",
@@ -323,24 +322,17 @@ def add_variables(config: od.Config) -> None:
         x_title=r"Number of jets ($p_{T}$ > 15 GeV, $|\eta| < 4.7$)",
         discrete_x=True,
     )
-
     config.add_variable(
         name="cf_n_ele",
-        expression="cutflow.n_ele",
+        expression="cutflow.n_ele_tight",
         binning=(5, -0.5, 4.5),
-        x_title=r"Number of electrons ($p_{T}$ > 20 GeV, $|\eta| < 2.4$ + tight Iso)",
+        x_title=r"Number of electrons ($p_{T}$ > 10 GeV, $|\eta| < 2.5$, WP80)",
     )
     config.add_variable(
         name="cf_n_ele_loose",
         expression="cutflow.n_ele_loose",
         binning=(5, -0.5, 4.5),
-        x_title=r"Number of loose electrons ($p_{T}$ > 20 GeV, $|\eta| < 2.4$ + loose Iso) ",
-    )
-    config.add_variable(
-        name="cf_n_ele_high",
-        expression="cutflow.n_ele_high",
-        binning=(5, -0.5, 4.5),
-        x_title=r"Number of electrons ($p_{T}$ > 35 GeV, $|\eta| < 2.4$ + tight Iso)",
+        x_title=r"Number of loose electrons ($p_{T}$ > 10 GeV, $|\eta| < 2.4$ + loose Iso) ",
     )
     config.add_variable(
         name="cf_n_muo",
@@ -350,15 +342,15 @@ def add_variables(config: od.Config) -> None:
     )
     config.add_variable(
         name="cf_n_muo_loose",
-        expression="cutflow.n_muo_loose",
+        expression="cutflow.n_muo_tight",
         binning=(5, -0.5, 4.5),
-        x_title=r"Number of muons ($p_{T}$ > 20 GeV, $|\eta| < 2.4$ + loose Id)",
+        x_title=r"Number of muons ($p_{T}$ > 10 GeV, $|\eta| < 2.4$, tightId + iso < 0.15)",
     )
     config.add_variable(
-        name="cf_n_muo_high",
-        expression="cutflow.n_muo_high",
-        binning=(5, -0.5, 4.5),
-        x_title=r"Number of muons ($p_{T}$ > 35 GeV, $|\eta| < 2.4$ + tight Id)",
+        name="cf_n_lep_loose",
+        expression="cutflow.n_lep_loose",
+        binning=(6, -0.5, 5.5),
+        x_title=r"Number of loose leptons ($p_{T}$ > 10 GeV)",
     )
 
     for obj in ["Electron", "Muon"]:

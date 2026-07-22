@@ -19,8 +19,6 @@ from azh.production.channel_lumi_weight import channel_lumi_weight
 from columnflow.util import maybe_import
 
 from azh.production.gen_top import top_pt_weight
-# from azh.production.gen_top import gen_parton_top
-# 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
 
@@ -129,8 +127,6 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[electron_id_weights](events, electron_mask=ele_all, **kwargs)
 
         # compute muon weights
-        # events = self[muon_weights](events, **kwargs)
-        # events = self[muon_reco_weights](events, **kwargs)  # disabled: not needed for TightID
         events = self[muon_id_weights](events, **kwargs)
         events = self[muon_iso_weights](events, **kwargs)
 
@@ -145,7 +141,6 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         # # compute top pT weights (disabled for now)
         if self.dataset_inst.has_tag("is_ttbar"):
-            # events = self[gen_parton_top](events, **kwargs)
             events = self[top_pt_weight](events, **kwargs)
 
         # compute normalization weights

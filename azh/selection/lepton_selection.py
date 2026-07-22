@@ -1,38 +1,67 @@
+# coding: utf-8
+
+"""
+Lepton selection.
+
+Conservative: this defines only the loose superset of leptons that
+survives ReduceEvents. Everything tunable -- the 25/20/15 pT thresholds, the
+tight-ID counting, the 4th-lepton veto, Min(mll), the charge sum -- is applied
+downstream as categories, so it can be changed without reprocessing.
+
+What's fixed here (and costs a reprocess to change):
+
+  * pT > 10 floor. Sits below the paper's 4th-lepton veto threshold
+    (an additional lepton with pT > 10 GeV vetoes the event).
+  * Electron acceptance |ScEta| < 2.5 with the ECAL crack 1.44-1.56 removed
+    (B2G-24-002: electrons in the barrel/endcap transition are discarded).
+    ScEta = Electron.eta + Electron.deltaEtaSC -- this is also the variable the
+    EGM scale/smearing and ID scale factors are binned in.
+  * Muon acceptance |eta| < 2.4.
+  * Loose IDs (Electron mvaIso_WP90, Muon looseId + relIso < 0.25).
+  * An OSSF pair must exist. Analysis-defining for a Z-based search, and it
+    protects the downstream Z reconstruction from events with no valid pair.
+
+Tight definitions (Electron mvaIso_WP80, Muon tightId + relIso < 0.15) are
+computed downstream from the kept columns, not here.
+"""
+
 from typing import Tuple
+
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 from columnflow.selection import Selector, SelectionResult, selector
+
 from azh.util import masked_sorted_indices
 
 ak = maybe_import("awkward")
+np = maybe_import("numpy")
+
+
+# --- fixed acceptance constants (changing these costs a reprocess) ----------
+PT_FLOOR = 10.0           # below the paper's 4th-lepton veto (10 GeV)
+ELE_ETA_MAX = 2.5
+ELE_CRACK_LO = 1.44       # ECAL barrel/endcap transition, lower edge
+ELE_CRACK_HI = 1.56       # ECAL barrel/endcap transition, upper edge
+MUO_ETA_MAX = 2.4
+MUO_ISO_LOOSE = 0.25
 
 
 @selector(
-
     uses={
         # Electron
         "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
-        "Electron.charge",
+        "Electron.charge", "Electron.deltaEtaSC",
         "Electron.mvaIso_WP80", "Electron.mvaIso_WP90",
-        "Electron.cutBased",
-        "Electron.deltaEtaSC",
-        "Electron.r9",
-        "Electron.dxy", "Electron.dz",
-        "Electron.pfRelIso03_all",
         # Muon
         "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
         "Muon.charge",
-        "Muon.tightId", "Muon.looseId", "Muon.mediumId",
-        "Muon.highPtId", "Muon.tkIsoId",
-        "Muon.pfRelIso04_all",
-        "Muon.dxy", "Muon.dz",
-        "Muon.isPFcand",
+        "Muon.looseId", "Muon.tightId", "Muon.pfRelIso04_all",
     },
     produces={
-        "cutflow.n_ele", "cutflow.n_muo", "cutflow.n_ele_loose", "cutflow.n_muo_loose",
-        "cutflow.n_ele_high", "cutflow.n_muo_high",
-        "cutflow.muon1_pt", "cutflow.muon1_eta", "cutflow.muon2_pt", "cutflow.muon2_eta",
-        "cutflow.electron1_pt", "cutflow.electron1_eta", "cutflow.electron2_pt", "cutflow.electron2_eta",
+        "cutflow.n_ele_loose", "cutflow.n_muo_loose", "cutflow.n_lep_loose",
+        "cutflow.n_ele_tight", "cutflow.n_muo_tight", "cutflow.n_lep_tight",
+        "cutflow.lep1_pt", "cutflow.lep2_pt", "cutflow.lep3_pt",
+        "cutflow.lep1_eta", "cutflow.lep2_eta", "cutflow.lep3_eta",
     },
     exposed=True,
 )
@@ -41,156 +70,112 @@ def lepton_selection(
     events: ak.Array,
     **kwargs,
 ) -> Tuple[ak.Array, SelectionResult]:
-    # lepton selection based on old UHH2 framework
-    # https://github.com/UHH2/DiJetJERC/blob/ff98eebbd44931beb016c36327ab174fdf11a83f/src/AnalysisModule_DiJetTrg.cxx#L703
-    # IDs in JME Nano https://cms-nanoaod-integration.web.cern.ch/integration/master-106X/mc102X_doc.html
-    # mask for muons
-    muo_mask = (
-        (events.Muon.pt > 20) &
-        (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.tightId) &
-        (events.Muon.pfRelIso04_all < 0.15)
+
+    # ------------------------------------------------------------------
+    # Electrons: acceptance on supercluster eta, with the ECAL crack removed
+    # ------------------------------------------------------------------
+    abs_eta_sc = abs(events.Electron.eta + events.Electron.deltaEtaSC)
+
+    ele_acceptance = (
+        (abs_eta_sc < ELE_ETA_MAX) &
+        ~((abs_eta_sc > ELE_CRACK_LO) & (abs_eta_sc < ELE_CRACK_HI))
     )
 
-    muo_mask_high = (
-        (events.Muon.pt > 25) &
-        (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.tightId) &
-        (events.Muon.pfRelIso04_all < 0.15)
-    )
-
-    muo_mask_loose = (
-        (events.Muon.pt > 20) &
-        (abs(events.Muon.eta) < 2.4) &
-        (events.Muon.looseId) &
-        ((events.Muon.tkIsoId == 1) |
-        (events.Muon.tkIsoId == 2))
-    )
-
-    # mask for electrons
-    ele_mask = (
-        (events.Electron.pt > 20) &
-        (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaIso_WP80)
-    )
-
-    ele_mask_high = (
-        (events.Electron.pt > 25) &
-        (abs(events.Electron.eta) < 2.4) &
-        (events.Electron.mvaIso_WP80)
-    )
-
-    ele_mask_loose = (
-        (events.Electron.pt > 20) &
-        (abs(events.Electron.eta) < 2.4) &
+    ele_loose_mask = (
+        (events.Electron.pt > PT_FLOOR) &
+        ele_acceptance &
         (events.Electron.mvaIso_WP90)
     )
 
-    events = set_ak_column(events, "cutflow.n_ele", ak.sum(ele_mask, axis=1))
-    events = set_ak_column(events, "cutflow.n_muo", ak.sum(muo_mask, axis=1))
-    events = set_ak_column(events, "cutflow.n_ele_loose", ak.sum(ele_mask_loose, axis=1))
-    events = set_ak_column(events, "cutflow.n_muo_loose", ak.sum(muo_mask_loose, axis=1))
-    events = set_ak_column(events, "cutflow.n_ele_high", ak.sum(ele_mask_high, axis=1))
-    events = set_ak_column(events, "cutflow.n_muo_high", ak.sum(muo_mask_high, axis=1))
+    # tight = loose + WP80. Counted for cutflow only; the analysis-level count
+    # is recomputed in production so the WP stays tunable.
+    ele_tight_mask = ele_loose_mask & (events.Electron.mvaIso_WP80)
 
-    # BASELINE (superset): >=2 same-flavor loose leptons of one flavor,
-    # with >=1 passing the high-pT leg. Exact lepton count, OS-charge,
-    # min(mll), and 4th-lepton veto are applied downstream as categories.
-    lep_sel = (
-        (
-            (events.cutflow.n_ele_loose >= 2) &
-            (events.cutflow.n_ele_high > 0)
-        ) | (
-            (events.cutflow.n_muo_loose >= 2) &
-            (events.cutflow.n_muo_high > 0)
-        )
+    # ------------------------------------------------------------------
+    # Muons
+    # ------------------------------------------------------------------
+    muo_loose_mask = (
+        (events.Muon.pt > PT_FLOOR) &
+        (abs(events.Muon.eta) < MUO_ETA_MAX) &
+        (events.Muon.looseId) &
+        (events.Muon.pfRelIso04_all < MUO_ISO_LOOSE)
     )
 
-    # i = 0
-    # j = 0
-    # print(events.Electron.pt>20)
-    # print((abs(events.Electron.eta) < 2.4))
-    # print( (events.Electron.pt > 20) &(abs(events.Electron.eta) < 2.4))
-    # for n in range(100):
-    #     if (events.cutflow.n_ele_test[n]>1 or events.cutflow.n_muo_test[n]>1):
-    #         print(n)
-    #         print((events.cutflow.n_ele[n] == 2) & (events.cutflow.n_ele_high[n] > 0 ) & (events.cutflow.n_ele_loose[n] == 2) & (events.cutflow.n_muo_loose[n] == 0))  # noqa
-    #         print((events.cutflow.n_muo[n] == 2) & (events.cutflow.n_muo_high[n] > 0 ) & (events.cutflow.n_muo_loose[n] == 2) & (events.cutflow.n_ele_loose[n] == 0))  # noqa
-    #         print("Ele:")
-    #         print(events.Electron.pt[n])
-    #         print(events.Electron.eta[n])
-    #         print(events.Electron.mvaFall17V2Iso_WP80[n])
-    #         print("Muo")
-    #         print(events.Muon.pt[n])
-    #         print(events.Muon.eta[n])
-    #         print(events.Muon.tightId[n])
-    #         print(events.Muon.tkIsoId[n])
-    #         if events.cutflow.n_ele_test[n]>1:
-    #             # print("An Electron!")
-    #             i = i + 1
-    #         if events.cutflow.n_muo_test[n]>1:
-    #             # print("A Muon!")
-    #             j = j + 1
-    # print("Number of Ele surviving",i)
-    # print("Number of Muo surviving",j)
+    muo_tight_mask = (
+        muo_loose_mask &
+        (events.Muon.tightId) &
+        (events.Muon.pfRelIso04_all < 0.15)
+    )
 
-    # for n in range(len(events.cutflow.n_ele_test)):
-    #     if (lep_sel[n]):
-    #         print(n)
-    #         print("Ele:")
-    #         print(events.Electron.pt[n])
-    #         print(events.Electron.eta[n])
-    #         print(events.Electron.mvaFall17V2Iso_WP80[n])
-    #         print("Muo")
-    #         print(events.Muon.pt[n])
-    #         print(events.Muon.eta[n])
-    #         print(events.Muon.tightId[n])
-    #         if ((events.cutflow.n_ele[n] == 2) & (events.cutflow.n_ele_high[n] > 0 ) & (events.cutflow.n_ele_loose[n] == 2) & (events.cutflow.n_muo_loose[n] == 0)) :  # noqa
-    #             print("An Electron!")
-    #             i = i + 1
-    #         if ((events.cutflow.n_muo[n] == 2) & (events.cutflow.n_muo_high[n] > 0 ) & (events.cutflow.n_muo_loose[n] == 2) & (events.cutflow.n_ele_loose[n] == 0)):  # noqa
-    #             print("A Muon!")
-    #             j = j + 1
-    # print("Number of Ele surviving",i)
-    # print("Number of Muo surviving",j)
-    # for n in range(len(events.cutflow.n_ele)):
-    #     # print(events.cutflow.n_ele[n])
-    #     if (events.cutflow.n_ele[n]>1 or events.cutflow.n_muo[n]>1):
-    #         print(n)
-    #         print("N_ele:",events.cutflow.n_ele[n])
-    #         print("N_muo:",events.cutflow.n_muo[n])
-    #         print(events.Electron.pt[n])
-    #         print(events.Electron.eta[n])
-    #         print(events.Electron.mvaFall17V2Iso_WP80[n])
-    #         print(events.Muon.pt[n])
-    #         print(events.Muon.eta[n])
-    #         print(events.Muon.tightId[n])
-    ele_indices = masked_sorted_indices(ele_mask, events.Electron.pt)
-    muo_indices = masked_sorted_indices(muo_mask, events.Muon.pt)
+    ele_loose_mask = ak.fill_none(ele_loose_mask, False)
+    muo_loose_mask = ak.fill_none(muo_loose_mask, False)
+    ele_tight_mask = ak.fill_none(ele_tight_mask, False)
+    muo_tight_mask = ak.fill_none(muo_tight_mask, False)
 
-    ele_mask = ak.fill_none(ele_mask, False)
-    muo_mask = ak.fill_none(muo_mask, False)
+    # ------------------------------------------------------------------
+    # Counts (cutflow / monitoring)
+    # ------------------------------------------------------------------
+    n_ele_loose = ak.sum(ele_loose_mask, axis=1)
+    n_muo_loose = ak.sum(muo_loose_mask, axis=1)
+    n_ele_tight = ak.sum(ele_tight_mask, axis=1)
+    n_muo_tight = ak.sum(muo_tight_mask, axis=1)
 
-    lep_sel = ak.fill_none(lep_sel, False)
+    events = set_ak_column(events, "cutflow.n_ele_loose", n_ele_loose)
+    events = set_ak_column(events, "cutflow.n_muo_loose", n_muo_loose)
+    events = set_ak_column(events, "cutflow.n_lep_loose", n_ele_loose + n_muo_loose)
+    events = set_ak_column(events, "cutflow.n_ele_tight", n_ele_tight)
+    events = set_ak_column(events, "cutflow.n_muo_tight", n_muo_tight)
+    events = set_ak_column(events, "cutflow.n_lep_tight", n_ele_tight + n_muo_tight)
 
-    ele = events.Electron[ele_indices]
-    padded_ele = ak.pad_none(ele, 2)
-    muo = events.Muon[muo_indices]
-    padded_muo = ak.pad_none(muo, 2)
+    # ------------------------------------------------------------------
+    # Event-level floor: an OSSF pair must exist.
+    # Implemented as "at least one positive AND one negative loose lepton of
+    # the same flavor".
+    # No pT ordering, no exact multiplicity -- those are categories.
+    # ------------------------------------------------------------------
+    n_ele_pos = ak.sum(ele_loose_mask & (events.Electron.charge > 0), axis=1)
+    n_ele_neg = ak.sum(ele_loose_mask & (events.Electron.charge < 0), axis=1)
+    n_muo_pos = ak.sum(muo_loose_mask & (events.Muon.charge > 0), axis=1)
+    n_muo_neg = ak.sum(muo_loose_mask & (events.Muon.charge < 0), axis=1)
 
-    os_sel = (ak.fill_none((padded_muo.charge[:, 0] != padded_muo.charge[:, 1]), False) | ak.fill_none((padded_ele.charge[:, 0] != padded_ele.charge[:, 1]), False))  # noqa
-    lep_sel = lep_sel & os_sel
-    for i in range(2):
-        events = set_ak_column(events, f"cutflow.electron{i+1}_pt",
-        ak.where((ak.is_none(padded_ele.pt[:, {i}][:, 0])), -100, padded_ele.pt[:, {i}][:, 0]))
-        events = set_ak_column(events, f"cutflow.electron{i+1}_eta",
-        ak.where((ak.is_none(padded_ele.eta[:, {i}][:, 0])), -100, padded_ele.eta[:, {i}][:, 0]))
-        events = set_ak_column(events, f"cutflow.muon{i+1}_pt",
-        ak.where((ak.is_none(padded_muo.pt[:, {i}][:, 0])), -100, padded_muo.pt[:, {i}][:, 0]))
-        events = set_ak_column(events, f"cutflow.muon{i+1}_eta",
-        ak.where((ak.is_none(padded_muo.eta[:, {i}][:, 0])), -100, padded_muo.eta[:, {i}][:, 0]))
+    has_ossf = (
+        ((n_ele_pos >= 1) & (n_ele_neg >= 1)) |
+        ((n_muo_pos >= 1) & (n_muo_neg >= 1))
+    )
+    lep_sel = ak.fill_none(has_ossf, False)
 
-    # build and return selection results plus new columns
+    # ------------------------------------------------------------------
+    # Kept objects: the loose collections, pT-sorted.
+    # Tightness is re-derived downstream from the kept ID columns, so
+    # keep_columns must retain Electron.mvaIso_WP80, Muon.tightId and
+    # Muon.pfRelIso04_all (it currently does).
+    # ------------------------------------------------------------------
+    ele_indices = masked_sorted_indices(ele_loose_mask, events.Electron.pt)
+    muo_indices = masked_sorted_indices(muo_loose_mask, events.Muon.pt)
+
+    # ------------------------------------------------------------------
+    # Leading-3 flavor-merged lepton kinematics, for cutflow plots only.
+    # ------------------------------------------------------------------
+    lep_pt = ak.concatenate(
+        [events.Electron.pt[ele_indices], events.Muon.pt[muo_indices]], axis=1,
+    )
+    lep_eta = ak.concatenate(
+        [events.Electron.eta[ele_indices], events.Muon.eta[muo_indices]], axis=1,
+    )
+    order = ak.argsort(lep_pt, axis=1, ascending=False)
+    lep_pt = ak.pad_none(lep_pt[order], 3)
+    lep_eta = ak.pad_none(lep_eta[order], 3)
+
+    for i in range(3):
+        events = set_ak_column(
+            events, f"cutflow.lep{i + 1}_pt",
+            ak.fill_none(lep_pt[:, i], -100.0),
+        )
+        events = set_ak_column(
+            events, f"cutflow.lep{i + 1}_eta",
+            ak.fill_none(lep_eta[:, i], -100.0),
+        )
+
     return events, SelectionResult(
         steps={
             "Lepton": lep_sel,
@@ -204,9 +189,9 @@ def lepton_selection(
             },
         },
         aux={
-            "ele_mask": ele_mask,
-            "n_central_eletons": ak.num(ele_indices),
-            "muo_mask": muo_mask,
-            "n_central_muons": ak.num(muo_indices),
+            "ele_loose_mask": ele_loose_mask,
+            "muo_loose_mask": muo_loose_mask,
+            "n_loose_electrons": ak.num(ele_indices),
+            "n_loose_muons": ak.num(muo_indices),
         },
     )

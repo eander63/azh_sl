@@ -28,7 +28,7 @@ def catid_incl(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array,
 def catid_selection_2e(
     self: Categorizer, events: ak.Array, **kwargs,
 ) -> tuple[ak.Array, ak.Array]:
-    mask = (ak.num(events.Electron, axis=-1) == 2) & (ak.num(events.Muon, axis=-1) == 0)
+    mask = events.cutflow.n_ele_loose >= 2
     # print("ele selections mask", mask)
     return events, mask
 
@@ -37,7 +37,7 @@ def catid_selection_2e(
 def catid_selection_2mu(
     self: Categorizer, events: ak.Array, **kwargs,
 ) -> tuple[ak.Array, ak.Array]:
-    mask = (ak.num(events.Electron, axis=-1) == 0) & (ak.num(events.Muon, axis=-1) == 2)
+    mask = events.cutflow.n_muo_loose >= 2
     # print("muo mask", mask)
     return events, mask
 
@@ -46,7 +46,7 @@ def catid_selection_2mu(
 def catid_2e(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     # "Z is an ee pair": >=2 loose electrons with >=1 high-pT leg, matching the
     # loosened baseline. The exact 2-vs-3 lepton count is the separate nlep axis.
-    mask = (events.cutflow.n_ele_loose >= 2) & (events.cutflow.n_ele_high > 0)
+    mask = events.cutflow.n_ele_loose >= 2
     return events, mask
 
 
@@ -54,5 +54,5 @@ def catid_2e(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
 def catid_2mu(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     # "Z is a mumu pair": >=2 loose muons with >=1 high-pT leg, matching the
     # loosened baseline. The exact 2-vs-3 lepton count is the separate nlep axis.
-    mask = (events.cutflow.n_muo_loose >= 2) & (events.cutflow.n_muo_high > 0)
+    mask = events.cutflow.n_muo_loose >= 2
     return events, mask

@@ -22,13 +22,7 @@ from azh.production.ml_inputs import ml_inputs
 from azh.production.dy_producer import dy_producer
 from azh.production.trigger import trigger
 from azh.production.weights import weights, event_weight
-from azh.config.categories import add_categories_mz
-from azh.config.categories import add_categories_bjets
-from azh.config.categories import add_categories_njets
-from azh.config.categories import add_category_2l
-from azh.config.categories import add_categories_3l
-from azh.config.categories import add_categories_met
-from azh.config.categories import add_categories_n1
+from azh.config.categories import add_categories_production
 
 
 ak = maybe_import("awkward")

@@ -34,9 +34,8 @@ def jet_selection(
         (abs(events.Jet.eta) < 4.7) &
         (events.Jet.jetId >= 2)  # at least tight
     )
-    loose_jet_sel = ak.num(events.Jet[loose_jet_mask]) >= 4
+    loose_jet_sel = ak.num(events.Jet[loose_jet_mask]) >= 2 # floor; >=4 is a category
     # also store a version that always passes (jet cut moved to categories)
-    loose_jet_pass = ak.ones_like(loose_jet_sel)
     events = set_ak_column(events, "cutflow.n_jet_loose", ak.sum(loose_jet_mask, axis=1))
 
     # ── Tight jets (pT > 30 GeV, |eta| < 2.5, tightLepVeto) ──
@@ -70,7 +69,7 @@ def jet_selection(
     # Selection step uses LOOSE jets (≥4 with pT>15, |eta|<4.7)
     return events, SelectionResult(
         steps={
-            "Jet": loose_jet_pass,  # always pass; jet mult cut is now in categories
+            "Jet": loose_jet_sel,
         },
         objects={
             "Jet": {

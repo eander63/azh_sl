@@ -353,33 +353,20 @@ def add_variables(config: od.Config) -> None:
         x_title=r"Number of loose leptons ($p_{T}$ > 10 GeV)",
     )
 
-    for obj in ["Electron", "Muon"]:
-        config.add_variable(
-            name=f"cf_{obj.lower()}1_pt",
-            expression=f"cutflow.{obj.lower()}1_pt",
-            binning=(40, 0., 400.),
-            unit="GeV",
-            x_title=rf"{obj}1 $p_{{T}}$",
-        )
-        config.add_variable(
-            name=f"cf_{obj.lower()}1_eta",
-            expression=f"cutflow.{obj.lower()}1_eta",
-            binning=(50, -2.5, 2.5),
-            x_title=rf"{obj}1 $\eta$",
-        )
-        config.add_variable(
-            name=f"cf_{obj.lower()}2_pt",
-            expression=f"cutflow.{obj.lower()}2_pt",
-            binning=(40, 0., 400.),
-            unit="GeV",
-            x_title=rf"{obj}2 $p_{{T}}$",
-        )
-        config.add_variable(
-            name=f"cf_{obj.lower()}2_eta",
-            expression=f"cutflow.{obj.lower()}2_eta",
-            binning=(50, -2.5, 2.5),
-            x_title=rf"{obj}2 $\eta$",
-        )
+    for i in range(3):
+    config.add_variable(
+        name=f"cf_lep{i + 1}_pt",
+        expression=f"cutflow.lep{i + 1}_pt",
+        binning=(40, 0., 400.),
+        unit="GeV",
+        x_title=rf"lepton {i + 1} $p_{{T}}$",
+    )
+    config.add_variable(
+        name=f"cf_lep{i + 1}_eta",
+        expression=f"cutflow.lep{i + 1}_eta",
+        binning=(50, -2.5, 2.5),
+        x_title=rf"lepton {i + 1} $\eta$",
+    )
 
     for i in range(4):
         config.add_variable(

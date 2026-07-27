@@ -1,7 +1,7 @@
 # AZH → semileptonic (Run 3)
 
 Search for a heavy pseudoscalar **A → ZH**, with H → tt̄ and Z → ℓℓ, in CMS Run 3
-data (2022 + 2023, NanoAOD v12). Built on
+data. Built on
 [columnflow](https://github.com/columnflow/columnflow). Note that the directions are for use on DESY.
 
 **Status: work in progress.** The chain runs end to end and produces validation
@@ -198,7 +198,7 @@ not two.** The CR can't be validated until the selection is 3-lepton.
 ### POG Implementation
 
 # LUM
---> Golden JSON and era-tagged pu weights installed in config with brilcalc-verified lumis for 2022pre/post-2023pre/post. Correctionlib producer call in production.pileup.
+--> Golden JSON and era-tagged pu weights installed in config with brilcalc-verified lumis for 2022pre/post-2023pre/post. Correctionlib producer call in production.pileup. **Awaiting validation**
 
 ## Resources
 

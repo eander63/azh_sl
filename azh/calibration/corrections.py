@@ -183,8 +183,7 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
     produces={"Muon.pt"},
 )
 def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
-    from MuonScaRe import pt_scale, pt_resol
-
+    pt_scale, pt_resol = self.pt_scale, self.pt_resol   # set in setup
     is_data = self.dataset_inst.is_data
 
     # scale: applied to data AND MC
@@ -222,11 +221,12 @@ def muon_scare_setup(self: Calibrator, reqs: dict, inputs: dict,
     import sys, os
     _kit = os.path.join(os.environ["CF_BASE"], "modules/muonscarekit/scripts")
     if _kit not in sys.path:
-      sys.path.insert(0, _kit)
+        sys.path.insert(0, _kit)
+    from MuonScaRe import pt_scale, pt_resol
+    self.pt_scale, self.pt_resol = pt_scale, pt_resol
+
     import correctionlib
     bundle = reqs["external_files"]
-    # the kit calls cset.get("a_data"), cset.get("RandomSmearing"), ... so it
-    # needs the whole CorrectionSet, not a dict of individual correctors.
     self.muon_cset = correctionlib.CorrectionSet.from_string(
         bundle.files.muon_scalesmearing.load(formatter="gzip").decode("utf-8"),
     )

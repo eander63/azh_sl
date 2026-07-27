@@ -19,7 +19,7 @@ from columnflow.selection.cms.jets import jet_veto_map
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
-from columnflow.production.cms.pileup import pu_weight
+from azh.production.pileup import pu_weight
 from columnflow.production.processes import process_ids
 
 from azh.selection.jet_selection import jet_selection

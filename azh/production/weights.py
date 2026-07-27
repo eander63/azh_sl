@@ -16,6 +16,7 @@ from columnflow.production.cms.pileup import pu_weight
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from azh.production.trigger_weights import trigger_weights
 from azh.production.channel_lumi_weight import channel_lumi_weight
+from azh.production.pileup import pu_weight
 from columnflow.util import maybe_import
 
 from azh.production.gen_top import top_pt_weight

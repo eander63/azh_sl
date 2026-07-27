@@ -989,27 +989,25 @@ def add_config(
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "wp80iso")
-        cfg.x.electron_ss_names = ("Scale", "Smearing")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022postEE",  "EGMSmearAndSyst_ElePTsplit_2022postEE")
     elif f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
-        cfg.x.electron_ss_names = ("Scale", "Smearing")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022preEE",   "EGMSmearAndSyst_ElePTsplit_2022preEE")
     elif f"{year}{corr_postfix}" == "2023postBPix":
-        # VERIFY period/WP strings against the JSON (see introspection cmd)
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptD", "wp80iso")
-        cfg.x.electron_ss_names = ("2023PromptD_ScaleJSON", "2023PromptD_SmearingJSON")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023postBPIX","EGMSmearAndSyst_ElePTsplit_2023postBPIX")
     elif f"{year}{corr_postfix}" == "2023preBPix":
-        # VERIFY period/WP strings against the JSON (see introspection cmd)
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptC", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
-        cfg.x.electron_ss_names = ("2023PromptC_ScaleJSON", "2023PromptC_SmearingJSON")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023preBPIX", "EGMSmearAndSyst_ElePTsplit_2023preBPIX")
     # names of muon correction sets and working points
     # (used in the muon producer)
     # TightID muon SF chain (from muon_Z.json):
@@ -1186,7 +1184,7 @@ def add_config(
         }[f"{year}{corr_postfix}"], "v1"),
 
         # electron scale & smearing
-        "electron_ss": (f"{json_mirror}/POG/EGM/{corr_tag}/electronSS.json.gz", "v1"),
+        "electron_ss": (f"{json_mirror}/POG/EGM/{corr_tag}/electronSS_EtDependent.json.gz", "v1"),
     })
 
 

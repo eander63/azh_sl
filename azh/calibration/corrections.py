@@ -200,7 +200,7 @@ def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
             events.Muon.pt, events.Muon.eta, events.Muon.phi,
             events.Muon.nTrackerLayers,
             events.event, events.luminosityBlock,
-            self.muon_cset, nested=True,
+            self.muon_cset, nested=True, rnd_gen="np",
         )
         events = set_ak_column(events, "Muon.pt", pt_corr)
 

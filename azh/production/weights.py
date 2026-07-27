@@ -84,6 +84,11 @@ electron_mid_weights = electron_weights.derive("electron_mid_weights", cls_dict=
     "get_electron_config": (lambda self: self.config_inst.x.electron_sf_mid_names),
 })
 
+electron_loreco_weights = electron_weights.derive("electron_loreco_weights", cls_dict={
+    "weight_name": "electron_loreco_weight",
+    "get_electron_config": (lambda self: self.config_inst.x.electron_sf_loreco_names),
+})
+
 muon_id_weights = muon_weights.derive("muon_id_weights", cls_dict={
     "weight_name": "muon_id_weight",
     "get_muon_config": (lambda self: self.config_inst.x.muon_sf_id_names),
@@ -104,12 +109,6 @@ muon_reco_weights = muon_weights.derive("muon_reco_weights", cls_dict={
     "get_muon_config": (lambda self: self.config_inst.x.muon_sf_reco_names),
 })
 
-# normalized_pu_weights = normalized_weight_factory(
-#     producer_name="normalized_pu_weights",
-#     weight_producers={pu_weight},
-# )
-
-
 @producer
 def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
@@ -121,9 +120,11 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         ele_all = ak.ones_like(events.Electron.pt, dtype=bool)
         electron_mask = (events.Electron.pt >= 75)
         electron_mask_mid = (events.Electron.pt >= 20) & (events.Electron.pt < 75)
+        electron_mask_lo = (events.Electron.pt >= 10) & (events.Electron.pt < 20)
 
         events = self[electron_weights](events, electron_mask=electron_mask, **kwargs)
         events = self[electron_mid_weights](events, electron_mask=electron_mask_mid, **kwargs)
+        events = self[electron_loreco_weights](events, electron_mask=electron_mask_lo, **kwargs)
         events = self[electron_id_weights](events, electron_mask=ele_all, **kwargs)
 
         # compute muon weights

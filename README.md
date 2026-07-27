@@ -195,6 +195,11 @@ not two.** The CR can't be validated until the selection is 3-lepton.
   (not wired in, highPtId, pT>35, proper OSSF Z pairing). Pick one, delete the
   other.
 
+### POG Implementation
+
+# LUM
+--> Golden JSON and era-tagged pu weights installed in config with brilcalc-verified lumis for 2022pre/post-2023pre/post. Correctionlib producer call in production.pileup.
+
 ## Resources
 
 [columnflow](https://github.com/columnflow/columnflow) ·

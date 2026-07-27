@@ -128,8 +128,9 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[electron_id_weights](events, electron_mask=ele_all, **kwargs)
 
         # compute muon weights
-        events = self[muon_id_weights](events, **kwargs)
-        events = self[muon_iso_weights](events, **kwargs)
+        muon_mask_sf = (events.Muon.pt >= 15.0)   # muon_Z.json ID/iso bins start at 15 GeV
+        events = self[muon_id_weights](events, muon_mask=muon_mask_sf, **kwargs)
+        events = self[muon_iso_weights](events, muon_mask=muon_mask_sf, **kwargs)
 
         # compute trigger weights
         events = self[trigger_weights](events, **kwargs)

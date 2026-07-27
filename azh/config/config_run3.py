@@ -1015,7 +1015,7 @@ def add_config(
     # Valid down to ~15 GeV (Z tag-and-probe), matching our selection threshold
     cfg.x.muon_sf_id_names = ("NUM_TightID_DEN_TrackerMuons", f"{year}{corr_postfix}")
     cfg.x.muon_sf_iso_names = ("NUM_TightPFIso_DEN_TightID", f"{year}{corr_postfix}")
-    cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdTight_and_PFIsoTight", f"{year}{corr_postfix}")
+    cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight", f"{year}{corr_postfix}")
     # era-branched HLT electron SF. VERIFY the period string AND the HLT category
     # ("HLT_SF_Ele30_MVAiso80ID") against electronHlt.json per era (introspection cmd).
     if f"{year}{corr_postfix}" == "2022preEE":

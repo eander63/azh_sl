@@ -12,7 +12,6 @@ from columnflow.production.cms.electron import electron_weights
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
 from columnflow.production.normalization import normalization_weights
-from columnflow.production.cms.pileup import pu_weight
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from azh.production.trigger_weights import trigger_weights
 from azh.production.channel_lumi_weight import channel_lumi_weight

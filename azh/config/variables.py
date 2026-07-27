@@ -354,19 +354,19 @@ def add_variables(config: od.Config) -> None:
     )
 
     for i in range(3):
-    config.add_variable(
-        name=f"cf_lep{i + 1}_pt",
-        expression=f"cutflow.lep{i + 1}_pt",
-        binning=(40, 0., 400.),
-        unit="GeV",
-        x_title=rf"lepton {i + 1} $p_{{T}}$",
-    )
-    config.add_variable(
-        name=f"cf_lep{i + 1}_eta",
-        expression=f"cutflow.lep{i + 1}_eta",
-        binning=(50, -2.5, 2.5),
-        x_title=rf"lepton {i + 1} $\eta$",
-    )
+        config.add_variable(
+            name=f"cf_lep{i + 1}_pt",
+            expression=f"cutflow.lep{i + 1}_pt",
+            binning=(40, 0., 400.),
+            unit="GeV",
+            x_title=rf"lepton {i + 1} $p_{{T}}$",
+        )
+        config.add_variable(
+            name=f"cf_lep{i + 1}_eta",
+            expression=f"cutflow.lep{i + 1}_eta",
+            binning=(50, -2.5, 2.5),
+            x_title=rf"lepton {i + 1} $\eta$",
+        )
 
     for i in range(4):
         config.add_variable(

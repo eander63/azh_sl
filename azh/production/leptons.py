@@ -185,9 +185,9 @@ def three_lepton_info(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # Charge sum of up-to-3 leading leptons
     padded3 = ak.pad_none(all_lep, 3, axis=1)
     for i in range(3):
-    events = set_ak_column(
-        events, f"lep{i + 1}_pt", ak.fill_none(padded3[:, i].pt, -1.0),
-    )
+        events = set_ak_column(
+            events, f"lep{i + 1}_pt", ak.fill_none(padded3[:, i].pt, -1.0),
+        )
     q1 = ak.fill_none(padded3[:, 0].charge, 0)
     q2 = ak.fill_none(padded3[:, 1].charge, 0)
     q3 = ak.fill_none(padded3[:, 2].charge, 0)

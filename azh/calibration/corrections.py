@@ -159,152 +159,52 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
 
     return events
 
-
 # ===========================================================================
 # Muon momentum scale & smearing (MuonScaRe)
 #
-# TODO(physics, separate step -- triggers reprocess):
-#   The file already ships a `RandomSmearing` evaluator (uniform[0,1) keyed on
-#   evtNr/lumiNr/phi). Replace the hand-rolled splitmix64 hash below with it,
-#   and diff the Crystal Ball inverse-CDF against the official muonscarekit
-#   MuonScaRe.py. Names (a/m/k_*, cb_params, poly_params) already match the JSON.
+# Thin wrapper around the OFFICIAL Muon POG kit
+# (modules/muonscarekit/scripts/MuonScaRe.py). The kit reads the same
+# muon_scalesmearing.json.gz we already load -- it evaluates a_/m_ (scale),
+# poly_params + cb_params + k_ (resolution), and pulls the reproducible
+# smearing random number from the file's own RandomSmearing correction. So the
+# entire hand-rolled Crystal Ball inverse-CDF and the splitmix64 hash are gone;
+# reproducibility and the CB tails are now handled by validated POG code.
+#
+# The kit is awkward-native (nested=True): pass jagged Muon.* arrays directly,
+# no flatten/unflatten. filter_boundaries() (low_pt_threshold=26) and the
+# pt_corr/pt sanity cut live inside pt_scale/pt_resol, so we don't re-guard.
 # ===========================================================================
 
 @calibrator(
     uses={
-        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.charge",
-        "Muon.nTrackerLayers", "event", "luminosityBlock",
+        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.charge", "Muon.nTrackerLayers",
+        "event", "luminosityBlock",
     },
     produces={"Muon.pt"},
 )
 def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
-    """
-    Apply MuonScaRe momentum scale and smearing corrections.
-    Official MuonPOG formula from muonscarekit:
-      Scale: pt_corr = 1 / (M/pt + charge*A)  [applied to data AND MC]
-      Resol: pt_corr = pt * (1 + k * sigma * cb_rndm)  [MC only]
-    """
-    from scipy.special import erfinv, erf
+    from MuonScaRe import pt_scale, pt_resol
 
-    muons = events.Muon
-    flat_pt     = ak.to_numpy(ak.flatten(muons.pt))
-    flat_eta    = ak.to_numpy(ak.flatten(muons.eta))
-    flat_phi    = ak.to_numpy(ak.flatten(muons.phi))
-    flat_charge = ak.to_numpy(ak.flatten(muons.charge))
-    counts      = ak.num(muons.pt, axis=1)
+    is_data = self.dataset_inst.is_data
 
-    # --- Scale correction (data AND MC) ---
-    dtmc = "data" if self.dataset_inst.is_data else "mc"
-    m = self.corr_sets["m_" + dtmc].evaluate(flat_eta, flat_phi, "nom")
-    a = self.corr_sets["a_" + dtmc].evaluate(flat_eta, flat_phi, "nom")
+    # scale: applied to data AND MC
+    pt_corr = pt_scale(
+        is_data,
+        events.Muon.pt, events.Muon.eta, events.Muon.phi, events.Muon.charge,
+        self.muon_cset, nested=True,
+    )
+    events = set_ak_column(events, "Muon.pt", pt_corr)
 
-    corrected_pt = 1.0 / (m / flat_pt + flat_charge * a)
+    # resolution smearing: MC only, on the scale-corrected pt
+    if not is_data:
+        pt_corr = pt_resol(
+            events.Muon.pt, events.Muon.eta, events.Muon.phi,
+            events.Muon.nTrackerLayers,
+            events.event, events.luminosityBlock,
+            self.muon_cset, nested=True,
+        )
+        events = set_ak_column(events, "Muon.pt", pt_corr)
 
-    # --- Resolution smearing (MC only) ---
-    if self.dataset_inst.is_mc:
-        flat_nl = ak.to_numpy(ak.flatten(muons.nTrackerLayers)).astype(np.float64)
-        flat_abseta = np.abs(flat_eta)
-
-        # Extra smearing factor k = sqrt(k_data^2 - k_mc^2) if k_data > k_mc, else 0
-        k_data = self.corr_sets["k_data"].evaluate(flat_abseta, "nom")
-        k_mc   = self.corr_sets["k_mc"].evaluate(flat_abseta, "nom")
-        k = np.where(k_mc < k_data, np.sqrt(k_data**2 - k_mc**2), 0.0)
-
-        # Resolution sigma = poly(pt): p0 + p1*pt + p2*pt^2
-        p0 = self.corr_sets["poly_params"].evaluate(flat_abseta, flat_nl, 0)
-        p1 = self.corr_sets["poly_params"].evaluate(flat_abseta, flat_nl, 1)
-        p2 = self.corr_sets["poly_params"].evaluate(flat_abseta, flat_nl, 2)
-        sigma = np.maximum(p0 + p1 * corrected_pt + p2 * corrected_pt**2, 0.0)
-
-        # Crystal Ball random number via inverse CDF.
-        # Deterministic uniform[0,1) per muon, hashed from (event, lumi, phi).
-        # This replaces the custom "RandomSmearing" correction that used to
-        # be bolted onto muon_scalesmearing.json.gz -- the stock POG JSON
-        # does not include it. The splitmix64-style hash below is fully
-        # vectorized, bit-stable across re-runs, and uniform to ~2%.
-        ev_u64 = ak.to_numpy(ak.flatten(
-            ak.ones_like(muons.pt, dtype=np.int64) * events.event[:, np.newaxis]
-        )).astype(np.uint64)
-        lu_u64 = ak.to_numpy(ak.flatten(
-            ak.ones_like(muons.pt, dtype=np.int64) * events.luminosityBlock[:, np.newaxis]
-        )).astype(np.uint64)
-        phi_bits = np.frombuffer(
-            np.ascontiguousarray(flat_phi, dtype=np.float64).tobytes(),
-            dtype=np.uint64,
-        ).copy()
-        with np.errstate(over="ignore"):
-            _h = (
-                ev_u64 * np.uint64(0x9E3779B97F4A7C15)
-                + lu_u64 * np.uint64(0xBF58476D1CE4E5B9)
-                + phi_bits
-            )
-            _h ^= _h >> np.uint64(30); _h = _h * np.uint64(0xBF58476D1CE4E5B9)
-            _h ^= _h >> np.uint64(27); _h = _h * np.uint64(0x94D049BB133111EB)
-            _h ^= _h >> np.uint64(31)
-        u = (_h >> np.uint64(11)).astype(np.float64) / float(1 << 53)
-
-        # CB parameters
-        cb_mean  = self.corr_sets["cb_params"].evaluate(flat_abseta, flat_nl, 0)
-        cb_sigma = self.corr_sets["cb_params"].evaluate(flat_abseta, flat_nl, 1)
-        cb_n     = self.corr_sets["cb_params"].evaluate(flat_abseta, flat_nl, 2)
-        cb_alpha = self.corr_sets["cb_params"].evaluate(flat_abseta, flat_nl, 3)
-
-        # Crystal Ball inverse CDF
-        fa = np.abs(cb_alpha)
-        sqrtPiOver2 = np.sqrt(np.pi / 2.0)
-        sqrt2 = np.sqrt(2.0)
-        ex = np.exp(-fa * fa / 2)
-        n_cb = cb_n
-        A_cb = (n_cb / fa) ** n_cb * ex
-        C1 = n_cb / fa / (n_cb - 1) * ex
-        D1 = 2 * sqrtPiOver2 * erf(fa / sqrt2)
-        N_cb = 1.0 / cb_sigma / (D1 + 2 * C1)
-        Ns = N_cb * cb_sigma
-        NC = Ns * C1
-        B_cb = n_cb / fa - fa
-        C_tot = (D1 + 2 * C1) / C1
-        D_tot = (D1 + 2 * C1) / 2
-        F_cb = 1 - fa * fa / n_cb
-        G_cb = cb_sigma * n_cb / fa
-        k_cb = 1.0 / (n_cb - 1)
-
-        cdfMa = NC  # CDF at m - alpha*s (simplified)
-        cdfPa = NC * C_tot - NC  # CDF at m + alpha*s (simplified)
-
-        # Compute CDF at m-a*s and m+a*s properly
-        # d = -alpha => cdf region 1
-        cdfMa = NC / np.power(np.maximum(F_cb - cb_sigma * (-fa) / G_cb, 1e-10), n_cb - 1)
-        # d = +alpha => cdf region 2
-        cdfPa = NC * (C_tot - np.power(np.maximum(F_cb + cb_sigma * fa / G_cb, 1e-10), 1 - n_cb))
-
-        # Inverse CDF
-        c1 = u < cdfMa
-        c2 = u > cdfPa
-        c3 = ~c1 & ~c2
-
-        rndm = np.zeros_like(u)
-        # u < cdfMa (left tail)
-        safe_ratio1 = np.maximum(NC / np.where(c1, u, 1.0), 1e-10)
-        rndm = np.where(c1, cb_mean + G_cb * (F_cb - safe_ratio1 ** k_cb), rndm)
-        # u > cdfPa (right tail)
-        safe_ratio2 = np.maximum(C_tot - np.where(c2, u, 0.0) / NC, 1e-10)
-        rndm = np.where(c2, cb_mean - G_cb * (F_cb - safe_ratio2 ** (-k_cb)), rndm)
-        # cdfMa <= u <= cdfPa (core gaussian)
-        rndm = np.where(c3, cb_mean - sqrt2 * cb_sigma * erfinv((D_tot - u / Ns) / sqrtPiOver2), rndm)
-
-        # Apply smearing
-        corrected_pt = corrected_pt * (1.0 + k * sigma * rndm)
-
-    # Boundary protection: only correct 26 < pt < 200 GeV
-    corrected_pt = np.where(flat_pt > 200, flat_pt, corrected_pt)
-    corrected_pt = np.where(flat_pt < 26, flat_pt, corrected_pt)
-    # Sanity: reject wild corrections
-    ratio = corrected_pt / flat_pt
-    corrected_pt = np.where((ratio > 2) | (ratio < 0.1) | (corrected_pt < 0), flat_pt, corrected_pt)
-    corrected_pt = np.where(np.isnan(corrected_pt), flat_pt, corrected_pt)
-
-    events = set_ak_column(events, "Muon.pt",
-                           ak.unflatten(corrected_pt.astype(np.float32), counts))
     return events
 
 
@@ -319,13 +219,13 @@ def muon_scare_requires(self: Calibrator, reqs: dict) -> None:
 @muon_scare.setup
 def muon_scare_setup(self: Calibrator, reqs: dict, inputs: dict,
                      reader_targets: InsertableDict) -> None:
-    bundle = reqs["external_files"]
     import correctionlib
-    correctionlib.highlevel.Correction.__call__ = correctionlib.highlevel.Correction.evaluate
-    cset = correctionlib.CorrectionSet.from_string(
+    bundle = reqs["external_files"]
+    # the kit calls cset.get("a_data"), cset.get("RandomSmearing"), ... so it
+    # needs the whole CorrectionSet, not a dict of individual correctors.
+    self.muon_cset = correctionlib.CorrectionSet.from_string(
         bundle.files.muon_scalesmearing.load(formatter="gzip").decode("utf-8"),
     )
-    self.corr_sets = {name: cset[name] for name in cset}
 
 """
 EGM electron scale & smearing -- eT-dependent flavour (POG-recommended).

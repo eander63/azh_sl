@@ -924,14 +924,6 @@ def add_config(
     ]
 
     # b-tag working points
-    # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL16preVFP?rev=6
-    # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL16postVFP?rev=8
-    # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17?rev=15
-    # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17?rev=17
-    # b-tag working points
-    # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22/
-    # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/
-    # TODO: add correct 2022 + 2022preEE WP for deepcsv if needed
     if year == 2022:
         btag_key = f"2022{campaign.x.EE}EE" 
     if year == 2023:
@@ -973,8 +965,6 @@ def add_config(
             }[btag_key],
         },
     })
-
-    # TODO: check e/mu/btag corrections and implement
     # btag weight configuration
     from columnflow.production.cms.btag import SplitBTagSFConfig
     cfg.x.btag_sf = SplitBTagSFConfig(
@@ -997,23 +987,27 @@ def add_config(
     if f"{year}{corr_postfix}" == "2022postEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
+        cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "wp80iso")
         cfg.x.electron_ss_names = ("Scale", "Smearing")
     elif f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
+        cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
         cfg.x.electron_ss_names = ("Scale", "Smearing")
     elif f"{year}{corr_postfix}" == "2023postBPix":
         # VERIFY period/WP strings against the JSON (see introspection cmd)
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptD", "Reco20to75")
+        cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptD", "wp80iso")
         cfg.x.electron_ss_names = ("2023PromptD_ScaleJSON", "2023PromptD_SmearingJSON")
     elif f"{year}{corr_postfix}" == "2023preBPix":
         # VERIFY period/WP strings against the JSON (see introspection cmd)
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
+        cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptC", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
         cfg.x.electron_ss_names = ("2023PromptC_ScaleJSON", "2023PromptC_SmearingJSON")
     # names of muon correction sets and working points

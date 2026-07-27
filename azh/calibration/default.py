@@ -9,6 +9,8 @@ order. The active default is skip_jecunc (see cfg.x.default_calibrator).
 from columnflow.calibration import Calibrator, calibrator
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.seeds import deterministic_seeds
+from columnflow.util import maybe_import
+ak = maybe_import("awkward")
 
 from azh.calibration.corrections import (
     jet_energy,

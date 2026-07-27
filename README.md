@@ -197,8 +197,29 @@ not two.** The CR can't be validated until the selection is 3-lepton.
 
 ### POG Implementation
 
-# LUM
---> Golden JSON and era-tagged pu weights installed in config with brilcalc-verified lumis for 2022pre/post-2023pre/post. Correctionlib producer call in production.pileup. **Awaiting validation**
+# LUM — Wired (not tested) for 2022/2023
+- Golden JSON + era-tagged inputs installed per era in config_run3.py
+  (2022pre→BCD, 2022post→BCDEFG, 2023pre→BC, 2023post→D).
+- Pileup weight now via correctionlib (azh/production/pileup.py, reads pu_sf).
+  Profile route (mc_profile/data_profile) removed; imports in weights.py and
+  selection/default.py flipped to azh.production.pileup.
+- Verified per era: one correction each (sole-key ok), run range matches era.
+  Closes the stale-2023 mc_profile bug and the "pu_weight 0–160" TODO.
+- NOTE: pu.json entry kept — required by columnflow BundleExternalFiles, not
+  used to build the weight.
+- Deferred: minbias_xs up/down systematic (available in same JSON via "up"/"down").
+
+# EGM — Wired (not tested) for 2022/2023
+- Reco (RecoBelow20 / Reco20to75 / RecoAbove75) + ID (wp80iso) + trigger SFs,
+  all four eras. Low-pt reco (10–20) added to cover the pt>10 loose floor.
+- phi argument (2023) and supercluster-eta handled automatically by stock
+  columnflow electron_weights — no AZH code needed.
+- Scale & smearing → eT-dependent (POG-recommended): rewrote electron_ss in
+  calibration/corrections.py. SC-eta = eta + deltaEtaSC, ElePTsplit scale/smear
+  entry points, reproducible per-electron seed, <15 GeV pass-through.
+  external_files → electronSS_EtDependent.json.gz; electron_ss_names → per-era
+  EGMScale_ElePTsplit_* / EGMSmearAndSyst_ElePTsplit_*.
+- CalibrateEvents ran cleanly on data (scale) and DY (smear).
 
 ## Resources
 

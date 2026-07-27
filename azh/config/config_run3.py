@@ -1290,14 +1290,15 @@ def add_config(
     get_shifts = functools.partial(get_shifts_from_sources, cfg)
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
-        "channel_lumi_weight": [],   # per-channel lumi correction (muon: x0.9344, ee: x1.0023)
+        "channel_lumi_weight": [],        # per-channel lumi correction (muon: x0.9344, ee: x1.0023)
         "electron_trig_weight": [],
-        "muon_trig_weight": [],     # re-enabled: muon_Z.json HLT SFs valid down to ~15 GeV
-        "electron_weight": [],       # electron reco above 75
-        "electron_mid_weight": [],   # electron reco 20-75
-        "electron_id_weight": [],    # electron MVA WP80iso
-        "muon_id_weight": [],       # TightID SF (muon_Z.json, valid 15+ GeV)
-        "muon_iso_weight": [],      # TightPFIso SF (muon_Z.json, valid 15+ GeV)
+        "muon_trig_weight": [],           # re-enabled: muon_Z.json HLT SFs valid down to ~15 GeV
+        "electron_weight": [],            # electron reco above 75
+        "electron_mid_weight": [],        # electron reco 20-75
+        "electron_loreco_weight": [],     # electron reco 10-20
+        "electron_id_weight": [],         # electron MVA WP80iso
+        "muon_id_weight": [],             # TightID SF (muon_Z.json, valid 15+ GeV)
+        "muon_iso_weight": [],            # TightPFIso SF (muon_Z.json, valid 15+ GeV)
         "normalized_pu_weight": [],
         #         "zpt_weight": [],
         # "btag_weight": [],

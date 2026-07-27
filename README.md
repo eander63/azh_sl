@@ -221,6 +221,21 @@ not two.** The CR can't be validated until the selection is 3-lepton.
   EGMScale_ElePTsplit_* / EGMSmearAndSyst_ElePTsplit_*.
 - CalibrateEvents ran cleanly on data (scale) and DY (smear).
 
+# MUO — Wired (not tested) for 2022/2023
+- ID (NUM_TightID_DEN_TrackerMuons) + ISO (NUM_TightPFIso_DEN_TightID) SFs:
+  config tuples verified against file, all four eras.
+- Trigger SF: fixed from the IsoMu24-OR-highPt numerator to plain
+  NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight (matches HLT_IsoMu24 path).
+- SFs masked to pt >= 15 (muon_Z.json ID/iso bins start at 15; sub-15 muons
+  get SF=1 and are cut by catid_3l anyway).
+- RECO SF: correctly NOT applied (Run 3 SF~1, POG provides none).
+- Scale & smearing: replaced hand-rolled CB inverse-CDF + splitmix64 hash with
+  the official muonscarekit (submodule pinned at 5541977, matches the
+  no-RandomSmearing CVMFS json). rnd_gen="np" (no ROOT). Deterministic seed
+  from (event, lumi, phi).
+- Deferred: high-pT GE correction (pt>200) for high-mass signal points;
+  scale/iso systematics (pt_scale_var/pt_resol_var available in kit).
+
 ## Resources
 
 [columnflow](https://github.com/columnflow/columnflow) ·

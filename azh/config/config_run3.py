@@ -1195,31 +1195,26 @@ def add_config(
         "electron_ss": (f"{json_mirror}/POG/EGM/{corr_tag}/electronSS.json.gz", "v1"),
     })
 
-    # external files with more complex year dependence
-    # TODO: generalize to different years
 
+    # Golden json and pu weights
     if year == 2022 and campaign.x.EE == "pre":
         cfg.x.external_files.update(DotDict.wrap({
-            # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
             "lumi": {
                 "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
                 "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileup_JSON.txt", "v1"),  # noqa
-                # "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),  # noqa
+                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileup_JSON.txt", "v1"),
             },
         }))
     elif year == 2022 and campaign.x.EE == "post":
         cfg.x.external_files.update(DotDict.wrap({
-            # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
             "lumi": {
                 "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
                 "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
-                # "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileup_JSON.txt", "v1"),  # noqa
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),  # noqa
+                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),
             },
         }))
     elif year == 2023 and campaign.x.BPix == "pre":
@@ -1229,11 +1224,7 @@ def add_config(
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json", "v1"),
             },
             "pu": {
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/BCD/pileup_JSON.txt", "v1"),  # noqa
-                # TODO(2023): switch mc_profile to the 2023 Simulation file
-                # (Run3_2023_LHC_Simulation_*) once you have the right
-                # cmssw revision pinned. The 2022 file is used as a
-                # fallback here.
+                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/BC/pileup_JSON.txt", "v1"),
             },
         }))
     elif year == 2023 and campaign.x.BPix == "post":
@@ -1243,8 +1234,7 @@ def add_config(
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json", "v1"),
             },
             "pu": {
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/BCD/pileup_JSON.txt", "v1"),  # noqa
-                # See preBPix block above re: mc_profile.
+                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/D/pileup_JSON.txt", "v1"),
             },
         }))
     

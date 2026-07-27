@@ -218,8 +218,10 @@ def muon_scare_requires(self: Calibrator, reqs: dict) -> None:
 @muon_scare.setup
 def muon_scare_setup(self: Calibrator, reqs: dict, inputs: dict,
                      reader_targets: InsertableDict) -> None:
-    import sys, os
-    _kit = os.path.join(os.environ["CF_BASE"], "modules/muonscarekit/scripts")
+    import sys, os, azh
+    # repo root = parent of the azh/ package dir; kit lives under modules/
+    _repo = os.path.dirname(os.path.dirname(os.path.abspath(azh.__file__)))
+    _kit = os.path.join(_repo, "modules", "muonscarekit", "scripts")
     if _kit not in sys.path:
         sys.path.insert(0, _kit)
     from MuonScaRe import pt_scale, pt_resol

@@ -5,8 +5,22 @@ from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 from columnflow.selection import Selector, SelectionResult, selector
 from azh.util import masked_sorted_indices
+from columnflow.selection.cms.jets import jet_veto_map
 
 ak = maybe_import("awkward")
+
+# AZH veto map: veto type is config-driven so 2023postBPix can use
+# "jetvetomap_all" (standard hot/cold veto + BPix region) per JME Run-3 rec,
+# while other eras use the standard "jetvetomap".
+jet_veto_map_azh = jet_veto_map.derive("jet_veto_map_azh")
+
+
+@jet_veto_map_azh.setup
+def jet_veto_map_azh_setup(self, reqs, inputs, reader_targets, **kwargs):
+    # run the stock setup first (loads the correction, sets veto_map_name)
+    jet_veto_map.setup_func(self, reqs, inputs, reader_targets, **kwargs)
+    # then override the veto type from config (default: standard)
+    self.veto_map_name = self.config_inst.x("jet_veto_map_type", "jetvetomap")
 
 
 @selector(

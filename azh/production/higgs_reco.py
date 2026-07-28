@@ -21,13 +21,13 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     bjets = events.BJet
     MET = events.PuppiMET
 
-    index_jets = ak.argsort(jets.btagDeepFlavB, ascending=False, axis=-1)
-    index_bjets = ak.argsort(bjets.btagDeepFlavB, ascending=False, axis=-1)
+    index_jets = ak.argsort(jets.btagPNetB, ascending=False, axis=-1)
+    index_bjets = ak.argsort(bjets.btagPNetB, ascending=False, axis=-1)
     sorted_jets = jets[index_jets]
     sorted_bjets = bjets[index_bjets]
 
-    wp_med = self.config_inst.x.btag_working_points.deepjet.medium
-    light_jets_mask = jets.btagDeepFlavB < wp_med
+    wp_med = self.config_inst.x.btag_working_points.particlenet.medium
+    light_jets_mask = jets.btagPNetB < wp_med
     light_jets = jets[light_jets_mask]
 
     # The h reconstruction below adds these objects as 4-vectors inside nested

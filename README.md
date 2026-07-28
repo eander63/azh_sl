@@ -2,10 +2,12 @@
 
 Search for a heavy pseudoscalar **A → ZH**, with H → tt̄ and Z → ℓℓ, in CMS Run 3
 data. Built on
-[columnflow](https://github.com/columnflow/columnflow). Note that the directions are for use on DESY.
+[columnflow](https://github.com/columnflow/columnflow). Directions are for use on DESY.
 
-**Status: work in progress.** The chain runs end to end and produces validation
-plots. It is not ready for limits.
+**Status: work in progress.** The full chain runs end to end on real events
+(through `cf.ProduceColumns`) with the 3-lepton selection and all six POG
+corrections in place. Next step is the batched reprocess into a fresh version,
+then histograms/limits. Systematics are deferred (nominal only).
 
 ---
 
@@ -18,9 +20,12 @@ git clone --recursive git@github.com:eander63/azh_sl.git
 cd azh_sl
 ```
 
-`--recursive` matters: `columnflow` and `cmsdb` are submodules, and columnflow
-has its own (`law`, `order`). If you forget it:
+`--recursive` matters: `columnflow`, `cmsdb`, and `muonscarekit` are submodules,
+and columnflow has its own (`law`, `order`). If you forget it:
 `git submodule update --init --recursive`.
+
+Note `muonscarekit` is **pinned at commit 5541977** (see MUO below) — do not
+update it without re-checking the RandomSmearing/JSON compatibility.
 
 ### Every session
 
@@ -46,6 +51,9 @@ voms-proxy-init --voms cms --valid 192:00
   Later runs are fast.
 - Everything is written to `$CF_DATA`. No CERN EOS, no Tier-2 — `naf_el9` jobs
   run on workers that mount `/data/dust`.
+- correctionlib and awkward only exist inside the columnflow sandbox. For a bare
+  `python3` check outside a `law run`, source a sandbox first, e.g.
+  `source modules/columnflow/sandboxes/venv_columnar.sh`.
 
 ---
 
@@ -82,6 +90,9 @@ Set in `azh/config/config_run3.py` (~line 708). These name the files to read:
 
 `law.cfg` sets `default_config: config_2022pre`, `default_dataset: tt_sl_powheg`.
 
+The names `skip_jecunc` / `default` / `default` are load-bearing — they appear in
+the store path, so renaming them orphans the existing store. Leave them ugly.
+
 ### Configs
 
 Nine configs, four eras, NanoAOD v12. Built in
@@ -99,6 +110,10 @@ Each era has a `_limited` variant (1 file per dataset) for fast iteration;
 `config_2022pre` also has `config_2022pre_10files`. The group `run3` fans out
 across all four full eras: `--configs run3`.
 
+2024/2025 are **not supported**: cmsdb has no run3_2024/2025 campaign, and LUM
+ships no 2024 pileup file. Re-check periodically; when both appear, the
+table-driven era config makes adding a row cheap.
+
 ---
 
 ## Running
@@ -111,7 +126,7 @@ law run cf.PlotVariables1D \
     --version v1 \
     --datasets tt_sl_powheg,dy_m50toinf_amcatnlo,data_mu_c \
     --variables m_z,n_jets \
-    --categories cat_incl \
+    --categories 2l__2mu \
     --
 ```
 
@@ -119,168 +134,168 @@ law run cf.PlotVariables1D \
 
 There is no default version — omitting it raises
 `MissingParameterException: requires the 'version' parameter to be set`.
+`--print-status` also needs a `--version`.
 
-### Make sure that version number choice is consistent
-
-Store layout:
+### Store paths hash names, not code
 
 ```
 $CF_DATA/cf_store/analysis_azh/{task}/{config}/{dataset}/{shift}/{calib}/{version}/
 ```
 
+Every element is a *name*, not a checksum of your source. So **pure code moves /
+renames-within-a-file are free** (the store stays valid), but **any behavioral
+change needs a `--version` bump** — nothing forces it for you, and the framework
+will happily reuse a stale store after a physics change. When you change
+`keep_columns`, the reduced store must be rebuilt: bump the version, or force it
+with `--cf.ReduceEvents-remove-output 0,a,y`.
+
 ---
 
-## Development
+## Categories: validation vs. analysis in one store
 
-*Last updated: 2026-07*
+Three orthogonal axes (`azh/config/categories.py`, `azh/production/categories.py`):
 
-The chain runs end to end and produces validation plots. The categorization
-has been rewritten into blinded analysis regions (see `azh/production/categories.py`
-and `azh/config/categories.py`), but **the base selection does not yet match the
-target analysis** (B2G-24-002).
+```
+multiplicity:  2l (=100)  |  3l (=200)          validation vs analysis
+flavor:        2e (=10)   |  2mu (=20)          Z candidate flavor
+region:        wz_cr (=4000) | sr_1b (=5000) | sr_2b (=6000)   b-jet count (3l only)
+```
 
-1. **The selection is 2-lepton; the analysis is 3-lepton.** The target final
-   state is A → ZH → ℓℓ + tt̄(semileptonic): two leptons from the Z, one from
-   the leptonic top → three tight leptons, with a fourth-lepton veto and
-   Σcharge = ±1. The current selector builds only the OSSF Z pair
-   (`n_tight_leptons == 2` in `catid_baseline`). Consequences:
-   - No third lepton → no leptonic-W → no neutrino → no m_tt̄, no m_A, **no Δm**.
-     Δm × pT_Z is the final observable of the search, so it cannot yet be built.
-   - The 0b "WZ CR" is a 3-lepton region in the analysis. The current 2-lepton
-     version is a **Z+jets sanity check, not the WZ CR** — it can't validate the
-     WZ normalization, because WZ's third lepton is what defines that background.
-   - The columns needed for 3-lepton (`n_tight_leptons`, `charge_sum`, `min_mll`)
-     are already built in `azh/production/leptons.py`; `catid_3l` already encodes
-     the cut. They're just not wired into the baseline yet.
+IDs are additive (`3l__2e__sr_2b` = 6210). 13 combined leaves, built as three
+scoped 2-group `create_category_combinations` calls (not one 3-group call +
+skip_fn — columnflow's parent-finding ignores skip_fn, so skipping a mid-node
+crashes on the missing parent).
 
-2. **No JEC/JER/b-tag/lepton/trigger systematics.** All processed data used
-   `skip_jecunc` (nominal JEC only). Because the analysis regions are b-jet
-   multiplicity slices, JES/JER directly migrate events across the SR/CR
-   boundary — so this is a missing *migration effect*, not just a missing
-   nuisance. See `azh/calibration/jets.py`.
+- **Validation** = `2l__2e`, `2l__2mu` — no baseline cuts, high-stat DY for
+  Z-peak / lepton-calibration checks.
+- **Analysis** = `3l__*__<region>` — full B2G-24-002 baseline (Z window, MET,
+  ≥4 jets) plus the b-jet region split.
 
-###TODO
+The selector is deliberately **conservative** (loose leptons pT>10, loose IDs,
+crack veto, SC-η, ≥2 loose jets); all tunable cuts (25/20/15 pT, tight IDs,
+4th-lepton veto, Min(mℓℓ), charge sum) live in categories so they can be
+retuned without reprocessing. Categorizers use hard `_require()` failures, not
+silent-empty masks.
 
-**the 3-lepton overhaul and the final reprocessing are one step,
-not two.** The CR can't be validated until the selection is 3-lepton.
+---
 
-1. 2-lepton Z-validation plots on the existing
-   v0/v1 store: confirm calibration and Z reconstruction are sane (`m_z`, `pt_z`,
-   `n_jets`, `n_bjets` data/MC agreement). This is a sanity check on the current
-   store, *not* the analysis CR.
+## POG corrections
 
-2. Move to 3-lepton base selection; turn on real JEC
-   (stock `jec`, source "Total"); add lepton / b-tag / trigger scale factors.
-   These are entangled — the selection changes which events exist, JEC changes
-   their kinematics, SFs reweight them — so they must land together to avoid
-   reprocessing three times.
+All six audited against the jsonpog-integration JSONs and run end-to-end on data
++ MC. Nominal only; systematics deferred. Verified with sane weight values
+(b-tag mean ≈ 1.00, pileup 0.17–1.64, lepton SFs ≈ 0.97–0.99).
 
-3. Reprocess into a fresh version. **Then** delete the
-   old `skip_jecunc` calibration store.
+### LUM — done
+- Pileup via correctionlib (`azh/production/pileup.py`, reads `pu_sf`); profile
+  route (`mc_profile`/`data_profile`) fully removed. Closes the stale-2023
+  profile bug and the "pu_weight 0–160" pathology (now bounded 0.17–1.64).
+- Per era, one correction, run range matches (BCD/EFG/BC/D).
+- `pu.json` kept — required by columnflow `BundleExternalFiles`, not used to
+  build the weight.
+- Deferred: `minbias_xs` up/down (same JSON, "up"/"down").
 
-4. Build Δm and pT_Z × Δm; run the fit. The
-   systematics-laden store from step 3 is the input the fit consumes.
-
-### Open questions to resolve before overhaul
-
-- **Do the NanoAOD / MC samples actually contain the third lepton?** If upstream
-  skimming dropped it for a 2-lepton selection, no reselection recovers it. Test
-  on ttZ (which genuinely has 3 leptons) before investing in the 3-lepton work —
-  if `n_tight_leptons == 3` is never populated there, that's the first problem.
-- **`choose_lepton` pairing rule.** The analysis forms the Z from the OSSF pair
-  closest to m_Z. Confirm `azh/production/leptons.py::choose_lepton` does this,
-  not just leading-pT, before trusting m_z in 3-lepton events.
-- **Which lepton selector?** `azh/selection/lepton_selection.py`
-  (wired in, tightId, pT>25 high leg) vs `azh/selection/z_selection.py`
-  (not wired in, highPtId, pT>35, proper OSSF Z pairing). Pick one, delete the
-  other.
-
-# POG Implementation
-
-### LUM — Wired (not tested) for 2022/2023
-- Golden JSON + era-tagged inputs installed per era in config_run3.py
-  (2022pre→BCD, 2022post→BCDEFG, 2023pre→BC, 2023post→D).
-- Pileup weight now via correctionlib (azh/production/pileup.py, reads pu_sf).
-  Profile route (mc_profile/data_profile) removed; imports in weights.py and
-  selection/default.py flipped to azh.production.pileup.
-- Verified per era: one correction each (sole-key ok), run range matches era.
-  Closes the stale-2023 mc_profile bug and the "pu_weight 0–160" TODO.
-- NOTE: pu.json entry kept — required by columnflow BundleExternalFiles, not
-  used to build the weight.
-- Deferred: minbias_xs up/down systematic (available in same JSON via "up"/"down").
-
-### EGM — Wired (not tested) for 2022/2023
+### EGM — done (ran data + MC)
 - Reco (RecoBelow20 / Reco20to75 / RecoAbove75) + ID (wp80iso) + trigger SFs,
-  all four eras. Low-pt reco (10–20) added to cover the pt>10 loose floor.
-- phi argument (2023) and supercluster-eta handled automatically by stock
-  columnflow electron_weights — no AZH code needed.
-- Scale & smearing → eT-dependent (POG-recommended): rewrote electron_ss in
-  calibration/corrections.py. SC-eta = eta + deltaEtaSC, ElePTsplit scale/smear
-  entry points, reproducible per-electron seed, <15 GeV pass-through.
-  external_files → electronSS_EtDependent.json.gz; electron_ss_names → per-era
-  EGMScale_ElePTsplit_* / EGMSmearAndSyst_ElePTsplit_*.
-- CalibrateEvents ran cleanly on data (scale) and DY (smear).
+  all four eras. Low-pT reco (10–20) added for the pT>10 loose floor.
+- phi (2023) and supercluster-η handled automatically by stock `electron_weights`.
+- Scale & smearing → **eT-dependent** (POG-recommended): `electron_ss` in
+  `calibration/corrections.py`. SC-η = eta + deltaEtaSC, ElePTsplit scale/smear,
+  reproducible per-electron seed, <15 GeV pass-through. `external_files` →
+  `electronSS_EtDependent.json.gz`; per-era `EGMScale_ElePTsplit_*` /
+  `EGMSmearAndSyst_ElePTsplit_*`.
+- Deferred: `electron_loreco_weight_down` can dip very slightly negative
+  (~-1e-4) in the 10–20 GeV bin (large Zee background per EGM) — clamp at 0 or
+  accept when electron-reco systematics are enabled. Harmless for nominal.
 
-### MUO — Wired (not tested) for 2022/2023
-- ID (NUM_TightID_DEN_TrackerMuons) + ISO (NUM_TightPFIso_DEN_TightID) SFs:
-  config tuples verified against file, all four eras.
-- Trigger SF: fixed from the IsoMu24-OR-highPt numerator to plain
-  NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight (matches HLT_IsoMu24 path).
-- SFs masked to pt >= 15 (muon_Z.json ID/iso bins start at 15; sub-15 muons
-  get SF=1 and are cut by catid_3l anyway).
-- RECO SF: correctly NOT applied (Run 3 SF~1, POG provides none).
-- Scale & smearing: replaced hand-rolled CB inverse-CDF + splitmix64 hash with
-  the official muonscarekit (submodule pinned at 5541977, matches the
-  no-RandomSmearing CVMFS json). rnd_gen="np" (no ROOT). Deterministic seed
-  from (event, lumi, phi).
-- Deferred: high-pT GE correction (pt>200) for high-mass signal points;
-  scale/iso systematics (pt_scale_var/pt_resol_var available in kit).
+### MUO — done (ran data + MC)
+- ID (`NUM_TightID_DEN_TrackerMuons`) + iso (`NUM_TightPFIso_DEN_TightID`) SFs.
+- Trigger SF fixed to plain `NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight`
+  (matches HLT_IsoMu24; was the IsoMu24-OR-highPt numerator).
+- SFs masked to pT≥15 (file bins start at 15; sub-15 muons get SF=1 and are cut
+  by `catid_3l`).
+- RECO SF correctly NOT applied (Run 3 SF≈1, POG provides none).
+- Scale & smearing: official **muonscarekit** (submodule pinned at **5541977**,
+  which generates the CB random itself — matches the no-RandomSmearing CVMFS
+  JSON). `rnd_gen="np"` (no ROOT), deterministic seed from (event, lumi, phi).
+  Replaced a hand-rolled CB inverse-CDF that had visible bugs.
+- Deferred: high-pT GE correction (pT>200) for high-mass signal points;
+  scale/iso systematics (`pt_scale_var`/`pt_resol_var` in the kit).
 
-### JME — Wired (nominal; systematics deferred; not tested) for 2022/2023
+### JME — done (nominal; systematics deferred)
+- **JEC/JER**: `jet_type = "AK4PFPuppi"`, nominal only (`jec_nominal`, empty
+  uncertainty sources). AK4PFPuppi confirmed all four eras (Summer22_V2,
+  Summer22EE_V2, Summer23Prompt23, Summer23BPixPrompt23_V3).
+- **MET → PuppiMET** everywhere (baseline pT_miss, χ² top reco, uses/produces,
+  variables, keep_columns). PF MET is invalid with PUPPI jets.
+- **Endcap noise veto** on loose jets: 2.5<|η|<3.0 requires pT>50 (EE eta-spike).
+- **jetId**: v12 packing {0,2,6}; loose ≥2, tight ==6.
+- **Jet veto maps**: stock `jet_veto_map` applies `jetvetomap` (2022 EE water
+  leak) all eras, and for 2023postBPix folds in negated `jetvetomap_bpix` (FPix)
+  — the postBPix condition fires for our campaign. No override needed.
+- **Noise filters** reconciled to Run-3 rec: added `hfNoisyHitsFilter`,
+  uncommented `ecalBadCalibFilter`; HBHE filters removed (no longer needed).
+- Deferred: JEC uncertainty sources (Regrouped_* present in file), JER variations
+  (scaling method for 2.5<|η|<3); ecalBadCalib uses the stored flag (a remade
+  version may be recommended — revisit if MET tails look off).
 
-Run-3 AK4 jets are PUPPI; corrections verified against the AK4PFPuppi JSONs.
+### BTV — done (ran; b-tag weight mean ≈ 1.00)
+- **DeepJet → ParticleNet** (POG-preferred, better Run-3 performance; ~85% vs
+  82% b-eff at medium WP). SR/CR split *is* b-multiplicity, so this directly
+  sharpens signal/control separation.
+- b-jet definition `Jet.btagPNetB > particlenet.medium` (per-era WP, values
+  file-verified: 0.245 / 0.2605 / 0.1917 / 0.1919).
+- SF via `particleNet_comb` + `particleNet_light` (`_comb`, not `_shape` — this
+  is a WP-count analysis, not a discriminant-shape one; `_comb` also exists in
+  all four eras whereas 2023 lacks `particleNet_mujets`).
+- `btagPNetB` + `hadronFlavour` kept through reduction for the SF.
 
-Jet energy (calibration):
-- JEC: jet_type = "AK4PFPuppi"; nominal only (jec_nominal, uncertainty_sources
-  empty — real sources deferred to the systematics pass). Campaign strings are
-  per-era via jerc_campaign, with the 2023 run-range split. AK4PFPuppi confirmed
-  for all four eras: Summer22_22Sep2023_V2, Summer22EE_22Sep2023_V2,
-  Summer23Prompt23, Summer23BPixPrompt23_V3. (Version tags differ V2/V3 across
-  eras; columnflow resolves the version from the file.)
-- JER: nominal (stock jer, MC), inherits the PUPPI campaign. Variations deferred.
+### TAU — N/A
+No hadronic taus in the final state; correctly absent from `external_files`.
 
-MET:
-- Swapped MET -> PuppiMET everywhere (categories baseline pT_miss cut,
-  higgs_reco chi2 top reconstruction, uses/produces, variables). PF MET cannot
-  be used with PUPPI jets. Ran green on SelectEvents (branch resolves on v12).
+---
 
-Jet selection:
-- Endcap noise veto added to loose jets: in 2.5 < |eta| < 3.0 require pT > 50 GeV
-  (Run-3 EE eta-spike recommendation). Outer bound |eta| < 4.7 retained.
-- jetId: v12 packing {0,2,6} = {fail, tight, tightLepVeto}; loose uses >=2,
-  tight uses ==6. Read at selection, not kept in the reduced store (correct).
+## Batched reprocess (next step)
 
-Jet veto maps (selection):
-- Stock columnflow jet_veto_map applies "jetvetomap" (vetoes the 2022 EE water
-  leak) for all eras, and for 2023postBPix additionally folds in the negated
-  "jetvetomap_bpix" (FPix veto). Confirmed the postBPix condition fires for our
-  campaign (postfix.lower() == "bpix"). No override needed.
+All the POG changes above plus the 3-lepton selection and category scheme are
+behavioral, so they land together in **one reprocess at a new `--version`** — the
+"conservative selector, tune in categories" design exists to make this survivable.
+Staged changes: pileup correctionlib swap, eT-dependent electron S&S,
+muonscarekit, PuppiMET, endcap jet cut, noise filters, ParticleNet b-tagging,
+3-lepton selection + 2l/3l categories.
 
-Noise filters (met_filters), reconciled against the Run-3 (2022+2023) rec:
-- Applied: goodVertices, globalSuperTightHalo2016Filter,
-  EcalDeadCellTriggerPrimitiveFilter, BadPFMuonFilter, BadPFMuonDzFilter,
-  hfNoisyHitsFilter (added), eeBadScFilter, ecalBadCalibFilter (uncommented).
-- HBHENoiseFilter / HBHENoiseIsoFilter removed ("no longer needed" in Run 3).
+After the reprocess: re-make the `2l__2e` / `2l__2mu` Z-validation plots and check
+whether the original ee Data/MC tilt is resolved (crack veto + SC-η +
+eT-dependent S&S should fix it).
 
-Deferred (systematics pass):
-- JEC uncertainty sources (Run-2-based per current JME rec; Regrouped_* present
-  in the file), JER variations (scaling method for 2.5 < |eta| < 3).
-- ecalBadCalibFilter uses the stored flag; a remade version may be recommended
-  for some Run-3 eras — revisit if MET tails look off.
+---
+
+## Systematics (deferred, not started)
+
+`cfg.x.event_weights` entries are all `[]` and JEC `uncertainty_sources` is empty,
+so systematics are effectively off. The pieces that come from the same POG JSONs
+(lepton/b-tag SF up/down, JEC sources, JER, pileup up/down) are enabled by the
+`"up"`/`"down"` strings; theory (μR/μF, PDF, PS) come from LHE weights already in
+the store; luminosity and nonprompt are analysis-derived. Note the JES/JER
+migration across the b-jet SR/CR boundary is the main *migration effect* to get
+right, not just a nuisance. Also disabled but purposeful: `zpt_reweight`
+(DY NLO-shape fix, placeholder in `weights.py`), the `w_lepton` assignment bug
+(uses 3rd-hardest lepton not the one outside the Z pair — matters for χ² top reco).
+
+---
+
+## Housekeeping notes
+
+- `azh/production/trigger.py` is a WIP debug producer (`trig_ids`), registered in
+  `law.cfg` but never called in the chain — safe to remove.
+- `deepcsv` in `btag_working_points` (config_run3.py) is Run-2 vestigial, unused.
+- `analysis_azh_run3.py` still carries columnflow-template boilerplate comments.
+
+---
 
 ## Resources
 
 [columnflow](https://github.com/columnflow/columnflow) ·
 [law](https://github.com/riga/law) ·
 [order](https://github.com/riga/order) ·
-[cmsdb](https://github.com/uhh-cms/cmsdb)
+[cmsdb](https://github.com/uhh-cms/cmsdb) ·
+[muonscarekit](https://gitlab.cern.ch/cms-muonPOG/muonscarekit)

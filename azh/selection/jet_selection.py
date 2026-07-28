@@ -10,7 +10,7 @@ from columnflow.selection.cms.jets import jet_veto_map
 ak = maybe_import("awkward")
 
 @selector(
-    uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.btagDeepFlavB"},
+    uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.btagPNetB"},
     produces={
         "cutflow.n_jet", "cutflow.n_jet_loose", "cutflow.n_bjet",
         "cutflow.jet1_pt", "cutflow.jet2_pt", "cutflow.jet3_pt", "cutflow.jet4_pt",
@@ -50,8 +50,8 @@ def jet_selection(
     events = set_ak_column(events, "cutflow.n_jet", ak.sum(jet_mask, axis=1))
 
     # ── B-tagging (medium DeepJet on tight jets) ──
-    wp_med = self.config_inst.x.btag_working_points.deepjet.medium
-    bjet_mask = jet_mask & (events.Jet.btagDeepFlavB >= wp_med)
+    wp_med = self.config_inst.x.btag_working_points.particlenet.medium
+    bjet_mask = jet_mask & (events.Jet.btagPNetB >= wp_med)
     events = set_ak_column(events, "cutflow.n_bjet", ak.sum(bjet_mask, axis=1))
 
     jet_indices = masked_sorted_indices(jet_mask, events.Jet.pt)

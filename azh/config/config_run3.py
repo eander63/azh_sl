@@ -1247,7 +1247,7 @@ def add_config(
         ) | set(  # BJets
             f"{jet_obj}.{field}"
             for jet_obj in ["BJet"]
-            for field in ["pt", "eta", "phi", "mass", "btagDeepFlavB", "hadronFlavour"]
+            for field in ["pt", "eta", "phi", "mass", "btagPNetB", "hadronFlavour"]
         )
           | set(  # Muons
             f"{mu_obj}.{field}"
@@ -1260,7 +1260,7 @@ def add_config(
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
             for field in ["pt", "eta", "phi", "mass", "pdgId", "deltaEtaSC", "charge", "mvaIso_WP80"]
         ) | set(  # MET
-            f"MET.{field}"
+            f"PuppiMET.{field}"
             for field in ["pt", "phi"]
         ) | set(  # MET
             f"GenMET.{field}"

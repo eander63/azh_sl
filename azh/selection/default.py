@@ -39,7 +39,7 @@ ak = maybe_import("awkward")
         jet_selection, lepton_selection,
         increment_stats, trigger_selection, pu_weight,
         "Jet.btagDeepFlavB", "Jet.pt", "Jet.eta",
-        "MET.pt",
+        "PuppiMET.pt",
         met_filters, json_filter, jet_veto_map,
     },
     produces={

@@ -23,15 +23,12 @@ from columnflow.config_util import (
     get_root_processes_from_campaign, add_shift_aliases,get_shifts_from_sources
 )
 
-
 thisdir = os.path.dirname(os.path.abspath(__file__))
-
 
 def modify_cmsdb_processes():
     from cmsdb.processes import (
         dy, dy_m10to50, dy_m50toinf, dy_m50toinf_0j, dy_m50toinf_1j, dy_m50toinf_2j,dy_m50toinf_3j,dy_m50toinf_4j,
     )
-
     decay_map = {
         "lf": {
             "name": "lf",
@@ -64,7 +61,6 @@ def modify_cmsdb_processes():
 
 modify_cmsdb_processes()
 
-
 def get_dataset_lfns(
     dataset_inst: od.Dataset,
     shift_inst: od.Shift,
@@ -87,7 +83,6 @@ def get_dataset_lfns(
         if line.strip() and line.strip() not in broken_files
     ]
     return lfns
-
 
 def add_config(
     analysis: od.Analysis,
@@ -451,7 +446,6 @@ def add_config(
     def if_not_era(*, values: list[str | None] | None = None, **kwargs) -> list[str]:
         return list(filter(bool, values or [])) if not _match_era(**kwargs) else []
 
-    ######################################################################################
     dataset_names = [
     # DY — use inclusive amcatnlo samples (no stitching needed)
         "dy_m50toinf_amcatnlo",
@@ -551,10 +545,6 @@ def add_config(
         # For 2023, data JEC keys have no run-dependent segment in the JSON
         if dataset.name.startswith("data") and year == 2023:
             dataset.set_aux("jec_era", "")
-
-        # add aux info to datasets
-        # if dataset.name.startswith("qcd"):
-        #     dataset.x.is_qcd = True
 
     # ------------------------------------------------------------------
     # Era-agnostic dataset patches (apply to every era)
@@ -687,24 +677,15 @@ def add_config(
     cfg.x.default_selector = "default"
     cfg.x.default_producer = "default"
     cfg.x.default_weight_producer = "all_weights"
-    # cfg.x.default_ml_model = "default"
-    # cfg.x.default_ml_model = None
     cfg.x.default_inference_model = "example"
     cfg.x.default_categories = ["cat_incl"]
     cfg.x.default_variables = ["jet1_pt"]
-    # cfg.x.default_selector_steps = "default"
-    # cfg.x.selector_step_groups = {
-    # "default": ["Lepton","Jet"],
-    # "cutflow": ["Lepton","Jet"],
-    # }
 
     # process groups for conveniently looping over certain processs
     # (used in wrapper_factory and during plotting)
     cfg.x.process_groups = {
         "all": ["*"],
     }
-    # cfg.x.process_groups["dmuch"] = ["data_mu"] + cfg.x.process_groups["much"]
-    # cfg.x.process_groups["dech"] = ["data_e"] + cfg.x.process_groups["ech"]
 
     # dataset groups for conveniently looping over certain datasets
     # (used in wrapper_factory and during plotting)
@@ -716,10 +697,6 @@ def add_config(
     # (used during plotting)
     cfg.x.category_groups = {
         "default": ["incl"],
-        # "leptons_selection": ["catid_selection_2e","catid_selection_2mu"],
-        # "leptons": ["catid_2e","catid_2mu"],
-        # "m_z": ["sm"],
-        # "fe": ["fe"],
     }
 
     # variable groups for conveniently looping over certain variables
@@ -753,14 +730,12 @@ def add_config(
     cfg.x.process_settings_groups = {
         "Jet": r"$N_{jets}^{AK4} \geq 3$",
     }
-    # when drawing DY as a line, use a different type of yellow
 
     cfg.x.variable_settings_groups = {
 
     }
 
     # lumi values in inverse pb
-    # https://twiki.cern.ch/twiki/bin/view/CMS/LumiRecommendationsRun2?rev=2#Combination_and_correlations
     # 2022preEE, 2022postEE, 2023preBPix, 2023postBPix all brilcalc verified (jun 29 2026)
     if year == 2022:
         if campaign.x.EE == "pre":
@@ -829,10 +804,6 @@ def add_config(
 
         jerc_campaign = f"Summer{year2}{jerc_postfix}_22Sep2023"
 
-    # if year == 2023:
-    #     jerc_postfix = ""
-
-    #     jerc_campaign = f"Summer22_22Sep2023"
     if year ==2023:
         jerc_postfix = ""
         if campaign.x.BPix == "post":
@@ -937,18 +908,6 @@ def add_config(
             }[btag_key],
             "tight": {
                 "2022preEE": 0.7183, "2022postEE": 0.7300,"2023preBPix": 0.6553, "2023postBPix": 0.6563,
-            }[btag_key],
-        },
-        #Dont use deepcsv in 2023, not yet defined properly!!
-        "deepcsv": {
-            "loose": {
-                "2022preEE": 0.1208, "2022postEE": 0.1208,"2023preBPix": 0.0479, "2023postBPix": 0.048,
-            }[btag_key],
-            "medium": {
-                "2022preEE": 0.4168, "2022postEE": 0.4168,"2023preBPix": 0.2431, "2023postBPix": 0.2435,
-            }[btag_key],
-            "tight": {
-                "2022preEE": 0.7665, "2022postEE": 0.7665,"2023preBPix": 0.6553, "2023postBPix": 0.6563,
             }[btag_key],
         },
         "particlenet": {
@@ -1061,26 +1020,10 @@ def add_config(
     cfg.add_shift(name="muon_down", id=52, type="shape")
     add_shift_aliases(cfg, "muon", {"muon_weight": "muon_weight_{direction}"})
 
-    # cfg.add_shift(name="mu_trig_sf_up", id=52, type="shape")
-    # cfg.add_shift(name="mu_trig_sf_down", id=53, type="shape")
-    # add_aliases("mu_sf", {"muon_weight": "muon_weight_{direction}"}, selection_dependent=False)
-
-    # btag_uncs = [
-    #     "hf", "lf", f"hfstats1_{year}", f"hfstats2_{year}",
-    #     f"lfstats1_{year}", f"lfstats2_{year}", "cferr1", "cferr2",
-    # ]
     btag_uncs = []
     for i, unc in enumerate(btag_uncs):
         cfg.add_shift(name=f"btag_{unc}_up", id=100 + 2 * i, type="shape")
         cfg.add_shift(name=f"btag_{unc}_down", id=101 + 2 * i, type="shape")
-        # add_aliases(
-        #     f"btag_{unc}",
-        #     {
-        #         "normalized_btag_weight": f"normalized_btag_weight_{unc}_" + "{direction}",
-        #         "normalized_njet_btag_weight": f"normalized_njet_btag_weight_{unc}_" + "{direction}",
-        #     },
-        #     selection_dependent=False,
-        # )
 
     cfg.add_shift(name="mur_up", id=201, type="shape")
     cfg.add_shift(name="mur_down", id=202, type="shape")
@@ -1092,7 +1035,6 @@ def add_config(
     cfg.add_shift(name="pdf_down", id=208, type="shape")
 
     for unc in ["mur", "muf", "murf_envelope", "pdf"]:
-        # add_aliases(unc, {f"{unc}_weight": f"{unc}_weight_" + "{direction}"}, selection_dependent=False)
         add_aliases(
             unc,
             {f"normalized_{unc}_weight": f"normalized_{unc}_weight_" + "{direction}"},
@@ -1175,7 +1117,6 @@ def add_config(
         # electron scale & smearing
         "electron_ss": (f"{json_mirror}/POG/EGM/{corr_tag}/electronSS_EtDependent.json.gz", "v1"),
     })
-
 
     # Golden json and pu weights
     if year == 2022 and campaign.x.EE == "pre":
@@ -1287,41 +1228,13 @@ def add_config(
         "muon_id_weight": [],             # TightID SF (muon_Z.json, valid 15+ GeV)
         "muon_iso_weight": [],            # TightPFIso SF (muon_Z.json, valid 15+ GeV)
         "normalized_pu_weight": [],
-        #         "zpt_weight": [],
-        # "btag_weight": [],
-        # mur/muf kept as systematics only, not applied at nominal
-        # "mur_weight": get_shifts("mur"),
-        # "muf_weight": get_shifts("muf"),
-        # "top_pt_weight": [],
-        # "muon_weight": get_shifts("muon"),
     })
 
     for dataset in cfg.datasets:
         if dataset.x("is_ttbar", False):
             dataset.x.event_weights = {"top_pt_weight": []}
 
-    # NOTE: which to use, njet_btag_weight or btag_weight?
-    # cfg.x.event_weights["normalized_btag_weight"] = get_shifts(*(f"btag_{unc}" for unc in btag_uncs))
-    # TODO: fix pu_weight; takes way too large values (from 0 to 160)
-    # cfg.x.event_weights["normalized_pu_weight"] = get_shifts("minbias_xs")
-    # for dataset in cfg.datasets:
-    #     dataset.x.event_weights = DotDict()
-    #     if not dataset.x("is_qcd", False):
-    #         # pdf/scale weights for all non-qcd datasets
-    #         dataset.x.event_weights["normalized_murf_envelope_weight"] = get_shifts("murf_envelope")
-    #         dataset.x.event_weights["normalized_mur_weight"] = get_shifts("mur")
-    #         dataset.x.event_weights["normalized_muf_weight"] = get_shifts("muf")
-    #         dataset.x.event_weights["normalized_pdf_weight"] = get_shifts("pdf")
-
-    # dev_version = "v0"
     prod_version = "v1"
-
-    # def reduce_version(cls, inst, params):
-    #     version = dev_version
-    #     if params.get("selector") == "default":
-    #         version = prod_version
-
-    #     return version
 
     # Version of required tasks
     cfg.x.versions = {
@@ -1334,29 +1247,7 @@ def add_config(
         "cf.MergeReduceEvents": prod_version,
         "cf.ProvideReducedEvents": prod_version,
         "cf.ProduceColumns": prod_version,
-        # "cf.MergeMLEvents": prod_version,
-        # "cf.MergeMLStats": prod_version,
-        # "cf.PrepareMLEvents": prod_version,
-        # "cf.MLTraining": prod_version,
     }
-
-    # add categories
-
-    # add_category(
-    #     cfg,
-    #     id=1,
-    #     name="incl",
-    #     selection="cat_incl",
-    #     label="inclusive",
-    # )
-
-    # add_category(
-    #     cfg,
-    #     name="2j",
-    #     id=2,
-    #     selection="cat_2j",
-    #     label="2 jets",
-    # )
 
     # Override NLO DY xsec with NNLO prediction (DYTurbo + NNPDF 3.1)
     # NLO from amcatnlo: 6275 pb; NNLO: ~6688 pb (k=1.066)

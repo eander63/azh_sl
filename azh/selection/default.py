@@ -25,8 +25,6 @@ from columnflow.production.processes import process_ids
 from azh.selection.jet_selection import jet_selection
 from azh.selection.lepton_selection import lepton_selection
 from azh.selection.trigger import trigger_selection
-from columnflow.production.categories import category_ids
-from azh.config.categories import add_categories_production
     # met categories included via add_categories_met
 
 
@@ -37,7 +35,7 @@ ak = maybe_import("awkward")
 @selector(
     uses={
         process_ids, attach_coffea_behavior,
-        mc_weight, category_ids,
+        mc_weight,
         jet_selection, lepton_selection,
         increment_stats, trigger_selection, pu_weight,
         "Jet.btagDeepFlavB", "Jet.pt", "Jet.eta",
@@ -46,7 +44,7 @@ ak = maybe_import("awkward")
     },
     produces={
         process_ids, attach_coffea_behavior,
-        mc_weight, category_ids,
+        mc_weight,
         jet_selection, lepton_selection,
         increment_stats, trigger_selection, pu_weight,
         met_filters, json_filter, jet_veto_map,
@@ -135,11 +133,3 @@ def default(
     )
 
     return events, results
-
-
-@default.init
-def default_init(self: Selector) -> None:
-    # add production categories to config
-    if not self.config_inst.get_aux("has_categories_sel", False):
-        add_categories_production(self.config_inst)
-        self.config_inst.x.has_categories_sel = True

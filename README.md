@@ -236,6 +236,48 @@ not two.** The CR can't be validated until the selection is 3-lepton.
 - Deferred: high-pT GE correction (pt>200) for high-mass signal points;
   scale/iso systematics (pt_scale_var/pt_resol_var available in kit).
 
+### JME — Wired (nominal; systematics deferred; not tested) for 2022/2023
+
+Run-3 AK4 jets are PUPPI; corrections verified against the AK4PFPuppi JSONs.
+
+Jet energy (calibration):
+- JEC: jet_type = "AK4PFPuppi"; nominal only (jec_nominal, uncertainty_sources
+  empty — real sources deferred to the systematics pass). Campaign strings are
+  per-era via jerc_campaign, with the 2023 run-range split. AK4PFPuppi confirmed
+  for all four eras: Summer22_22Sep2023_V2, Summer22EE_22Sep2023_V2,
+  Summer23Prompt23, Summer23BPixPrompt23_V3. (Version tags differ V2/V3 across
+  eras; columnflow resolves the version from the file.)
+- JER: nominal (stock jer, MC), inherits the PUPPI campaign. Variations deferred.
+
+MET:
+- Swapped MET -> PuppiMET everywhere (categories baseline pT_miss cut,
+  higgs_reco chi2 top reconstruction, uses/produces, variables). PF MET cannot
+  be used with PUPPI jets. Ran green on SelectEvents (branch resolves on v12).
+
+Jet selection:
+- Endcap noise veto added to loose jets: in 2.5 < |eta| < 3.0 require pT > 50 GeV
+  (Run-3 EE eta-spike recommendation). Outer bound |eta| < 4.7 retained.
+- jetId: v12 packing {0,2,6} = {fail, tight, tightLepVeto}; loose uses >=2,
+  tight uses ==6. Read at selection, not kept in the reduced store (correct).
+
+Jet veto maps (selection):
+- Stock columnflow jet_veto_map applies "jetvetomap" (vetoes the 2022 EE water
+  leak) for all eras, and for 2023postBPix additionally folds in the negated
+  "jetvetomap_bpix" (FPix veto). Confirmed the postBPix condition fires for our
+  campaign (postfix.lower() == "bpix"). No override needed.
+
+Noise filters (met_filters), reconciled against the Run-3 (2022+2023) rec:
+- Applied: goodVertices, globalSuperTightHalo2016Filter,
+  EcalDeadCellTriggerPrimitiveFilter, BadPFMuonFilter, BadPFMuonDzFilter,
+  hfNoisyHitsFilter (added), eeBadScFilter, ecalBadCalibFilter (uncommented).
+- HBHENoiseFilter / HBHENoiseIsoFilter removed ("no longer needed" in Run 3).
+
+Deferred (systematics pass):
+- JEC uncertainty sources (Run-2-based per current JME rec; Regrouped_* present
+  in the file), JER variations (scaling method for 2.5 < |eta| < 3).
+- ecalBadCalibFilter uses the stored flag; a remade version may be recommended
+  for some Run-3 eras — revisit if MET tails look off.
+
 ## Resources
 
 [columnflow](https://github.com/columnflow/columnflow) ·

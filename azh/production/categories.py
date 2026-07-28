@@ -140,7 +140,7 @@ def catid_baseline(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Ar
     The lepton requirements moved to catid_2l / catid_3l; the b-jet count is
     applied by the region categorizers below.
     """
-    _require(events, "m_z", "MET", "cutflow")
+    _require(events, "m_z", "PuppiMET", "cutflow")
 
     mask = (
         (abs(events.m_z - Z_MASS) < Z_MASS_WINDOW) &

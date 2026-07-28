@@ -15,7 +15,7 @@ from columnflow.selection.stats import increment_stats
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
 from columnflow.selection.cms.json_filter import json_filter
-from columnflow.selection.cms.jets import jet_veto_map
+from azh.selection.jet_selection import jet_veto_map_azh as jet_veto_map
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight

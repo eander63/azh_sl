@@ -107,7 +107,7 @@ def add_variables(config: od.Config) -> None:
 
     config.add_variable(
         name="jets_btag",
-        expression="Jet.btagDeepFlavB",
+        expression="Jet.btagPNetB",
         binning=(20, 0, 1),
         unit="",
         x_title="Btag Score Deep Jet",

@@ -801,18 +801,16 @@ def add_config(
         cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
 
     # MET filters
-    # TODO: Different Met filters for different years
-    # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2018_2017_data_and_MC_UL
     cfg.x.met_filters = {
-        "Flag.goodVertices",
-        "Flag.globalSuperTightHalo2016Filter",
-        # "Flag.HBHENoiseFilter",
-        # "Flag.HBHENoiseIsoFilter",
-        "Flag.EcalDeadCellTriggerPrimitiveFilter",
-        "Flag.BadPFMuonFilter",
-        "Flag.BadPFMuonDzFilter",
-        "Flag.eeBadScFilter",
-        #"Flag.ecalBadCalibFilter",
+    "Flag.goodVertices",
+    "Flag.globalSuperTightHalo2016Filter",
+    "Flag.EcalDeadCellTriggerPrimitiveFilter",
+    "Flag.BadPFMuonFilter",
+    "Flag.BadPFMuonDzFilter",
+    "Flag.hfNoisyHitsFilter",
+    "Flag.eeBadScFilter",
+    "Flag.ecalBadCalibFilter",
+    # HBHENoiseFilter / HBHENoiseIsoFilter: removed, "no longer needed" in Run 3
     }
 
     # minimum bias cross section in mb (milli) for creating PU weights, values from

@@ -966,19 +966,10 @@ def add_config(
     # btag weight configuration
     from columnflow.production.cms.btag import SplitBTagSFConfig
     cfg.x.btag_sf = SplitBTagSFConfig(
-        # correction_set=("deepJet_light", "deepJet_comb"),
-        correction_set=("deepJet_light", "deepJet_comb"),
-        discriminator="btagDeepFlavB",
+        correction_set=("particleNET_light", "particleNet_comb"),
+        discriminator="btagPNetB",
         corrector_kwargs={"working_point": "M"},
     )
-    # cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
-    # from columnflow.production.cms.btag import BTagSFConfig
-    # cfg.x.btag_sf = BTagSFConfig(
-    # correction_set="deepJet_comb",
-    # jec_sources=cfg.x.btag_sf_jec_sources,
-    # discriminator="btagDeepFlavB",
-    # corrector_kwargs={"working_point": "T"},
-    # )
 
     # names of electron correction sets and working points
     # (used in the electron_sf producer)
@@ -1252,7 +1243,7 @@ def add_config(
         } | set(  # Jets
             f"{jet_obj}.{field}"
             for jet_obj in ["Jet"]
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagDeepFlavB", "hadronFlavour", "rawFactor", "btagDeepFlavQG"]
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagPNetB", "hadronFlavour", "rawFactor", "btagDeepFlavQG"]
         ) | set(  # BJets
             f"{jet_obj}.{field}"
             for jet_obj in ["BJet"]

@@ -10,7 +10,7 @@ ak = maybe_import("awkward")
 
 @producer(
     uses={
-        "Jet", "BJet", "MET.pt", "MET.phi"
+        "Jet", "BJet", "PuppiMET.pt", "PuppiMET.phi"
     },
     produces={
         "m_h", "m_a", "del_m", "n_jets", "n_bjets","deltaR_b_z","deltaPhi_MET_Jet1","deltaPhi_MET_Jet2","deltaPhi_MET_Jet3","MET_ht"
@@ -19,7 +19,7 @@ ak = maybe_import("awkward")
 def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     jets = events.Jet
     bjets = events.BJet
-    MET = events.MET
+    MET = events.PuppiMET
 
     index_jets = ak.argsort(jets.btagDeepFlavB, ascending=False, axis=-1)
     index_bjets = ak.argsort(bjets.btagDeepFlavB, ascending=False, axis=-1)

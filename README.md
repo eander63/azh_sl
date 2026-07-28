@@ -195,9 +195,9 @@ not two.** The CR can't be validated until the selection is 3-lepton.
   (not wired in, highPtId, pT>35, proper OSSF Z pairing). Pick one, delete the
   other.
 
-### POG Implementation
+# POG Implementation
 
-# LUM — Wired (not tested) for 2022/2023
+### LUM — Wired (not tested) for 2022/2023
 - Golden JSON + era-tagged inputs installed per era in config_run3.py
   (2022pre→BCD, 2022post→BCDEFG, 2023pre→BC, 2023post→D).
 - Pileup weight now via correctionlib (azh/production/pileup.py, reads pu_sf).
@@ -209,7 +209,7 @@ not two.** The CR can't be validated until the selection is 3-lepton.
   used to build the weight.
 - Deferred: minbias_xs up/down systematic (available in same JSON via "up"/"down").
 
-# EGM — Wired (not tested) for 2022/2023
+### EGM — Wired (not tested) for 2022/2023
 - Reco (RecoBelow20 / Reco20to75 / RecoAbove75) + ID (wp80iso) + trigger SFs,
   all four eras. Low-pt reco (10–20) added to cover the pt>10 loose floor.
 - phi argument (2023) and supercluster-eta handled automatically by stock
@@ -221,7 +221,7 @@ not two.** The CR can't be validated until the selection is 3-lepton.
   EGMScale_ElePTsplit_* / EGMSmearAndSyst_ElePTsplit_*.
 - CalibrateEvents ran cleanly on data (scale) and DY (smear).
 
-# MUO — Wired (not tested) for 2022/2023
+### MUO — Wired (not tested) for 2022/2023
 - ID (NUM_TightID_DEN_TrackerMuons) + ISO (NUM_TightPFIso_DEN_TightID) SFs:
   config tuples verified against file, all four eras.
 - Trigger SF: fixed from the IsoMu24-OR-highPt numerator to plain

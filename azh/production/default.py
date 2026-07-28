@@ -32,7 +32,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
     uses={
         category_ids, normalization_weights,
         weights, z_boson, higgs_reco, choose_lepton, three_lepton_info,
-        prepare_objects, event_weight, "MET.pt","MET.phi","process_id","cutflow*",
+        prepare_objects, event_weight, "PuppiMET.pt","PuppiMET.phi","process_id","cutflow*",
     },
     produces={
         category_ids, normalization_weights,

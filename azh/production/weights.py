@@ -168,7 +168,7 @@ def weights_init(self: Producer) -> None:
     if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
         # dynamically add dependencies if running on MC
         self.uses |= {
-            electron_weights, electron_id_weights, electron_mid_weights,
+            electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
             muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
             # zpt_reweight,  # DISABLED
@@ -176,7 +176,7 @@ def weights_init(self: Producer) -> None:
             trigger_weights, channel_lumi_weight,
         }
         self.produces |= {
-            electron_weights, electron_id_weights, electron_mid_weights,
+            electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
             muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
             # zpt_reweight,  # DISABLED

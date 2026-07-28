@@ -30,9 +30,11 @@ def jet_selection(
     # ── Loose jets (paper Table 1: pT > 15 GeV, |eta| < 4.7) ──
     # Used only for the ≥4-jet multiplicity cut
     loose_jet_mask = (
-        (events.Jet.pt > 15) &
-        (abs(events.Jet.eta) < 4.7) &
-        (events.Jet.jetId >= 2)  # at least tight
+    (events.Jet.pt > 15) &
+    (abs(events.Jet.eta) < 4.7) &
+    (events.Jet.jetId >= 2) &  # at least tight
+    # Run-3 EE-noise veto: within 2.5 < |eta| < 3.0, require pt > 50 GeV
+    ((events.Jet.pt > 50) | (abs(events.Jet.eta) <= 2.5) | (abs(events.Jet.eta) >= 3.0))
     )
     loose_jet_sel = ak.num(events.Jet[loose_jet_mask]) >= 2 # floor; >=4 is a category
     # also store a version that always passes (jet cut moved to categories)

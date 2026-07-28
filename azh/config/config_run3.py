@@ -951,7 +951,7 @@ def add_config(
                 "2022preEE": 0.7665, "2022postEE": 0.7665,"2023preBPix": 0.6553, "2023postBPix": 0.6563,
             }[btag_key],
         },
-        "particleNet": {
+        "particlenet": {
             "loose": {
                 "2022preEE": 0.047, "2022postEE": 0.0499,"2023preBPix": 0.0358, "2023postBPix": 0.0359,
             }[btag_key],

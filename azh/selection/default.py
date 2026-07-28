@@ -106,9 +106,6 @@ def default(
     # create process ids
     events = self[process_ids](events, **kwargs)
 
-    # build categories
-    events = self[category_ids](events, **kwargs)
-
     weight_map = {
         "num_events": Ellipsis,
         "num_events_selected": results.event,

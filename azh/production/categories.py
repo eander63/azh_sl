@@ -125,7 +125,7 @@ def catid_3l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
 # ---------------------------------------------------------------------
 
 @categorizer(
-    uses={"m_z", "MET.pt", "cutflow.n_jet_loose"},
+    uses={"m_z", "PuppiMET.pt", "cutflow.n_jet_loose"},
     call_force=True,
 )
 def catid_baseline(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
@@ -144,7 +144,7 @@ def catid_baseline(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Ar
 
     mask = (
         (abs(events.m_z - Z_MASS) < Z_MASS_WINDOW) &
-        (events.MET.pt > MET_CUT) &
+        (events.PuppiMET.pt > MET_CUT) &
         (events.cutflow.n_jet_loose >= N_JETS_MIN)
     )
     return events, ak.fill_none(mask, False)

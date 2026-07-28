@@ -1227,6 +1227,7 @@ def add_config(
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/D/pileup_JSON.txt", "v1"),
             },
         }))
+        cfg.x.jet_veto_map_type = "jetvetomap_all"   # ADD: standard veto + BPix region (JME Run-3)
     
     # columns to keep after certain steps
     cfg.x.keep_columns = DotDict.wrap({

@@ -203,11 +203,11 @@ def add_variables(config: od.Config) -> None:
         x_title="PNN output score",
     )
     config.add_variable(
-        name="MET",
-        expression="MET.pt",
+        name="PuppiMET",
+        expression="PuppiMET.pt",
         binning=(20, 0, 400),
         unit="",
-        x_title="MET $p_{T}$",
+        x_title="PuppiMET $p_{T}$",
     )
 
     config.add_variable(

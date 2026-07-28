@@ -10,7 +10,9 @@ ak = maybe_import("awkward")
 
 @producer(
     uses={
-        "Jet", "BJet", "PuppiMET.pt", "PuppiMET.phi"
+        "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.btagPNetB",
+        "BJet.pt", "BJet.eta", "BJet.phi", "BJet.mass", "BJet.btagPNetB",
+        "PuppiMET.pt", "PuppiMET.phi",
     },
     produces={
         "m_h", "m_a", "del_m", "n_jets", "n_bjets","deltaR_b_z","deltaPhi_MET_Jet1","deltaPhi_MET_Jet2","deltaPhi_MET_Jet3","MET_ht"

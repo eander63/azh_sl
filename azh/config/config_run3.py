@@ -966,7 +966,7 @@ def add_config(
     # btag weight configuration
     from columnflow.production.cms.btag import SplitBTagSFConfig
     cfg.x.btag_sf = SplitBTagSFConfig(
-        correction_set=("particleNET_light", "particleNet_comb"),
+        correction_set=("particleNet_light", "particleNet_comb"),
         discriminator="btagPNetB",
         corrector_kwargs={"working_point": "M"},
     )

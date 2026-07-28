@@ -40,15 +40,15 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     def _safe_p4(objs, n):
         objs = ak.pad_none(objs, n, axis=1)
         return ak.zip(
-            {
-                "pt": ak.fill_none(objs.pt, 0.0),
-                "eta": ak.fill_none(objs.eta, 0.0),
-                "phi": ak.fill_none(objs.phi, 0.0),
-                "mass": ak.fill_none(objs.mass, 0.0),
-            },
-            with_name="PtEtaPhiMLorentzVector",
-            behavior=events.behavior,
-        )
+        {
+            "pt": ak.fill_none(objs["pt"], 0.0),      # ["pt"] not .pt -> raw field
+            "eta": ak.fill_none(objs["eta"], 0.0),
+            "phi": ak.fill_none(objs["phi"], 0.0),
+            "mass": ak.fill_none(objs["mass"], 0.0),
+        },
+        with_name="PtEtaPhiMLorentzVector",
+        behavior=events.behavior,
+    )
 
     sorted_bjets = _safe_p4(sorted_bjets, 2)
     light_jets = _safe_p4(light_jets, 6)

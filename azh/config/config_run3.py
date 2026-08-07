@@ -487,7 +487,7 @@ def add_config(
         "data_muoneg_c",
         "data_muoneg_d",
         "ttw_amcatnlo",
-        "wwz_pythia",
+        "wwz_amcatnlo",
     ]),
     *if_era(year=2022, tag="postEE", values=[
         "data_mu_e",

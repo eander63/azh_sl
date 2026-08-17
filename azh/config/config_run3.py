@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 import re
+import logging
 from typing import Set
 
 import yaml
@@ -24,6 +25,8 @@ from columnflow.config_util import (
 )
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
+
+logger = logging.getLogger(__name__)
 
 def modify_cmsdb_processes():
     from cmsdb.processes import (
@@ -91,7 +94,7 @@ def add_config(
     config_id: int | None = None,
     limit_dataset_files: int | None = None,
 ) -> od.Config:
-    assert campaign.x.year in [2022, 2023]
+    assert campaign.x.year in [2022, 2023, 2024]
     if campaign.x.year == 2022:
         assert campaign.x.EE in ["pre", "post"]
     elif campaign.x.year == 2023:
@@ -103,11 +106,17 @@ def add_config(
         corr_postfix = f"{campaign.x.EE}EE"
     elif year == 2023:
         corr_postfix = f"{campaign.x.BPix}BPix"
+    # 2024 is a single, undivided era -> corr_postfix stays ""
+    # canonical era key used throughout this function: one of
+    # "2022preEE", "2022postEE", "2023preBPix", "2023postBPix", "2024"
+    era_key = f"{year}{corr_postfix}"
 
     implemented_years = [2022,2023]
 
     if year not in implemented_years:
-        raise NotImplementedError("For now, only 2022+2023 campaign is fully implemented")
+        raise NotImplementedError(f"year {year} is not implemented")
+
+    cfg_unverified = []
 
     procs = get_root_processes_from_campaign(campaign)
 
@@ -124,6 +133,9 @@ def add_config(
     colors = {
         "dy_hf": "#C7FF33",
         "dy_lf": "#FBFF36",
+        "dy_ee": "#C7FF33",
+        "dy_mumu": "#FBFF36",
+        "du_tautau": "#9ACD32"
         "data": "#000000",  # black
         "tt": "#E04F21",  # red
         "ttv": "#5E8FFC",  # blue
@@ -417,6 +429,10 @@ def add_config(
         "azh_htt_zll_a950_h850",
     ]
     # print(process_names)
+    if year == 2024:
+        process_names = [p for p in process_names if p not in ("dy_hf", "dy_lf")]
+        process_names = ["dy_ee", "dy_mumu", "dy_tautau"] + process_names
+    
     for process_name in process_names:
         cfg.add_process(procs.get(process_name))
         cfg.get_process(process_name).color1 = colors.get(process_name, "#aaaaaa")
@@ -447,9 +463,23 @@ def add_config(
         return list(filter(bool, values or [])) if not _match_era(**kwargs) else []
 
     dataset_names = [
-    # DY — use inclusive amcatnlo samples (no stitching needed)
+    # DY
+    # 2022/23: inclusive amcatnlo samples (no stitching needed).
+    # 2024: no lepton-inclusive DY was produced, so the three flavour-split
+    # samples are summed instead. m50toinf is amcatnlo as before; m10to50 only
+    # exists as powheg for 2024, so the low-mass generator differs by era.
+    *if_not_era(year=2024, values=[
         "dy_m50toinf_amcatnlo",
         "dy_m10to50_amcatnlo",
+    ]),
+    *if_era(year=2024, values=[
+        "dy_ee_m50toinf_amcatnlo",
+        "dy_mumu_m50toinf_amcatnlo",
+        "dy_tautau_m50toinf_amcatnlo",
+        "dy_ee_m10to50_powheg",
+        "dy_mumu_m10to50_powheg",
+        "dy_tautau_m10to50_powheg",
+    ]),
 
     # TTbar
         "tt_sl_powheg",
@@ -464,12 +494,20 @@ def add_config(
         "tth_hnonbb_powheg",
 
     # Single top
+    # 2024 splits t-channel into leptonic / hadronic top decays; only the
+    # leptonic part can contribute to a 2l/3l selection.
+    *if_not_era(year=2024, values=[
         "st_tchannel_t_4f_powheg",
         "st_tchannel_tbar_4f_powheg",
+    ]),
+    *if_era(year=2024, values=[
+        "st_tchannel_t_lep_4f_powheg",
+        "st_tchannel_tbar_lep_4f_powheg",
         "st_twchannel_t_sl_powheg",
         "st_twchannel_tbar_sl_powheg",
         "st_twchannel_t_dl_powheg",
         "st_twchannel_tbar_dl_powheg",
+    ])
 
     # Diboson
         "ww_pythia",
@@ -523,6 +561,7 @@ def add_config(
         "data_muoneg_d2",
     ]),
     ]
+    
 
     for dataset_name in dataset_names:
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
@@ -533,17 +572,22 @@ def add_config(
         if dataset.name.startswith("tt"):
             dataset.add_tag({"is_ttbar"})
         if dataset.name.startswith("dy"):
-            dataset.add_tag({"is_dy"})
+            if not re.match(r"^dy_(ee|mumu|tautau)_", dataset.name):
+                dataset.add_tag({"is_dy"})
         if dataset.name.startswith("azh"):
             dataset.add_tag({"is_signal"})
         if dataset.name.startswith("data_mu"):
             dataset.add_tag("mu")
-        if dataset.name.startswith("data_egamma"):
+        if dataset.name.startswith("data_egamma") or dataset.name.startswith("data_e_"):
             dataset.add_tag("egamma")
         if dataset.name.startswith("data_muoneg"):
             dataset.add_tag({"mu", "egamma"})
         # For 2023, data JEC keys have no run-dependent segment in the JSON
         if dataset.name.startswith("data") and year == 2023:
+            dataset.set_aux("jec_era", "")
+        # 2024 ships a single combined CDE-reprocessing + FGHI-prompt JEC key,
+        # so the run-dependent segment is empty here too.
+        if dataset.name.startswith("data") and year == 2024:
             dataset.set_aux("jec_era", "")
 
     # ------------------------------------------------------------------
@@ -755,6 +799,12 @@ def add_config(
             cfg.x.luminosity = Number(9693, {
                 "lumi_13TeV_correlated": 0.013j,
             })
+    elif year == 2024:
+        # 2024 golden-JSON integrated luminosity, runs 378981-386951.
+        # Not brilcalc-verified locally -- taken from the CMS 2024 recommendation.
+        cfg.x.luminosity = Number(109948, {
+            "lumi_13TeV_correlated": 0.016j,
+        })
     else:
         raise NotImplementedError(f"Luminosity for year {year} is not defined.")
 
@@ -773,6 +823,8 @@ def add_config(
     elif year == 2023 and campaign.x.BPix == "pre":
         cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
     elif year == 2023 and campaign.x.BPix == "post":
+        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
+    elif year == 2024:
         cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
 
     # MET filters
@@ -809,7 +861,11 @@ def add_config(
         if campaign.x.BPix == "post":
             jerc_postfix = "BPix"
 
-        jerc_campaign = f"Summer{year2}{jerc_postfix}Prompt23"
+            jerc_campaign = f"Summer{year2}{jerc_postfix}Prompt23"
+
+    if year == 2024:
+        jerc_postfix = ""
+        jerc_campaign = f"Summer{year2}Prompt24"
 
     jet_type = "AK4PFPuppi"
 
@@ -832,7 +888,8 @@ def add_config(
     else:
         cfg.x.jec = DotDict.wrap({
             "campaign": jerc_campaign,
-            "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2", 2023: "V3"}[year],
+            "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2", 2023: "V2", 2024: "V5",
+            }[year],
             "jet_type": jet_type,
             "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
             "levels_for_type1_met": ["L1FastJet"],
@@ -845,7 +902,7 @@ def add_config(
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
     cfg.x.jer = DotDict.wrap({
         "campaign": jer_campaign,
-        "version": {2022: "JRV1", 2023:"JRV1"}[year],
+            "version": {2022: "JRV1", 2023: "JRV1", 2024: "JRV2"}[year],
         "jet_type": jet_type,
     })
 
@@ -893,42 +950,82 @@ def add_config(
     ]
 
     # b-tag working points
-    if year == 2022:
-        btag_key = f"2022{campaign.x.EE}EE" 
-    if year == 2023:
-        btag_key = f"2023{campaign.x.BPix}BPix" 
+    # BTV published no ParticleNet / DeepJet working points for 2024; the
+    # recommended Run-3 2024 tagger is UParT (btagUParTAK4B). Hence the
+    # per-era dicts below are None where a tagger is not supported, and
+    # cfg.x.btag_default selects the era-appropriate one.
+    btag_key = era_key
 
     cfg.x.btag_working_points = DotDict.wrap({
         "deepjet": {
             "loose": {
-                "2022preEE": 0.0583, "2022postEE": 0.0614,"2023preBPix": 0.0479, "2023postBPix": 0.048,
+                "2022preEE": 0.0583, "2022postEE": 0.0614,"2023preBPix": 0.0479, "2023postBPix": 0.048, "2024": None,
             }[btag_key],
             "medium": {
-                "2022preEE": 0.3086, "2022postEE": 0.3196,"2023preBPix": 0.2431, "2023postBPix": 0.2435,
+                "2022preEE": 0.3086, "2022postEE": 0.3196,"2023preBPix": 0.2431, "2023postBPix": 0.2435, "2024": None,
             }[btag_key],
             "tight": {
-                "2022preEE": 0.7183, "2022postEE": 0.7300,"2023preBPix": 0.6553, "2023postBPix": 0.6563,
+                "2022preEE": 0.7183, "2022postEE": 0.7300,"2023preBPix": 0.6553, "2023postBPix": 0.6563, "2024": None,
             }[btag_key],
         },
         "particlenet": {
             "loose": {
-                "2022preEE": 0.047, "2022postEE": 0.0499,"2023preBPix": 0.0358, "2023postBPix": 0.0359,
+                "2022preEE": 0.047, "2022postEE": 0.0499,"2023preBPix": 0.0358, "2023postBPix": 0.0359, "2024": None,
             }[btag_key],
             "medium": {
-                "2022preEE": 0.245, "2022postEE": 0.2605,"2023preBPix": 0.1917, "2023postBPix": 0.1919,
+                "2022preEE": 0.245, "2022postEE": 0.2605,"2023preBPix": 0.1917, "2023postBPix": 0.1919, "2024": None,
             }[btag_key],
             "tight": {
-                "2022preEE": 0.6734, "2022postEE": 0.6915,"2023preBPix": 0.6172, "2023postBPix": 0.6133,
+                "2022preEE": 0.6734, "2022postEE": 0.6915,"2023preBPix": 0.6172, "2023postBPix": 0.6133, "2024": None,
+            }[btag_key],
+         },
+        # 2024 only; values correspond to the "UParTAK4_wp_values" correction
+        # set in the BTV correctionlib file.
+        "upart": {
+            "loose": {
+                "2022preEE": None, "2022postEE": None, "2023preBPix": None, "2023postBPix": None,
+                "2024": 0.0246,
+            }[btag_key],
+            "medium": {
+                "2022preEE": None, "2022postEE": None, "2023preBPix": None, "2023postBPix": None,
+                "2024": 0.1272,
+            }[btag_key],
+            "tight": {
+                "2022preEE": None, "2022postEE": None, "2023preBPix": None, "2023postBPix": None,
+                "2024": 0.4648,
             }[btag_key],
         },
     })
+
+    # Era-appropriate tagger, consumed by jet_selection / higgs_reco / variables
+    # instead of hard-coding a discriminator column. For 2022/23 this resolves to
+    # exactly the previous behaviour (ParticleNet medium), so existing stores stay
+    # valid and no version bump is needed for those configs.
+    _btag_name = "upart" if year == 2024 else "particlenet"
+    cfg.x.btag_default = DotDict.wrap({
+        "name": _btag_name,
+        "column": "btagUParTAK4B" if year == 2024 else "btagPNetB",
+        "wp": cfg.x.btag_working_points[_btag_name].medium,
+    })
+
     # btag weight configuration
     from columnflow.production.cms.btag import SplitBTagSFConfig
-    cfg.x.btag_sf = SplitBTagSFConfig(
-        correction_set=("particleNet_light", "particleNet_comb"),
-        discriminator="btagPNetB",
-        corrector_kwargs={"working_point": "M"},
-    )
+    if year == 2024:
+        cfg.x.btag_sf = SplitBTagSFConfig(
+            correction_set=("unifiedParTAK4_light", "unifiedParTAK4_comb"),
+            discriminator="btagUParTAK4B",
+            corrector_kwargs={"working_point": "M"},
+        )
+        cfg_unverified.append(
+            "btag_sf correction-set names for UParT ('unifiedParTAK4_light' / "
+            "'_comb') -- confirm against the 2024 BTV correctionlib file",
+        )
+    else:
+        cfg.x.btag_sf = SplitBTagSFConfig(
+            correction_set=("particleNet_light", "particleNet_comb"),
+            discriminator="btagPNetB",
+            corrector_kwargs={"working_point": "M"},
+        )
 
     # names of electron correction sets and working points
     # (used in the electron_sf producer)
@@ -956,14 +1053,31 @@ def add_config(
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptC", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
         cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023preBPIX", "EGMSmearAndSyst_ElePTsplit_2023preBPIX")
+    elif era_key == "2024":
+        cfg.x.electron_sf_names = ("Electron-ID-SF", "2024Prompt", "RecoAbove75")
+        cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2024Prompt", "Reco20to75")
+        cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2024Prompt", "RecoBelow20")
+        cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2024Prompt", "wp80iso")
+        cfg.x.electron_ss_names = (
+            "EGMScale_ElePTsplit_2024", "EGMSmearAndSyst_ElePTsplit_2024",
+        )
+        cfg_unverified.append(
+            "electron_ss_names for 2024 -- the EGMScale/EGMSmear key naming was "
+            "only confirmed for 2022/23; introspect electronSS_EtDependent.json",
+        )
     # names of muon correction sets and working points
     # (used in the muon producer)
     # TightID muon SF chain (from muon_Z.json):
     # SF(TightID|Tracker) x SF(TightPFIso|TightID) x SF(IsoMu24|TightID+PFIso)
     # Valid down to ~15 GeV (Z tag-and-probe), matching our selection threshold
-    cfg.x.muon_sf_id_names = ("NUM_TightID_DEN_TrackerMuons", f"{year}{corr_postfix}")
-    cfg.x.muon_sf_iso_names = ("NUM_TightPFIso_DEN_TightID", f"{year}{corr_postfix}")
-    cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight", f"{year}{corr_postfix}")
+    cfg.x.muon_sf_id_names = ("NUM_TightID_DEN_TrackerMuons", era_key)
+    cfg.x.muon_sf_iso_names = ("NUM_TightPFIso_DEN_TightID", era_key)
+    cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight", era_key)
+    if year == 2024:
+        cfg_unverified.append(
+            "muon_sf_* era key -- these pass era_key ('2024') straight into "
+            "muon_Z.json; confirm MUO uses that exact string for 2024",
+        )
     # era-branched HLT electron SF. VERIFY the period string AND the HLT category
     # ("HLT_SF_Ele30_MVAiso80ID") against electronHlt.json per era (introspection cmd).
     if f"{year}{corr_postfix}" == "2022preEE":
@@ -974,7 +1088,14 @@ def add_config(
         cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2023PromptC", "HLT_SF_Ele30_MVAiso80ID")
     elif f"{year}{corr_postfix}" == "2023postBPix":
         cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2023PromptD", "HLT_SF_Ele30_MVAiso80ID")
-
+    elif era_key == "2024":
+        cfg.x.electron_sf_trig_names = (
+            "Electron-HLT-SF", "2024Prompt", "HLT_SF_Ele30_MVAiso80ID",
+        )
+        cfg_unverified.append(
+            "electron_sf_trig_names period string '2024Prompt' and HLT category "
+            "-- introspect electronHlt.json for 2024",
+        )
     cfg.x.top_pt_reweighting_params = {
         "a": 0.0615,
         "b": -0.0005,
@@ -1079,6 +1200,8 @@ def add_config(
         corr_tag = f"{year}_Summer22{jerc_postfix}"
     if year == 2023:
         corr_tag = f"{year}_Summer23{jerc_postfix}"
+    if year == 2024:
+        corr_tag = f"{year}_Summer24"
     cfg.x.external_files = DotDict.wrap({
         # pileup weight corrections
         "pu_sf": (f"{json_mirror}/POG/LUM/{corr_tag}/puWeights.json.gz", "v1"),
@@ -1112,7 +1235,9 @@ def add_config(
             "2022postEE":  "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2022_Summer22EE/muon_scalesmearing.json.gz",
             "2023preBPix": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2023_Summer23/muon_scalesmearing.json.gz",
             "2023postBPix":"/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2023_Summer23BPix/muon_scalesmearing.json.gz",
-        }[f"{year}{corr_postfix}"], "v1"),
+            "2023postBPix":"/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2023_Summer23BPix/muon_scalesmearing.json.gz",
+            "2024":        "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2024_Summer24/muon_scalesmearing.json.gz",  # noqa
+        }[era_key], "v1"),
 
         # electron scale & smearing
         "electron_ss": (f"{json_mirror}/POG/EGM/{corr_tag}/electronSS_EtDependent.json.gz", "v1"),
@@ -1159,6 +1284,24 @@ def add_config(
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/D/pileup_JSON.txt", "v1"),
             },
         }))
+    elif year == 2024:
+        cfg.x.external_files.update(DotDict.wrap({
+            "lumi": {
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json", "v1"),  # noqa
+                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
+            },
+            "pu": {
+                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/PileUp/pileup_JSON.txt", "v1"),  # noqa
+            },
+        }))
+        cfg_unverified.append(
+            "2024 pileup JSON URL -- the Collisions24 PileUp area may be split "
+            "per era-range rather than exposing a single pileup_JSON.txt",
+        )
+        cfg_unverified.append(
+            "2024 puWeights.json.gz -- LUM may ship this as puWeights_BCDEFGHI.json.gz "
+            "rather than the plain name built from corr_tag above",
+        )
     
     # columns to keep after certain steps
     cfg.x.keep_columns = DotDict.wrap({
@@ -1184,11 +1327,13 @@ def add_config(
         } | set(  # Jets
             f"{jet_obj}.{field}"
             for jet_obj in ["Jet"]
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", "btagPNetB", "hadronFlavour", "rawFactor", "btagDeepFlavQG"]
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", cfg.x.btag_default.column, "hadronFlavour", "rawFactor", "btagDeepFlavQG"]  # noqa
         ) | set(  # BJets
             f"{jet_obj}.{field}"
             for jet_obj in ["BJet"]
-            for field in ["pt", "eta", "phi", "mass", "btagPNetB", "hadronFlavour"]
+            for field in [
+                "pt", "eta", "phi", "mass", cfg.x.btag_default.column, "hadronFlavour",
+            ]
         )
           | set(  # Muons
             f"{mu_obj}.{field}"
@@ -1278,9 +1423,21 @@ def add_config(
     if year == 2022:
         from azh.config.triggers import add_triggers_2022
         add_triggers_2022(cfg)
-    if year == 2023:
-        from azh.config.triggers import add_triggers_2023
-        add_triggers_2023(cfg)
+    if year == 2024:
+        from azh.config.triggers import add_triggers_2024
+        add_triggers_2024(cfg)
+        cfg_unverified.append(
+            "2024 trigger filter bits -- NanoAOD v15 repacked the electron "
+            "TrigObj filterBits relative to v12; see azh/config/triggers.py",
+        )
+
+    # surface everything that still needs checking against the real files
+    if cfg_unverified:
+        logger.warning(
+            f"config '{cfg.name}' uses {len(cfg_unverified)} unverified setting(s):\n" +
+            "\n".join(f"  - {s}" for s in cfg_unverified),
+        )
+    cfg.x.unverified_settings = cfg_unverified
 
     # only produce cutflow features when number of dataset_files is limited (used in selection module)
     cfg.x.do_cutflow_features = bool(limit_dataset_files) and limit_dataset_files <= 10

@@ -890,7 +890,9 @@ def add_config(
     if not jerc_postfix == "BPix":
         cfg.x.jec = DotDict.wrap({
             "campaign": jerc_campaign,
-            "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2", 2023: "V2"}[year],
+            "version": {
+                2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2", 2023: "V2", 2024: "V5",
+            }[year],
             "jet_type": jet_type,
             "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
             "levels_for_type1_met": ["L1FastJet"],

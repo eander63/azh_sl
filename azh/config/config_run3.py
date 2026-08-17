@@ -135,7 +135,7 @@ def add_config(
         "dy_lf": "#FBFF36",
         "dy_ee": "#C7FF33",
         "dy_mumu": "#FBFF36",
-        "du_tautau": "#9ACD32"
+        "du_tautau": "#9ACD32",
         "data": "#000000",  # black
         "tt": "#E04F21",  # red
         "ttv": "#5E8FFC",  # blue

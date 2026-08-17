@@ -105,12 +105,14 @@ def add_variables(config: od.Config) -> None:
         x_title="Number of bjets",
     )
 
+    # discriminator column is era-dependent: ParticleNet (2022/23) vs UParT (2024)
+    _btag = config.x.btag_default
     config.add_variable(
         name="jets_btag",
-        expression="Jet.btagPNetB",
+        expression=f"Jet.{_btag.column}",
         binning=(20, 0, 1),
         unit="",
-        x_title="Btag Score Deep Jet",
+        x_title=f"b tag score ({_btag.name})",
     )
 
     config.add_variable(

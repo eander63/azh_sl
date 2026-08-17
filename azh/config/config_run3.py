@@ -573,6 +573,13 @@ def add_config(
         "data_muoneg_d1",
         "data_muoneg_d2",
     ]),
+    # 2024 runs C-I. Note the EGamma primary dataset is called "data_e_*" here,
+    # not "data_egamma_*" as in 2022/23 -- see the tagging block below.
+    *if_era(year=2024, values=[
+        *[f"data_mu_{e}" for e in "cdefghi"],
+        *[f"data_e_{e}" for e in "cdefghi"],
+        *[f"data_muoneg_{e}" for e in "cdefghi"],
+    ]),
     ]
     
 

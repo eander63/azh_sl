@@ -73,6 +73,7 @@ import cmsdb.campaigns.run3_2022_preEE_nano_v12
 import cmsdb.campaigns.run3_2022_postEE_nano_v12
 import cmsdb.campaigns.run3_2023_preBPix_nano_v12
 import cmsdb.campaigns.run3_2023_postBPix_nano_v12
+import cmsdb.campaigns.run3_2024_nano_v15
 # import cmsdb.campaigns.run3_2022_postEE_nano_v12
 # from cmsdb.campaigns.run2_2017_nano_v9 import campaign_run2_2017_nano_v9
 # import cmsdb.campaigns.run2_2017_nano_v9
@@ -85,6 +86,11 @@ campaign_run3_2023_preBPix_nano_v12 = cmsdb.campaigns.run3_2023_preBPix_nano_v12
 campaign_run3_2023_preBPix_nano_v12.x.BPix = "pre"
 campaign_run3_2023_postBPix_nano_v12 = cmsdb.campaigns.run3_2023_postBPix_nano_v12.campaign_run3_2023_postBPix_nano_v12
 campaign_run3_2023_postBPix_nano_v12.x.BPix = "post"
+# 2024 is a single undivided era, so there is no pre/post aux to set here.
+# Note this campaign is NanoAOD v15, not v12 like the four above.
+campaign_run3_2024_nano_v15 = (
+    cmsdb.campaigns.run3_2024_nano_v15.campaign_run3_2024_nano_v15
+)
 
 # copy the campaign
 # (creates copies of all linked datasets, processes, etc. to allow for encapsulated customization)
@@ -154,11 +160,30 @@ config_2023post_limited = add_config(
     config_id=42,
     limit_dataset_files=1,
 )
+#2024
+config_2024 = add_config(
+    analysis_azh,
+    campaign_run3_2024_nano_v15.copy(),
+    config_name="config_2024",
+    config_id=5,
+)
+config_2024_limited = add_config(
+    analysis_azh,
+    campaign_run3_2024_nano_v15.copy(),
+    config_name="config_2024_limited",
+    config_id=52,
+    limit_dataset_files=1,
+)
 
 # config group: fan out across all four Run 3 eras with --configs run3.
 # NOTE: cf resolves these entries with law.util.brace_expand (strings), so use
 # config *names* here, not the Config objects.
 analysis_azh.x.config_groups["run3"] = [
+    "config_2022pre", "config_2022post", "config_2023pre", "config_2023post",
+    "config_2024",
+]
+# the four NanoAOD v12 eras only, i.e. everything the AZH signal samples exist for
+analysis_azh.x.config_groups["run3_v12"] = [
     "config_2022pre", "config_2022post", "config_2023pre", "config_2023post",
 ]
 # # get all root processes

@@ -95,25 +95,80 @@ the store path, so renaming them orphans the existing store. Leave them ugly.
 
 ### Configs
 
-Nine configs, four eras, NanoAOD v12. Built in
-`azh/config/analysis_azh_run3.py`; the real content is
-`azh/config/config_run3.py`.
+Eleven configs, five eras. Built in `azh/config/analysis_azh_run3.py`; the real
+content is `azh/config/config_run3.py`.
 
-| Config | Lumi (pb⁻¹) |
-|---|---|
-| `config_2022pre` | 7990 |
-| `config_2022post` | 26675 |
-| `config_2023pre` | 18062 |
-| `config_2023post` | 9693 |
+| Config | Lumi (pb⁻¹) | NanoAOD | Signal |
+|---|---|---|---|
+| `config_2022pre` | 7990 | v12 | yes |
+| `config_2022post` | 26675 | v12 | yes |
+| `config_2023pre` | 18062 | v12 | yes |
+| `config_2023post` | 9693 | v12 | yes |
+| `config_2024` | 109948 | v15 | no |
 
 Each era has a `_limited` variant (1 file per dataset) for fast iteration;
-`config_2022pre` also has `config_2022pre_10files`. The group `run3` fans out
-across all four full eras: `--configs run3`.
+`config_2022pre` also has `config_2022pre_10files`. Config groups:
 
-2024/2025 are **not supported**: cmsdb has no run3_2024/2025 campaign, and LUM
-ships no 2024 pileup file. Re-check periodically; when both appear, the
-table-driven era config makes adding a row cheap.
+- `--configs run3` — all five eras
+- `--configs run3_v12` — the four v12 eras, i.e. everything the AZH signal
+  samples exist for
 
+2025/2026 are **not supported**: those cmsdb campaigns contain data PDs only,
+no MC.
+
+### 2024
+
+2024 is a single undivided era (no pre/post split), so `corr_postfix` is `""`
+and the era key is just `"2024"`. Three things differ structurally from
+2022/23, beyond the usual per-era correction values:
+
+**b tagging.** BTV published no ParticleNet or DeepJet working points for 2024;
+the recommended tagger is UParT. `cfg.x.btag_default` carries the
+era-appropriate `{name, column, wp}` and is consumed by `jet_selection`,
+`higgs_reco`, `variables` and `keep_columns` instead of a hard-coded
+`btagPNetB`. For 2022/23 it resolves to ParticleNet medium — identical to the
+previous behaviour, so existing 22/23 stores stay valid and need no version
+bump. This matters for `sr_1b` / `sr_2b`, which are defined by b-jet count.
+
+**Drell-Yan.** 2024 has no lepton-inclusive DY sample, so the three
+flavour-split ones (`dy_{ee,mumu,tautau}_m50toinf_amcatnlo` plus the `m10to50`
+powheg equivalents) are used instead. Note the low-mass generator therefore
+differs by era. These datasets are deliberately **not** tagged `is_dy`, because
+`dy_producer` needs `<base>_<njet>j_<hf|lf>` child processes that cmsdb does not
+define for the flavour-split processes. They instead get a plain `process_id`
+from their own leaf process, and the config registers `dy_ee` / `dy_mumu` /
+`dy_tautau` in place of `dy_hf` / `dy_lf`.
+
+**No signal.** The 2024 campaign ships no `azh.py`, so all `azh_htt_zll_*`
+entries are stripped from `process_names`. Anything resolving a signal process
+by name against `config_2024` will fail — use `--configs run3_v12`.
+
+Primary datasets: the EGamma PD is `data_e_*` in 2024, not `data_egamma_*`.
+Both get the `egamma` tag so `Trigger.applies_to_dataset` is unaffected. Eras
+run C–I. Sanity numbers: 43 datasets, 22 MC + 21 data.
+
+#### 2024 open items
+
+Settings transcribed from POG docs or a sister analysis but not checked against
+the actual files are collected per config in `cfg.x.unverified_settings` and
+logged as a warning at config build. Clear an entry once verified.
+
+| Item | What to do |
+|---|---|
+| Trigger filter bits | v15 repacked the electron `TrigObj.filterBits`; `add_triggers_2024` uses bit 18 for Ele30 (v12 used bit 19, a *different* filter in v15). A wrong bit does not raise — check the trigger-matching turn-on vs. offline pT. |
+| `pu_sf` / pileup JSON | LUM may ship 2024 as `puWeights_BCDEFGHI.json.gz` rather than the plain name from `corr_tag`, and the Collisions24 PileUp area may be split per era-range. Check on `/cvmfs`. |
+| btag SF correction sets | `unifiedParTAK4_light` / `_comb` — confirm against the 2024 BTV correctionlib file. |
+| `muon_sf_*` era key | These pass `"2024"` straight into `muon_Z.json`; confirm MUO uses that string. |
+| `electron_ss_names`, `electron_sf_trig_names` | The `EGMScale_ElePTsplit_2024` / `2024Prompt` keys follow the 2022/23 pattern; introspect the 2024 EGM files. |
+| `channel_lumis` | Left at 1.0 (muon = egamma = nominal). Re-derive with brilcalc per PD if the two PDs do not run end-to-end. |
+| Luminosity | 109948 pb⁻¹ for runs 378981–386951 is the central recommendation, not locally brilcalc-verified. |
+| W+jets | Dropped for 2024 — only jet-binned madgraph (no 0j bin) and pt-binned amcatnlo exist, both needing stitching. Small in 2l/3l, but add it back before unblinding. |
+| DY hf/lf split | Needs `dy_{flav}_m50toinf_{0..3}j_{hf,lf}` processes in `modify_cmsdb_processes` plus a flavour-aware `base_proc_name` in `dy_producer`. Decide first whether 2024 DY should be njet-split at all. |
+| Single top | 2024 uses the `_lep_` t-channel samples; `_had_` omitted as it cannot pass a 2l/3l selection. |
+
+Note: the cmsdb `azh_run3` branch renamed `wwz_pythia` → `wwz_amcatnlo`
+(generator change, not just a rename) in the 2022preEE campaign. Diboson
+normalisation is not directly comparable across the submodule switch.
 ---
 
 ## Running

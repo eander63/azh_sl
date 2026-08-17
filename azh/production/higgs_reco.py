@@ -9,9 +9,11 @@ ak = maybe_import("awkward")
 
 
 @producer(
+    # the b-tag discriminator column is era-dependent (ParticleNet for 2022/23,
+    # UParT for 2024) and is added dynamically in higgs_reco_init below
     uses={
-        "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.btagPNetB",
-        "BJet.pt", "BJet.eta", "BJet.phi", "BJet.mass", "BJet.btagPNetB",
+        "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass",
+        "BJet.pt", "BJet.eta", "BJet.phi", "BJet.mass",
         "PuppiMET.pt", "PuppiMET.phi",
     },
     produces={
@@ -23,13 +25,13 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     bjets = events.BJet
     MET = events.PuppiMET
 
-    index_jets = ak.argsort(jets.btagPNetB, ascending=False, axis=-1)
-    index_bjets = ak.argsort(bjets.btagPNetB, ascending=False, axis=-1)
+    btag = self.config_inst.x.btag_default
+    index_jets = ak.argsort(jets[btag.column], ascending=False, axis=-1)
+    index_bjets = ak.argsort(bjets[btag.column], ascending=False, axis=-1)
     sorted_jets = jets[index_jets]
     sorted_bjets = bjets[index_bjets]
 
-    wp_med = self.config_inst.x.btag_working_points.particlenet.medium
-    light_jets_mask = jets.btagPNetB < wp_med
+    light_jets_mask = jets[btag.column] < btag.wp
     light_jets = jets[light_jets_mask]
 
     # The h reconstruction below adds these objects as 4-vectors inside nested
@@ -147,3 +149,8 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column(events, "deltaPhi_MET_Jet3", deltaPhi_MET_Jet3)
     events = set_ak_column(events, "MET_ht", MET_ht)
     return events
+
+@higgs_reco.init
+def higgs_reco_init(self: Producer, **kwargs) -> None:
+    column = self.config_inst.x.btag_default.column
+    self.uses |= {f"Jet.{column}", f"BJet.{column}"}

@@ -429,10 +429,16 @@ def add_config(
         "azh_htt_zll_a950_h850",
     ]
     # print(process_names)
+    # 2024 has no lepton-inclusive DY sample and no hf/lf children for the
+    # flavour-split ones, so register dy_ee / dy_mumu / dy_tautau instead of
+    # dy_hf / dy_lf. See the dataset list and the is_dy tagging below.
+    # The 2024 campaign also ships no azh.py, so none of the signal processes
+    # exist there yet -- drop them rather than failing on procs.get().
     if year == 2024:
         process_names = [p for p in process_names if p not in ("dy_hf", "dy_lf")]
+        process_names = [p for p in process_names if not p.startswith("azh_")]
         process_names = ["dy_ee", "dy_mumu", "dy_tautau"] + process_names
-    
+
     for process_name in process_names:
         cfg.add_process(procs.get(process_name))
         cfg.get_process(process_name).color1 = colors.get(process_name, "#aaaaaa")

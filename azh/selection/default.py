@@ -38,7 +38,9 @@ ak = maybe_import("awkward")
         mc_weight,
         jet_selection, lepton_selection,
         increment_stats, trigger_selection, pu_weight,
-        "Jet.btagPNetB", "Jet.pt", "Jet.eta",
+        # Jet.<btag discriminator> comes in via jet_selection's own init,
+        # which resolves the era-dependent column from cfg.x.btag_default
+        "Jet.pt", "Jet.eta",
         "PuppiMET.pt",
         met_filters, json_filter, jet_veto_map,
     },

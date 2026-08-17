@@ -10,7 +10,9 @@ from columnflow.selection.cms.jets import jet_veto_map
 ak = maybe_import("awkward")
 
 @selector(
-    uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId", "Jet.btagPNetB"},
+    # the b-tag discriminator column is era-dependent (ParticleNet for 2022/23,
+    # UParT for 2024) and is added dynamically in jet_selection_init below
+    uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId"},
     produces={
         "cutflow.n_jet", "cutflow.n_jet_loose", "cutflow.n_bjet",
         "cutflow.jet1_pt", "cutflow.jet2_pt", "cutflow.jet3_pt", "cutflow.jet4_pt",
@@ -49,9 +51,11 @@ def jet_selection(
     )
     events = set_ak_column(events, "cutflow.n_jet", ak.sum(jet_mask, axis=1))
 
-    # ── B-tagging (medium DeepJet on tight jets) ──
-    wp_med = self.config_inst.x.btag_working_points.particlenet.medium
-    bjet_mask = jet_mask & (events.Jet.btagPNetB >= wp_med)
+    # ── B-tagging (medium WP on tight jets) ──
+    # tagger and WP come from cfg.x.btag_default: ParticleNet for 2022/23,
+    # UParT for 2024 (BTV published no ParticleNet WPs for 2024)
+    btag = self.config_inst.x.btag_default
+    bjet_mask = jet_mask & (events.Jet[btag.column] >= btag.wp)
     events = set_ak_column(events, "cutflow.n_bjet", ak.sum(bjet_mask, axis=1))
 
     jet_indices = masked_sorted_indices(jet_mask, events.Jet.pt)
@@ -84,3 +88,7 @@ def jet_selection(
             "n_central_jets": ak.num(jet_indices),
         },
     )
+
+@jet_selection.init
+def jet_selection_init(self: Selector, **kwargs) -> None:
+    self.uses.add(f"Jet.{self.config_inst.x.btag_default.column}")

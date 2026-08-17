@@ -868,7 +868,7 @@ def add_config(
         if campaign.x.BPix == "post":
             jerc_postfix = "BPix"
 
-            jerc_campaign = f"Summer{year2}{jerc_postfix}Prompt23"
+        jerc_campaign = f"Summer{year2}{jerc_postfix}Prompt23"
 
     if year == 2024:
         jerc_postfix = ""

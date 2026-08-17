@@ -503,11 +503,11 @@ def add_config(
     *if_era(year=2024, values=[
         "st_tchannel_t_lep_4f_powheg",
         "st_tchannel_tbar_lep_4f_powheg",
+    ]),
         "st_twchannel_t_sl_powheg",
         "st_twchannel_tbar_sl_powheg",
         "st_twchannel_t_dl_powheg",
         "st_twchannel_tbar_dl_powheg",
-    ])
 
     # Diboson
         "ww_pythia",
@@ -515,7 +515,14 @@ def add_config(
         "zz_pythia",
 
     # W+jets
+    # 2024 has no inclusive w_lnu sample. The available replacements are
+    # jet-binned madgraph (1j-4j, no 0j bin) or pt-binned amcatnlo, both of
+    # which need stitching weights to be normalised correctly. Rather than ship
+    # a mis-normalised sample, W+jets is left out of 2024 for now -- it is a
+    # small background in the 2l/3l regions. See README "2024 open items".
+    *if_not_era(year=2024, values=[
         "w_lnu_amcatnlo",
+    ]),
 
     *if_era(year=2022, tag="preEE", values=[
         "data_mu_c",
@@ -525,7 +532,7 @@ def add_config(
         "data_muoneg_c",
         "data_muoneg_d",
         "ttw_amcatnlo",
-        "wwz_amcatnlo",
+        "wwz_pythia",
     ]),
     *if_era(year=2022, tag="postEE", values=[
         "data_mu_e",

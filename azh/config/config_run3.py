@@ -111,7 +111,7 @@ def add_config(
     # "2022preEE", "2022postEE", "2023preBPix", "2023postBPix", "2024"
     era_key = f"{year}{corr_postfix}"
 
-    implemented_years = [2022,2023]
+    implemented_years = [2022, 2023, 2024]
 
     if year not in implemented_years:
         raise NotImplementedError(f"year {year} is not implemented")

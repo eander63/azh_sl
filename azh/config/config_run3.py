@@ -1039,10 +1039,6 @@ def add_config(
             discriminator="btagUParTAK4B",
             corrector_kwargs={"working_point": "M"},
         )
-        cfg_unverified.append(
-            "btag_sf correction-set names for UParT ('unifiedParTAK4_light' / "
-            "'_comb') -- confirm against the 2024 BTV correctionlib file",
-        )
     else:
         cfg.x.btag_sf = SplitBTagSFConfig(
             correction_set=("particleNet_light", "particleNet_comb"),
@@ -1084,10 +1080,6 @@ def add_config(
         cfg.x.electron_ss_names = (
             "EGMScale_ElePTsplit_2024", "EGMSmearAndSyst_ElePTsplit_2024",
         )
-        cfg_unverified.append(
-            "electron_ss_names for 2024 -- the EGMScale/EGMSmear key naming was "
-            "only confirmed for 2022/23; introspect electronSS_EtDependent.json",
-        )
     # names of muon correction sets and working points
     # (used in the muon producer)
     # TightID muon SF chain (from muon_Z.json):
@@ -1096,11 +1088,6 @@ def add_config(
     cfg.x.muon_sf_id_names = ("NUM_TightID_DEN_TrackerMuons", era_key)
     cfg.x.muon_sf_iso_names = ("NUM_TightPFIso_DEN_TightID", era_key)
     cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight", era_key)
-    if year == 2024:
-        cfg_unverified.append(
-            "muon_sf_* era key -- these pass era_key ('2024') straight into "
-            "muon_Z.json; confirm MUO uses that exact string for 2024",
-        )
     # era-branched HLT electron SF. VERIFY the period string AND the HLT category
     # ("HLT_SF_Ele30_MVAiso80ID") against electronHlt.json per era (introspection cmd).
     if f"{year}{corr_postfix}" == "2022preEE":
@@ -1114,10 +1101,6 @@ def add_config(
     elif era_key == "2024":
         cfg.x.electron_sf_trig_names = (
             "Electron-HLT-SF", "2024Prompt", "HLT_SF_Ele30_MVAiso80ID",
-        )
-        cfg_unverified.append(
-            "electron_sf_trig_names period string '2024Prompt' and HLT category "
-            "-- introspect electronHlt.json for 2024",
         )
     cfg.x.top_pt_reweighting_params = {
         "a": 0.0615,
@@ -1462,10 +1445,6 @@ def add_config(
     if year == 2024:
         from azh.config.triggers import add_triggers_2024
         add_triggers_2024(cfg)
-        cfg_unverified.append(
-            "2024 trigger filter bits -- NanoAOD v15 repacked the electron "
-            "TrigObj filterBits relative to v12; see azh/config/triggers.py",
-        )
 
     # surface everything that still needs checking against the real files
     if cfg_unverified:

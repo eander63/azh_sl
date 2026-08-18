@@ -812,7 +812,7 @@ def add_config(
             })
     elif year == 2023:
         if campaign.x.BPix == "pre":
-            cfg.x.luminosity = Number(18062, {
+            cfg.x.luminosity = Number(18605, {
                 "lumi_13TeV_correlated": 0.013j,
             })
         elif campaign.x.BPix == "post":
@@ -1291,7 +1291,7 @@ def add_config(
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
                 "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
-                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json", "v1"),
+                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/BC/pileup_JSON.txt", "v1"),
@@ -1301,7 +1301,7 @@ def add_config(
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
                 "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
-                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json", "v1"),
+                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/D/pileup_JSON.txt", "v1"),

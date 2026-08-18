@@ -1035,7 +1035,7 @@ def add_config(
     from columnflow.production.cms.btag import SplitBTagSFConfig
     if year == 2024:
         cfg.x.btag_sf = SplitBTagSFConfig(
-            correction_set=("unifiedParTAK4_light", "unifiedParTAK4_comb"),
+            correction_set=("UParTAK4_light", "UParTAK4_comb"),
             discriminator="btagUParTAK4B",
             corrector_kwargs={"working_point": "M"},
         )
@@ -1215,56 +1215,77 @@ def add_config(
         return f"{jme_aux.source}/{jme_full_version}/{jme_full_version}_{name}_{jme_aux.jet_type}.txt"
 
     # external files
-    json_mirror = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration"
-    # json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-c9422789"
-    local_repo = "/data/dust/user/matthiej/topsf"  # TODO: avoid hardcoding path
+    # CMS Analysis Corrections (CAT). This replaces the jsonpog-integration
+    # rsync mirror, which froze at 2025-09-24 and is missing everything POGs
+    # published since. Campaign names are not derivable from year/postfix and
+    # each POG pins its own snapshot date, so the mapping is explicit.
+    cat_root = "/cvmfs/cms-griddata.cern.ch/cat/metadata"
 
-    if year == 2022:
-        corr_tag = f"{year}_Summer22{jerc_postfix}"
-    if year == 2023:
-        corr_tag = f"{year}_Summer23{jerc_postfix}"
-    if year == 2024:
-        corr_tag = f"{year}_Summer24"
+    cat_campaign = {
+        "2022preEE":    "Run3-22CDSep23-Summer22-NanoAODv12",
+        "2022postEE":   "Run3-22EFGSep23-Summer22EE-NanoAODv12",
+        "2023preBPix":  "Run3-23CSep23-Summer23-NanoAODv12",
+        "2023postBPix": "Run3-23DSep23-Summer23BPix-NanoAODv12",
+        "2024":         "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15",
+    }[era_key]
+
+    # pinned snapshot per POG, per era
+    cat_date = {
+        "2022preEE":    {"LUM": "FILL", "BTV": "FILL", "MUO": "FILL", "EGM": "FILL", "JME": "FILL"},
+        "2022postEE":   {"LUM": "FILL", "BTV": "FILL", "MUO": "FILL", "EGM": "FILL", "JME": "FILL"},
+        "2023preBPix":  {"LUM": "FILL", "BTV": "FILL", "MUO": "FILL", "EGM": "FILL", "JME": "FILL"},
+        "2023postBPix": {"LUM": "FILL", "BTV": "FILL", "MUO": "FILL", "EGM": "FILL", "JME": "FILL"},
+        "2024": {
+            "LUM": "2026-04-15",
+            "BTV": "2026-03-10",
+            "MUO": "2026-06-18",
+            "EGM": "2025-12-15",
+            "JME": "2026-07-16",
+        },
+    }[era_key]
+
+    def cat(pog: str, filename: str) -> str:
+        return f"{cat_root}/{pog}/{cat_campaign}/{cat_date[pog]}/{filename}"
+
+    # 2024 ships era-split pileup files; C-I matches the data eras in this
+    # config (there is also a BCDEFGHI variant, which includes era B and does
+    # not). 2022/23 ship a single file.
+    pu_file = "puWeights_CDEFGHI.json.gz" if year == 2024 else "puWeights.json.gz"
     cfg.x.external_files = DotDict.wrap({
         # pileup weight corrections
-        "pu_sf": (f"{json_mirror}/POG/LUM/{corr_tag}/puWeights.json.gz", "v1"),
+        "pu_sf": (cat("LUM", pu_file), "v1"),
 
         # jet energy correction
-        "jet_jerc": (f"{json_mirror}/POG/JME/{corr_tag}/jet_jerc.json.gz", "v1"),
+        "jet_jerc": (cat("JME", "jet_jerc.json.gz"), "v1"),
 
         # electron scale factors
-        # "electron_sf": (f"{json_mirror}/POG/EGM/{corr_tag}/electron.json.gz", "v1"),
-        "electron_sf": (f"{json_mirror}/POG/EGM/{corr_tag}/electron.json.gz", "v1"),
+        "electron_sf": (cat("EGM", "electron.json.gz"), "v1"),
 
         # muon scale factors
-        "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_Z.json.gz", "v1"),
-        "electron_sf_hlt": (f"{json_mirror}/POG/EGM/{corr_tag}/electronHlt.json.gz", "v1"),
+        "muon_sf": (cat("MUO", "muon_Z.json.gz"), "v1"),
+        "electron_sf_hlt": (cat("EGM", "electronHlt.json.gz"), "v1"),
 
         # btag scale factor
-        # "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
-        "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
+        "btag_sf_corr": (cat("BTV", "btagging.json.gz"), "v1"),
 
         # V+jets reweighting
-        #"vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
+        # "vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
 
         # jet veto map
-        "jet_veto_map": (f"{json_mirror}/POG/JME/{corr_tag}/jetvetomaps.json.gz", "v1"),
+        "jet_veto_map": (cat("JME", "jetvetomaps.json.gz"), "v1"),
 
-        # muon Rochester-like scale & smearing — per-era JSON.
-        # Run tasks/check_muon_scalesmearing.py at DESY to verify these
-        # exist. Source: https://github.com/cms-muon-pog/MuonScaRe
-        "muon_scalesmearing": ({
-            "2022preEE":   "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2022_Summer22/muon_scalesmearing.json.gz",
-            "2022postEE":  "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2022_Summer22EE/muon_scalesmearing.json.gz",
-            "2023preBPix": "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2023_Summer23/muon_scalesmearing.json.gz",
-            "2023postBPix":"/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2023_Summer23BPix/muon_scalesmearing.json.gz",
-            "2023postBPix":"/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2023_Summer23BPix/muon_scalesmearing.json.gz",
-            "2024":        "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/2024_Summer24/muon_scalesmearing.json.gz",  # noqa
-        }[era_key], "v1"),
+        # muon Rochester-like scale & smearing
+        # Source: https://github.com/cms-muon-pog/MuonScaRe
+        "muon_scalesmearing": (cat("MUO", "muon_scalesmearing.json.gz"), "v1"),
 
         # electron scale & smearing
-        "electron_ss": (f"{json_mirror}/POG/EGM/{corr_tag}/electronSS_EtDependent.json.gz", "v1"),
+        "electron_ss": (cat("EGM", "electronSS_EtDependent.json.gz"), "v1"),
     })
+
+    # LUM publishes exactly one correction per pileup file, but name it
+    # explicitly so a future second entry fails loudly rather than silently.
+    if year == 2024:
+        cfg.x.pu_correction_name = "Collisions24_CDEFGHI_goldenJSON"
 
     # Golden json and pu weights
     if year == 2022 and campaign.x.EE == "pre":
@@ -1317,14 +1338,6 @@ def add_config(
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/PileUp/pileup_JSON.txt", "v1"),  # noqa
             },
         }))
-        cfg_unverified.append(
-            "2024 pileup JSON URL -- the Collisions24 PileUp area may be split "
-            "per era-range rather than exposing a single pileup_JSON.txt",
-        )
-        cfg_unverified.append(
-            "2024 puWeights.json.gz -- LUM may ship this as puWeights_BCDEFGHI.json.gz "
-            "rather than the plain name built from corr_tag above",
-        )
     
     # columns to keep after certain steps
     cfg.x.keep_columns = DotDict.wrap({

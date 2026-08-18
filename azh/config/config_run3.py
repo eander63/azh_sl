@@ -1214,10 +1214,10 @@ def add_config(
 
     # pinned snapshot per POG, per era
     cat_date = {
-        "2022preEE":    {"LUM": "FILL", "BTV": "FILL", "MUO": "FILL", "EGM": "FILL", "JME": "FILL"},
-        "2022postEE":   {"LUM": "FILL", "BTV": "FILL", "MUO": "FILL", "EGM": "FILL", "JME": "FILL"},
-        "2023preBPix":  {"LUM": "FILL", "BTV": "FILL", "MUO": "FILL", "EGM": "FILL", "JME": "FILL"},
-        "2023postBPix": {"LUM": "FILL", "BTV": "FILL", "MUO": "FILL", "EGM": "FILL", "JME": "FILL"},
+        "2022preEE":    {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-06-05"},  # noqa
+        "2022postEE":   {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-06-05"},  # noqa
+        "2023preBPix":  {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-07-15"},  # noqa
+        "2023postBPix": {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-07-15"},  # noqa
         "2024": {
             "LUM": "2026-04-15",
             "BTV": "2026-03-10",

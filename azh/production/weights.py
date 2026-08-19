@@ -115,23 +115,31 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     Main event weight producer (e.g. MC generator, scale factors, normalization).
     """
     if self.dataset_inst.is_mc:
-        # compute electron weights
-        # all post-reduction electrons already pass the tight ID selection
-        ele_all = ak.ones_like(events.Electron.pt, dtype=bool)
-        electron_mask = (events.Electron.pt >= 75)
-        electron_mask_mid = (events.Electron.pt >= 20) & (events.Electron.pt < 75)
-        electron_mask_lo = (events.Electron.pt >= 10) & (events.Electron.pt < 20)
+        # Kept leptons are the LOOSE collections (see lepton_selection):
+        # electrons are mvaIso_WP90, muons are looseId + relIso < 0.25. Only the
+        # tight subset enters the analysis selection, so only those get reco/ID
+        # scale factors. In 3l this changes nothing--the 4th-lepton veto
+        # already forces every kept lepton to be tight--but 2l has no loose
+        # veto by design, so extra loose-not-tight leptons would otherwise
+        # contribute spurious weight factors to the DY validation region.
+        ele_tight = events.Electron.mvaIso_WP80
+        mu_tight = events.Muon.tightId & (events.Muon.pfRelIso04_all < 0.15)
+
+        electron_mask = ele_tight & (events.Electron.pt >= 75)
+        electron_mask_mid = ele_tight & (events.Electron.pt >= 20) & (events.Electron.pt < 75)
+        electron_mask_lo = ele_tight & (events.Electron.pt >= 10) & (events.Electron.pt < 20)
 
         events = self[electron_weights](events, electron_mask=electron_mask, **kwargs)
         events = self[electron_mid_weights](events, electron_mask=electron_mask_mid, **kwargs)
         events = self[electron_loreco_weights](events, electron_mask=electron_mask_lo, **kwargs)
-        events = self[electron_id_weights](events, electron_mask=ele_all, **kwargs)
+        events = self[electron_id_weights](events, electron_mask=ele_tight, **kwargs)
 
         # compute muon weights
-        muon_mask_sf = (events.Muon.pt >= 15.0)   # muon_Z.json ID/iso bins start at 15 GeV
+        # muon_Z.json ID/iso bins start at 15 GeV
+        muon_mask_sf = mu_tight & (events.Muon.pt >= 15.0)
         events = self[muon_id_weights](events, muon_mask=muon_mask_sf, **kwargs)
         events = self[muon_iso_weights](events, muon_mask=muon_mask_sf, **kwargs)
-
+        
         # compute trigger weights
         events = self[trigger_weights](events, **kwargs)
 

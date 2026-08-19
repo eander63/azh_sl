@@ -1330,7 +1330,7 @@ def add_config(
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/PileUp/pileup_JSON.txt", "v1"),  # noqa
+                "json": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/PileUp/pileup_JSON-2024CDEFGHI_Golden.txt", "v1"),  # noqa
             },
         }))
     

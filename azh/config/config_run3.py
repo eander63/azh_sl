@@ -1030,6 +1030,15 @@ def add_config(
         "column": "btagUParTAK4B" if year == 2024 else "btagPNetB",
         "wp": cfg.x.btag_working_points[_btag_name].medium,
     })
+    # NanoAOD v15 removed the Jet.jetId branch; the decision must be recomputed
+    # from the PF energy fractions and multiplicities using the JME correctionlib
+    # payload. v12 (2022/23) still stores the bitmap, so keep reading it there --
+    # this resolves to the previous behaviour for those eras.
+    cfg.x.jet_id = DotDict.wrap({
+        "from_correctionlib": year == 2024,
+        "tight": "AK4PUPPI_Tight",
+        "tight_lepveto": "AK4PUPPI_TightLeptonVeto",
+    })
 
     # btag weight configuration
     from columnflow.production.cms.btag import SplitBTagSFConfig
@@ -1256,6 +1265,9 @@ def add_config(
 
         # jet veto map
         "jet_veto_map": (cat("JME", "jetvetomaps.json.gz"), "v1"),
+
+        # jet ID (NanoAOD v15 no longer stores Jet.jetId)
+        "jet_id": (cat("JME", "jetid.json.gz"), "v1"),
 
         # muon Rochester-like scale & smearing
         # Source: https://github.com/cms-muon-pog/MuonScaRe

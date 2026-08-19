@@ -1,18 +1,27 @@
 # coding: utf-8
 
 from typing import Tuple
-from columnflow.util import maybe_import
-from columnflow.columnar_util import set_ak_column
+from columnflow.util import maybe_import, InsertableDict
+from columnflow.columnar_util import set_ak_column, flat_np_view, layout_ak_array
 from columnflow.selection import Selector, SelectionResult, selector
 from azh.util import masked_sorted_indices
 from columnflow.selection.cms.jets import jet_veto_map
 
 ak = maybe_import("awkward")
+np = maybe_import("numpy")
+
+# NanoAOD v15 jet-ID correctionlib inputs, in the order the payload declares them
+JET_ID_INPUTS = [
+    "eta", "chHEF", "neHEF", "chEmEF", "neEmEF", "muEF",
+    "chMultiplicity", "neMultiplicity",
+]
 
 @selector(
     # the b-tag discriminator column is era-dependent (ParticleNet for 2022/23,
     # UParT for 2024) and is added dynamically in jet_selection_init below
-    uses={"Jet.pt", "Jet.eta", "Jet.phi", "Jet.jetId"},
+    # Jet ID columns are era-dependent (v12 bitmap vs v15 recomputation) and the
+    # b-tag discriminator likewise; both are added in jet_selection_init below
+    uses={"Jet.pt", "Jet.eta", "Jet.phi"},
     produces={
         "cutflow.n_jet", "cutflow.n_jet_loose", "cutflow.n_bjet",
         "cutflow.jet1_pt", "cutflow.jet2_pt", "cutflow.jet3_pt", "cutflow.jet4_pt",
@@ -29,12 +38,33 @@ def jet_selection(
     # assign local index to all Jets
     events = set_ak_column(events, "Jet.local_index", ak.local_index(events.Jet))
 
+    # ── Jet ID ──
+    # v12 stores the bitmap (bit1 = tight, bit2 = tightLepVeto, so ==6 is both).
+    # v15 removed it; recompute from PF fractions via the JME payload. The
+    # lepveto mask is AND-ed with tight so both paths mean the same thing.
+    jid = self.config_inst.x.jet_id
+    if jid.from_correctionlib:
+        ch = flat_np_view(events.Jet.chMultiplicity, axis=1)
+        ne = flat_np_view(events.Jet.neMultiplicity, axis=1)
+        args = tuple(
+            flat_np_view(events.Jet[f], axis=1) for f in JET_ID_INPUTS
+        ) + (ch + ne,)
+        jet_id_tight = layout_ak_array(
+            np.asarray(self.jet_id_tight_corr.evaluate(*args)) > 0.5, events.Jet.pt,
+        )
+        jet_id_lepveto = jet_id_tight & layout_ak_array(
+            np.asarray(self.jet_id_lepveto_corr.evaluate(*args)) > 0.5, events.Jet.pt,
+        )
+    else:
+        jet_id_tight = events.Jet.jetId >= 2
+        jet_id_lepveto = events.Jet.jetId == 6
+
     # ── Loose jets (paper Table 1: pT > 15 GeV, |eta| < 4.7) ──
     # Used only for the ≥4-jet multiplicity cut
     loose_jet_mask = (
     (events.Jet.pt > 15) &
     (abs(events.Jet.eta) < 4.7) &
-    (events.Jet.jetId >= 2) &  # at least tight
+    jet_id_tight &
     # Run-3 EE-noise veto: within 2.5 < |eta| < 3.0, require pt > 50 GeV
     ((events.Jet.pt > 50) | (abs(events.Jet.eta) <= 2.5) | (abs(events.Jet.eta) >= 3.0))
     )
@@ -47,7 +77,7 @@ def jet_selection(
     jet_mask = (
         (events.Jet.pt > 30) &
         (abs(events.Jet.eta) < 2.5) &
-        (events.Jet.jetId == 6)  # tightLepVeto
+        jet_id_lepveto
     )
     events = set_ak_column(events, "cutflow.n_jet", ak.sum(jet_mask, axis=1))
 
@@ -92,3 +122,36 @@ def jet_selection(
 @jet_selection.init
 def jet_selection_init(self: Selector, **kwargs) -> None:
     self.uses.add(f"Jet.{self.config_inst.x.btag_default.column}")
+    if self.config_inst.x.jet_id.from_correctionlib:
+        self.uses |= {f"Jet.{f}" for f in JET_ID_INPUTS}
+    else:
+        self.uses.add("Jet.jetId")
+
+
+@jet_selection.requires
+def jet_selection_requires(self: Selector, reqs: dict) -> None:
+    if not self.config_inst.x.jet_id.from_correctionlib:
+        return
+    if "external_files" in reqs:
+        return
+    from columnflow.tasks.external import BundleExternalFiles
+    reqs["external_files"] = BundleExternalFiles.req(self.task)
+
+
+@jet_selection.setup
+def jet_selection_setup(
+    self: Selector,
+    reqs: dict,
+    inputs: dict,
+    reader_targets: InsertableDict,
+) -> None:
+    jid = self.config_inst.x.jet_id
+    if not jid.from_correctionlib:
+        return
+    import correctionlib
+    bundle = reqs["external_files"]
+    cset = correctionlib.CorrectionSet.from_string(
+        bundle.files.jet_id.load(formatter="gzip").decode("utf-8"),
+    )
+    self.jet_id_tight_corr = cset[jid.tight]
+    self.jet_id_lepveto_corr = cset[jid.tight_lepveto]

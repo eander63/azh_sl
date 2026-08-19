@@ -1062,33 +1062,32 @@ def add_config(
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "wp80iso")
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022postEE",  "EGMSmearAndSyst_ElePTsplit_2022postEE")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022preEE",   "EGMSmearAndSyst_ElePTsplit_2022preEE")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2023postBPix":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptD", "wp80iso")
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023postBPIX","EGMSmearAndSyst_ElePTsplit_2023postBPIX")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2023preBPix":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptC", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023preBPIX", "EGMSmearAndSyst_ElePTsplit_2023preBPIX")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
     elif era_key == "2024":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2024Prompt", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2024Prompt", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2024Prompt", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2024Prompt", "wp80iso")
-        cfg.x.electron_ss_names = (
-            "EGMScale_ElePTsplit_2024", "EGMSmearAndSyst_ElePTsplit_2024",
-        )
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
+
     # names of muon correction sets and working points
     # (used in the muon producer)
     # TightID muon SF chain (from muon_Z.json):

@@ -898,7 +898,7 @@ def add_config(
         cfg.x.jec = DotDict.wrap({
             "campaign": jerc_campaign,
             "version": {
-                2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2", 2023: "V2", 2024: "V5",
+                2016: "V7", 2017: "V5", 2018: "V5", 2022: "V4", 2023: "V4", 2024: "V5",
             }[year],
             "jet_type": jet_type,
             "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
@@ -911,7 +911,7 @@ def add_config(
         cfg.x.jec = DotDict.wrap({
             "campaign": jerc_campaign,
             "version": {
-                2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2", 2023: "V2", 2024: "V5",
+                2016: "V7", 2017: "V5", 2018: "V5", 2022: "V4", 2023: "V4", 2024: "V5",
             }[year],
             "jet_type": jet_type,
             "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
@@ -925,7 +925,7 @@ def add_config(
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
     cfg.x.jer = DotDict.wrap({
         "campaign": jer_campaign,
-            "version": {2022: "JRV1", 2023: "JRV1", 2024: "JRV2"}[year],
+            "version": {2022: "JRV2", 2023: "JRV3", 2024: "JRV2"}[year],
         "jet_type": jet_type,
     })
 

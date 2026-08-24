@@ -5,7 +5,7 @@
 [submodule "modules/cmsdb"]
 	path = modules/cmsdb
 	url = git@github.com:eander63/cmsdb.git
-	branch = azh_neu
+	branch = azh_run3
 [submodule "modules/muonscarekit"]
 	path = modules/muonscarekit
 	url = https://gitlab.cern.ch/cms-muonPOG/muonscarekit.git

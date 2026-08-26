@@ -21,7 +21,7 @@ from azh.config.analysis_azh_run3 import analysis_azh
 from azh.config.categories import add_categories_selection, add_categories_production
 from azh.config.variables import add_variables
 from columnflow.config_util import (
-    get_root_processes_from_campaign, add_shift_aliases,get_shifts_from_sources
+    get_root_processes_from_campaign, get_shifts_from_sources
 )
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
@@ -801,29 +801,56 @@ def add_config(
 
     # lumi values in inverse pb
     # 2022preEE, 2022postEE, 2023preBPix, 2023postBPix all brilcalc verified (jun 29 2026)
+    #
+    # Uncertainties follow the LUM POG Run 3 covariance matrix (golden JSON):
+    #   L = 34.75 +- 0.48 (1.4%) [2022], 28.40 +- 0.36 (1.3%) [2023],
+    #       110.11 +- 1.77 (1.6%) [2024]; combined 173.26 +- 2.07 (1.2%).
+    # The per-year total is NOT a single nuisance: part of it comes from the vdM
+    # methodology and is common to all years, the rest is year-specific. Filing
+    # the whole thing under one 'correlated' key (as before) asserts 100%
+    # correlation and inflates the combined uncertainty.
+    #
+    # Decomposing the POG covariance as R_ij = c_i c_j (correlated, one shared
+    # nuisance with year-dependent size) + delta_ij u_i^2 (uncorrelated) gives:
+    #                    2022       2023       2024
+    #   correlated      0.2676%    0.8746%    1.0244%
+    #   uncorrelated    1.3530%    0.9356%    1.2368%
+    #   quad. sum       1.3792%    1.2807%    1.6060%   (POG: 1.4 / 1.3 / 1.6%)
+    # This reproduces every element of the POG matrix, and hence the 1.2%
+    # combined figure, to machine precision. NOTE: with three years the rank-1
+    # off-diagonal solution is exact by construction (3 equations, 3 unknowns),
+    # so re-derive this if a fourth year is added.
+    #
+    # Both eras of a given year share that year's nuisances -- the luminosity
+    # calibration is per-year, not per-era.
     if year == 2022:
         if campaign.x.EE == "pre":
             cfg.x.luminosity = Number(7990, {
-                "lumi_13TeV_correlated": 0.014j,
+                "lumi_13p6TeV_correlated": 0.002676j,
+                "lumi_13p6TeV_uncorrelated_2022": 0.013530j,
             })
         elif campaign.x.EE == "post":
             cfg.x.luminosity = Number(26675, {
-                "lumi_13TeV_correlated": 0.014j,
+                "lumi_13p6TeV_correlated": 0.002676j,
+                "lumi_13p6TeV_uncorrelated_2022": 0.013530j,
             })
     elif year == 2023:
         if campaign.x.BPix == "pre":
             cfg.x.luminosity = Number(18605, {
-                "lumi_13TeV_correlated": 0.013j,
+                "lumi_13p6TeV_correlated": 0.008746j,
+                "lumi_13p6TeV_uncorrelated_2023": 0.009356j,
             })
         elif campaign.x.BPix == "post":
             cfg.x.luminosity = Number(9693, {
-                "lumi_13TeV_correlated": 0.013j,
+                "lumi_13p6TeV_correlated": 0.008746j,
+                "lumi_13p6TeV_uncorrelated_2023": 0.009356j,
             })
     elif year == 2024:
         # 2024 golden-JSON integrated luminosity, runs 378981-386951.
         # Not brilcalc-verified locally -- taken from the CMS 2024 recommendation.
         cfg.x.luminosity = Number(109948, {
-            "lumi_13TeV_correlated": 0.016j,
+            "lumi_13p6TeV_correlated": 0.010244j,
+            "lumi_13p6TeV_uncorrelated_2024": 0.012368j,
         })
     else:
         raise NotImplementedError(f"Luminosity for year {year} is not defined.")
@@ -1117,15 +1144,32 @@ def add_config(
 
     # helper to add column aliases for both shifts of a source
     def add_aliases(shift_source: str, aliases: Set[str], selection_dependent: bool):
+        """
+        Register column aliases for both directions of *shift_source*.
 
+        NOTE: aliases always go into the 'column_aliases' aux, which is the only
+        key columnflow reads (tasks/{selection,reduction,production,histograms,
+        cutflow,ml}.py all do local_shift_inst.x("column_aliases", {})). The
+        'column_aliases_selection_dependent' key this helper used to write for
+        selection_dependent=True is read by NOTHING -- it is a leftover from an
+        older columnflow API. Every JEC and JER alias in this config was silently
+        inert as a result: the shifted columns would have been produced and then
+        never substituted, giving shifted histograms identical to nominal.
+
+        *selection_dependent* is kept because it is still meaningful information:
+        it records that the shift changes which events pass the selection, so the
+        full Calibrate -> Select -> Reduce chain must rerun rather than just
+        re-reading columns. It is now expressed as a shift tag instead.
+        """
         for direction in ["up", "down"]:
             shift = cfg.get_shift(od.Shift.join_name(shift_source, direction))
             # format keys and values
             inject_shift = lambda s: re.sub(r"\{([^_])", r"{_\1", s).format(**shift.__dict__)
             _aliases = {inject_shift(key): inject_shift(value) for key, value in aliases.items()}
-            alias_type = "column_aliases_selection_dependent" if selection_dependent else "column_aliases"
             # extend existing or register new column aliases
-            shift.set_aux(alias_type, shift.get_aux(alias_type, {})).update(_aliases)
+            shift.set_aux("column_aliases", shift.get_aux("column_aliases", {})).update(_aliases)
+            if selection_dependent:
+                shift.add_tag("selection_dependent")
 
     # register shifts
     # TODO: make shifts year-dependent
@@ -1136,7 +1180,13 @@ def add_config(
     cfg.add_shift(name="hdamp_down", id=4, type="shape", tags={"disjoint_from_nominal"})
     cfg.add_shift(name="minbias_xs_up", id=7, type="shape")
     cfg.add_shift(name="minbias_xs_down", id=8, type="shape")
-    add_aliases("minbias_xs", {"pu_weight": "pu_weight_{name}"}, selection_dependent=False)
+    # what enters the event weight is the per-process-normalized column, so the
+    # alias has to target that, not the raw pu_weight
+    add_aliases(
+        "minbias_xs",
+        {"normalized_pu_weight": "normalized_pu_weight_{direction}"},
+        selection_dependent=False,
+    )
     cfg.add_shift(name="top_pt_up", id=9, type="shape")
     cfg.add_shift(name="top_pt_down", id=10, type="shape")
     add_aliases("top_pt", {"top_pt_weight": "top_pt_weight_{direction}"}, selection_dependent=False)
@@ -1149,11 +1199,48 @@ def add_config(
     cfg.add_shift(name="mu_trig_sf_up", id=53, type="shape")
     cfg.add_shift(name="mu_trig_sf_down", id=54, type="shape")
     add_aliases("mu_trig_sf", {"muon_trig_weight": "muon_trig_weight_{direction}"}, selection_dependent=False)
-    add_aliases("e_sf", {"electron_weight": "electron_weight_{direction}"}, selection_dependent=False)
+
+    # AN-2022/158 Table 22 uses a single shape nuisance per lepton flavour
+    # (CMS_eff_e, CMS_eff_m), correlated across years, covering reco + ID (+ iso).
+    # We follow that grouping here: every electron SF column moves coherently
+    # under 'e_sf', every muon SF column under 'muon'. Coherent motion is the
+    # conservative choice (reco and ID are independent measurements, so a proper
+    # treatment would add them in quadrature). To split them later, register a
+    # new shift source and move the relevant entries out of these dicts.
+    #
+    # Column names follow azh/production/weights.py: the base electron_weights /
+    # muon_weights producers are derived once per SF, and each derivative emits
+    # <weight_name>{,_up,_down} unconditionally.
+    add_aliases(
+        "e_sf",
+        {
+            w: f"{w}_{{direction}}"
+            for w in [
+                "electron_weight",         # reco, pT >= 75
+                "electron_mid_weight",     # reco, 20 <= pT < 75
+                "electron_loreco_weight",  # reco, 10 <= pT < 20
+                "electron_id_weight",      # MVA WP80iso ID
+            ]
+        },
+        selection_dependent=False,
+    )
 
     cfg.add_shift(name="muon_up", id=51, type="shape")
     cfg.add_shift(name="muon_down", id=52, type="shape")
-    add_shift_aliases(cfg, "muon", {"muon_weight": "muon_weight_{direction}"})
+    # NOTE: the previous alias targeted 'muon_weight', which this analysis never
+    # produces -- weights.py derives split TightID / TightPFIso producers instead,
+    # so the alias silently did nothing.
+    add_aliases(
+        "muon",
+        {
+            w: f"{w}_{{direction}}"
+            for w in [
+                "muon_id_weight",   # TightID SF
+                "muon_iso_weight",  # TightPFIso SF
+            ]
+        },
+        selection_dependent=False,
+    )
 
     btag_uncs = []
     for i, unc in enumerate(btag_uncs):
@@ -1164,12 +1251,14 @@ def add_config(
     cfg.add_shift(name="mur_down", id=202, type="shape")
     cfg.add_shift(name="muf_up", id=203, type="shape")
     cfg.add_shift(name="muf_down", id=204, type="shape")
-    cfg.add_shift(name="murf_envelope_up", id=205, type="shape")
-    cfg.add_shift(name="murf_envelope_down", id=206, type="shape")
+    # NOTE: named 'murmuf_envelope', not 'murf_envelope' -- the columnflow producer
+    # writes murmuf_envelope_weight{,_up,_down} and the alias has to match exactly.
+    cfg.add_shift(name="murmuf_envelope_up", id=205, type="shape")
+    cfg.add_shift(name="murmuf_envelope_down", id=206, type="shape")
     cfg.add_shift(name="pdf_up", id=207, type="shape")
     cfg.add_shift(name="pdf_down", id=208, type="shape")
 
-    for unc in ["mur", "muf", "murf_envelope", "pdf"]:
+    for unc in ["mur", "muf", "murmuf_envelope", "pdf"]:
         add_aliases(
             unc,
             {f"normalized_{unc}_weight": f"normalized_{unc}_weight_" + "{direction}"},
@@ -1184,13 +1273,28 @@ def add_config(
         cfg.add_shift(name=f"jec_{jec_source}_down", id=5001 + 2 * idx, type="shape")
         add_aliases(
             f"jec_{jec_source}",
-            {"Jet.pt": "Jet.pt_{name}", "Jet.mass": "Jet.mass_{name}"},
+            {
+                "Jet.pt": "Jet.pt_{name}",
+                "Jet.mass": "Jet.mass_{name}",
+                # Type-1 propagation targets PuppiMET (see calibration/corrections.py)
+                "PuppiMET.pt": "PuppiMET.pt_{name}",
+                "PuppiMET.phi": "PuppiMET.phi_{name}",
+            },
             selection_dependent=True,
         )
 
     cfg.add_shift(name="jer_up", id=6000, type="shape", tags={"selection_dependent"})
     cfg.add_shift(name="jer_down", id=6001, type="shape", tags={"selection_dependent"})
-    add_aliases("jer", {"Jet.pt": "Jet.pt_{name}", "Jet.mass": "Jet.mass_{name}"}, selection_dependent=True)
+    add_aliases(
+        "jer",
+        {
+            "Jet.pt": "Jet.pt_{name}",
+            "Jet.mass": "Jet.mass_{name}",
+            "PuppiMET.pt": "PuppiMET.pt_{name}",
+            "PuppiMET.phi": "PuppiMET.phi_{name}",
+        },
+        selection_dependent=True,
+    )
 
     def make_jme_filename(jme_aux, sample_type, name, era=None):
         """
@@ -1349,7 +1453,7 @@ def add_config(
             "mc_weight", "PV.npvs", "process_id", "category_ids", "deterministic_seed",
             # weight-related columns
             "pu_weight*", "pdf_weight*",
-            "murf_envelope_weight*", "mur_weight*", "muf_weight*",
+            "murmuf_envelope_weight*", "mur_weight*", "muf_weight*",
             "btag_weight*",
             "Pileup.nTrueInt",
             "LHEScaleWeight",
@@ -1391,29 +1495,75 @@ def add_config(
     # event weight columns as keys in an ordered dict, mapped to shift instances they depend on
     # get_shifts = lambda *keys: sum(([cfg.get_shift(f"{k}_up"), cfg.get_shift(f"{k}_down")] for k in keys), [])
     get_shifts = functools.partial(get_shifts_from_sources, cfg)
+    # The shift lists are what make a weight systematic real: the 'all_weights'
+    # weight producer turns them into its own 'shifts' set, and a task whose
+    # dependency tree does not declare a shift silently falls back to nominal.
+    # An empty list therefore means "computed, stored, but never varied".
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
         "channel_lumi_weight": [],        # per-channel lumi correction (muon: x0.9344, ee: x1.0023)
-        "electron_trig_weight": [],
-        "muon_trig_weight": [],           # re-enabled: muon_Z.json HLT SFs valid down to ~15 GeV
-        "electron_weight": [],            # electron reco above 75
-        "electron_mid_weight": [],        # electron reco 20-75
-        "electron_loreco_weight": [],     # electron reco 10-20
-        "electron_id_weight": [],         # electron MVA WP80iso
-        "muon_id_weight": [],             # TightID SF (muon_Z.json, valid 15+ GeV)
-        "muon_iso_weight": [],            # TightPFIso SF (muon_Z.json, valid 15+ GeV)
-        "normalized_pu_weight": [],
+        "electron_trig_weight": get_shifts("e_trig_sf"),
+        # muon_Z.json HLT SFs valid down to ~15 GeV
+        "muon_trig_weight": get_shifts("mu_trig_sf"),
+        "electron_weight": get_shifts("e_sf"),            # electron reco above 75
+        "electron_mid_weight": get_shifts("e_sf"),        # electron reco 20-75
+        "electron_loreco_weight": get_shifts("e_sf"),     # electron reco 10-20
+        "electron_id_weight": get_shifts("e_sf"),         # electron MVA WP80iso
+        "muon_id_weight": get_shifts("muon"),             # TightID SF
+        "muon_iso_weight": get_shifts("muon"),            # TightPFIso SF
+        # split_btag_weights is called in weights.py and 'btag_weight*' is kept
+        # through reduction, but the column was never listed here -- so the b-tag
+        # scale factor was computed, stored, and then silently dropped from the
+        # event weight. This is a nominal-yield fix, not a systematics one.
+        # Shift list stays empty: the fork's split_btag_weights hardcodes
+        # btag_uncs = {} and produces only 'btag_weight', so no varied columns
+        # exist yet (see cfg.x.btag_sf_jec_sources for the intended source list).
+        "btag_weight": [],
+        "normalized_pu_weight": get_shifts("minbias_xs"),
     })
 
+    # Dataset-level weights. These live here rather than in cfg.x.event_weights
+    # because they do not exist for every dataset, and only the dataset-level
+    # loops in all_weights / event_weight guard with has_ak_column -- a
+    # config-level entry that is missing for one dataset raises instead.
     for dataset in cfg.datasets:
-        if dataset.x("is_ttbar", False):
-            dataset.x.event_weights = {"top_pt_weight": []}
+        if not dataset.is_mc:
+            continue
+        dataset_weights = {}
+        # NOTE: previously guarded on dataset.x("is_ttbar", False), but is_ttbar is
+        # set as a *tag*, so that expression was False for every dataset and the top
+        # pT weight was computed but never applied.
+        if dataset.has_tag("is_ttbar"):
+            # The weight itself IS applied (it is a correction, not an option).
+            # The *nuisance* is parked at [] pending a decision on the prescription:
+            # gen_top.py currently builds the variations as w*1.5 / w*0.5, a flat
+            # multiplicative factor. That is a pure +-50% rate change on ttbar with
+            # zero shape content (measured total-yield ratio: exactly 1.500000),
+            # whereas AN-2022/158 Sec. 9.1 l. 709 and Table 25 specify 'topPtRew' as
+            # a SHAPE nuisance whose magnitude is the full weight, i.e. the variation
+            # spans "reweighting applied" vs "not applied" (w -> 1 and w -> w^2).
+            # Enabling this before the prescription is settled would put a large,
+            # shapeless rate nuisance on the dominant background.
+            # TODO: restore get_shifts("top_pt") once the method is agreed.
+            dataset_weights["top_pt_weight"] = []
+        # pythia dibosons have no LHEScaleWeight/LHEPdfWeight branch
+        if not dataset.has_tag("no_lhe_weights"):
+            for unc in ["mur", "muf", "murmuf_envelope", "pdf"]:
+                dataset_weights[f"normalized_{unc}_weight"] = get_shifts(unc)
+        if dataset_weights:
+            dataset.x.event_weights = dataset_weights
 
-    prod_version = "v1"
+    # v2: selection stats now book per-process sums for the pileup, scale and PDF
+    # weight variations, so cf.SelectEvents and everything downstream must rerun.
+    prod_version = "v2"
 
     # Version of required tasks
+    # v1: jet_energy now runs jec_full (uncertainty sources) instead of jec_nominal
+    # for MC, so CalibrateEvents writes additional Jet.pt_jec_*/Jet.mass_jec_*
+    # columns and its outputs are no longer compatible with v0.
+    calib_version = "v1"
     cfg.x.versions = {
-        "cf.CalibrateEvents": "v0",
+        "cf.CalibrateEvents": calib_version,
         "cf.SelectEvents": prod_version,
         "cf.MergeSelectionStats": prod_version,
         "cf.MergeSelectionMasks": prod_version,

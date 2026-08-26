@@ -12,6 +12,7 @@ from columnflow.production.cms.electron import electron_weights
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
 from columnflow.production.normalization import normalization_weights
+from columnflow.production.cms.pdf import pdf_weights
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from azh.production.trigger_weights import trigger_weights
 from azh.production.channel_lumi_weight import channel_lumi_weight
@@ -94,9 +95,25 @@ muon_id_weights = muon_weights.derive("muon_id_weights", cls_dict={
     "get_muon_config": (lambda self: self.config_inst.x.muon_sf_id_names),
 })
 
+# Lower edge of the muon_Z.json ID/iso pT binning. Muons below this get no
+# ID/iso scale factor (weight 1) rather than an out-of-range corrector call.
+# If the MUO POG JSON is ever revised to extend lower, verify with:
+#   raw["corrections"][...]["data"] -> binning node with input "pt"
+MUON_SF_PT_MIN = 15.0
+
 normalized_pu_weight = normalized_weight_factory(
     producer_name="normalized_pu_weight",
     weight_producers={pu_weight},
+)
+
+# Shape-only scale and PDF variations (AN-2022/158 Sec. 9.1): the factory divides
+# each weight by its per-process sum, so an up/down variation redistributes events
+# across the template without changing the process yield. The normalization effect
+# is already covered by the inclusive cross-section rate nuisances.
+# Produces normalized_{mur,muf,murmuf_envelope,pdf}_weight{,_up,_down}.
+normalized_scale_weights = normalized_weight_factory(
+    producer_name="normalized_scale_weights",
+    weight_producers={murmuf_weights, murmuf_envelope_weights, pdf_weights},
 )
 
 muon_iso_weights = muon_weights.derive("muon_iso_weights", cls_dict={
@@ -135,9 +152,19 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[electron_id_weights](events, electron_mask=ele_tight, **kwargs)
 
         # compute muon weights
-        # muon_Z.json ID/iso bins start at 10 GeV, matching PT_FLOOR in
-        # lepton_selection, so every kept muon is covered.
-        muon_mask_sf = mu_tight
+        # muon_Z.json ID/iso bins start at 15 GeV, NOT 10 as previously claimed
+        # here (verified against Run3-22CDSep23-Summer22-NanoAODv12/muon_Z.json.gz:
+        # NUM_TightID_DEN_TrackerMuons and NUM_TightPFIso_DEN_TightID both have pt
+        # binning [15.0, inf]). PT_FLOOR in lepton_selection is 10, so tight muons
+        # below 15 exist and used to make correctionlib raise "Index below bounds".
+        #
+        # Restricting rather than clamping is the physics-correct choice: the
+        # analysis pT thresholds (25/20/15) are applied downstream as categories,
+        # so no *selected* lepton is ever below 15 GeV. A sub-15 tight muon is
+        # always an extra lepton, and giving it an efficiency correction adds a
+        # spurious factor -- precisely what the tight-subset masking above exists
+        # to avoid in the 2l regions, which have no loose veto.
+        muon_mask_sf = mu_tight & (events.Muon.pt >= MUON_SF_PT_MIN)
         events = self[muon_id_weights](events, muon_mask=muon_mask_sf, **kwargs)
         events = self[muon_iso_weights](events, muon_mask=muon_mask_sf, **kwargs)
         
@@ -166,8 +193,20 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # Z pT reweighting (NLO DY modeling correction) — DISABLED
         # events = self[zpt_reweight](events, **kwargs)
         if not self.dataset_inst.has_tag("no_lhe_weights"):
-            events = self[murmuf_weights](events, **kwargs)
-            events = self[murmuf_envelope_weights](events, **kwargs)
+            # NOTE: mur/muf/envelope/pdf weights are computed in the *selector*
+            # (they have to be, so increment_stats can book their per-process
+            # sums) and survive reduction via the 'mur_weight*', 'muf_weight*',
+            # 'murmuf_envelope_weight*' and 'pdf_weight*' entries in
+            # cfg.x.keep_columns. Recomputing them here is not just redundant, it
+            # is impossible for PDF: LHEScaleWeight is kept after reduction but
+            # LHEPdfWeight is not, so pdf_weights would raise
+            # "did not receive any columns matching: LHEPdfWeight".
+            #
+            # normalized_scale_weights reads the kept columns directly. It only
+            # falls back to re-running a weight producer when that producer's
+            # *used* columns are present (normalized_weights.py:44-47), which
+            # they are not here, so no fallback is attempted.
+            events = self[normalized_scale_weights](events, **kwargs)
 
     return events
 
@@ -182,6 +221,7 @@ def weights_init(self: Producer) -> None:
             electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
             muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            pdf_weights, normalized_scale_weights,
             # zpt_reweight,  # DISABLED
             split_btag_weights,
             trigger_weights, channel_lumi_weight,
@@ -190,6 +230,7 @@ def weights_init(self: Producer) -> None:
             electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
             muon_id_weights, muon_iso_weights,
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            pdf_weights, normalized_scale_weights,
             # zpt_reweight,  # DISABLED
             split_btag_weights,
             trigger_weights, channel_lumi_weight,

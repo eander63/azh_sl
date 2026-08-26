@@ -26,7 +26,28 @@ np = maybe_import("numpy")
 # ===========================================================================
 # Jet energy: nominal JEC (+ JER for MC)
 # ===========================================================================
-jec_nominal = jec.derive("jec_nominal", cls_dict={"uncertainty_sources": []})
+# Type-1 MET propagation must target the collection the analysis actually reads.
+# selection/default.py and production/higgs_reco.py use PuppiMET; columnflow's
+# jec/jer default to MET (PFMET), so without this the corrections and their
+# variations would be written to a branch nothing looks at. Puppi is the default
+# jet collection from Run 3 on, which also makes the AN-2022/158 workaround of
+# propagating CHS JES uncertainties to PuppiMET (Sec. 9.1, l. 739-745) obsolete.
+_met_names = {"met_name": "PuppiMET", "raw_met_name": "RawPuppiMET"}
+
+# Data gets JEC with no uncertainties -- there are none to evaluate.
+jec_nominal = jec.derive("jec_nominal", cls_dict={"uncertainty_sources": [], **_met_names})
+
+# MC gets JEC *with* uncertainties. Leaving uncertainty_sources unset (None)
+# makes the producer fall back to cfg.x.jec["uncertainty_sources"]
+# (columnflow/calibration/cms/jets.py:388-390), so the source list is controlled
+# in one place: config_run3.py. Start with ["Total"] for commissioning; the
+# AN-2022/158 reduced set of 11 (Sec. 9.1, l. 734-738) is the target for the
+# final fit and costs ~22 full Calibrate -> Select -> Reduce passes per dataset.
+jec_full = jec.derive("jec_full", cls_dict=dict(_met_names))
+
+# JER, likewise propagated to PuppiMET.
+jer_puppi = jer.derive("jer_puppi", cls_dict={"met_name": "PuppiMET"})
+
 
 @calibrator
 def jet_energy(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
@@ -36,9 +57,8 @@ def jet_energy(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     calibrators is added in a custom init function below.
     """
     if self.dataset_inst.is_mc:
-        # TODO: for testing purposes, only run jec_nominal for now
-        events = self[jec_nominal](events, **kwargs)
-        events = self[jer](events, **kwargs)
+        events = self[jec_full](events, **kwargs)
+        events = self[jer_puppi](events, **kwargs)
     else:
         events = self[jec_nominal](events, **kwargs)
 
@@ -47,11 +67,10 @@ def jet_energy(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
 @jet_energy.init
 def jet_energy_init(self: Calibrator) -> None:
-    # add standard jec and jer for mc, and only jec nominal for dta
+    # full jec (with uncertainty sources) + jer for mc, nominal-only jec for data
     if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
-        # TODO: for testing purposes, only run jec_nominal for now
-        self.uses |= {jec_nominal, jer}
-        self.produces |= {jec_nominal, jer}
+        self.uses |= {jec_full, jer_puppi}
+        self.produces |= {jec_full, jer_puppi}
     else:
         self.uses |= {jec_nominal}
         self.produces |= {jec_nominal}

@@ -22,17 +22,23 @@ np = maybe_import("numpy")
 
 @producer(
     uses={"Pileup.nTrueInt"},
-    produces={"pu_weight"},
+    produces={"pu_weight", "pu_weight_up", "pu_weight_down"},
     mc_only=True,
 )
 def pu_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
-    Evaluate the LUM pileup weight (nominal) for every event and store it as
-    ``pu_weight``.
+    Evaluate the LUM pileup weight for every event and store it as ``pu_weight``,
+    together with the ``up``/``down`` variations obtained by shifting the
+    minimum-bias cross section (AN-2022/158 Sec. 9.1: +-4.6% around 69.2 mb).
+    The same puWeights.json carries all three, so this costs two extra
+    correctionlib evaluations and no additional external file.
     """
     ntrue = ak.to_numpy(events.Pileup.nTrueInt).astype(np.float64)
-    w = self.pu_corrector.evaluate(ntrue, "nominal")
-    events = set_ak_column(events, "pu_weight", np.asarray(w, dtype=np.float32))
+    for postfix, syst in [("", "nominal"), ("_up", "up"), ("_down", "down")]:
+        w = self.pu_corrector.evaluate(ntrue, syst)
+        events = set_ak_column(
+            events, f"pu_weight{postfix}", np.asarray(w, dtype=np.float32),
+        )
     return events
 
 
@@ -72,11 +78,10 @@ def pu_weight_setup(
 
 
 # ---------------------------------------------------------------------------
-# NOTE: up/down (minbias_xs) variations are one step away when you wire
-# systematics -- the same JSON already carries them:
-#
-#   w_up   = self.pu_corrector.evaluate(ntrue, "up")
-#   w_down = self.pu_corrector.evaluate(ntrue, "down")
-#
-# add "pu_weight_up"/"pu_weight_down" to `produces` and set the columns.
+# NOTE: the up/down columns above are the *raw* pileup weights. What enters the
+# event weight is 'normalized_pu_weight{,_up,_down}', produced by the
+# normalized_weight_factory wrapper in azh/production/weights.py, which divides
+# out the per-process sum so that a pileup variation changes the shape but not
+# the total yield. That wrapper only picks up a variation if the matching
+# 'sum_mc_weight_<col>_per_process' entry was booked in azh/selection/default.py.
 # ---------------------------------------------------------------------------

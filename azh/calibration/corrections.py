@@ -48,7 +48,6 @@ jec_full = jec.derive("jec_full", cls_dict=dict(_met_names))
 # JER, likewise propagated to PuppiMET.
 jer_puppi = jer.derive("jer_puppi", cls_dict={"met_name": "PuppiMET"})
 
-
 @calibrator
 def jet_energy(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     """

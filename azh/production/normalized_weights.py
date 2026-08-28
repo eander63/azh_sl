@@ -1,16 +1,13 @@
-# coding: utf-8
-
 """
 Column production methods related to generic event weights.
 """
 
-from typing import Iterable, Callable
+from collections.abc import Callable, Iterable
 
 import law
-
-from columnflow.production import Producer, producer
-from columnflow.util import maybe_import, safe_div, InsertableDict
 from columnflow.columnar_util import set_ak_column
+from columnflow.production import Producer, producer
+from columnflow.util import InsertableDict, maybe_import, safe_div
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
@@ -26,7 +23,9 @@ def normalized_weight_factory(
 ) -> Callable:
 
     @producer(
-        uses=set(weight_producers) | set().union(*[w.produces for w in weight_producers]) | {"process_id"},
+        uses=set(weight_producers)
+        | set().union(*[w.produces for w in weight_producers])
+        | {"process_id"},
         cls_name=producer_name,
         mc_only=True,
         # skip the checking existence of used/produced columns because not all columns are there
@@ -41,10 +40,9 @@ def normalized_weight_factory(
         if missing_weights:
             # try to produce missing weights
             for prod in self.weight_producers:
-                if (
-                        self[prod].produced_columns.difference(events.fields) and
-                        self[prod].used_columns.intersection(events.fields)
-                ):
+                if self[prod].produced_columns.difference(events.fields) and self[
+                    prod
+                ].used_columns.intersection(events.fields):
                     print(f"Rerun producer {self[prod].cls_name}")
                     events = self[prod](events, **kwargs)
 
@@ -66,7 +64,9 @@ def normalized_weight_factory(
 
             # store it
             norm_weight_per_pid = ak.values_astype(norm_weight_per_pid, np.float32)
-            events = set_ak_column(events, f"normalized_{weight_name}", norm_weight_per_pid)
+            events = set_ak_column(
+                events, f"normalized_{weight_name}", norm_weight_per_pid
+            )
 
         return events
 
@@ -81,11 +81,14 @@ def normalized_weight_factory(
             if "weight" in col and "normalized" not in col and "btag" not in col:
                 self.weight_names.add(col)
 
-        self.produces |= set(f"normalized_{weight_name}" for weight_name in self.weight_names)
+        self.produces |= {
+            f"normalized_{weight_name}" for weight_name in self.weight_names
+        }
 
     @normalized_weight.requires
     def normalized_weight_requires(self: Producer, reqs: dict) -> None:
         from columnflow.tasks.selection import MergeSelectionStats
+
         reqs["selection_stats"] = MergeSelectionStats.req(
             self.task,
             tree_index=0,
@@ -94,15 +97,18 @@ def normalized_weight_factory(
         )
 
     @normalized_weight.setup
-    def normalized_weight_setup(self: Producer, reqs: dict, inputs: dict, reader_targets: InsertableDict) -> None:
+    def normalized_weight_setup(
+        self: Producer, reqs: dict, inputs: dict, reader_targets: InsertableDict
+    ) -> None:
         # load the selection stats
-        stats = inputs["selection_stats"]["collection"][0]["stats"].load(formatter="json")
+        stats = inputs["selection_stats"]["collection"][0]["stats"].load(
+            formatter="json"
+        )
         # only normalize weights whose per-process sums were actually booked in
         # the selection stats; pileup systematic shifts (e.g. pu_weight_minbias_xs_up)
         # are absent from the preEE stats and must not be required for nominal plots
         self.weight_names = {
-            w for w in self.weight_names
-            if f"sum_mc_weight_{w}_per_process" in stats
+            w for w in self.weight_names if f"sum_mc_weight_{w}_per_process" in stats
         }
         # get the unique process ids in that dataset
         key = "sum_mc_weight_per_process"
@@ -112,6 +118,7 @@ def normalized_weight_factory(
         def numerator_per_pid(pid):
             key = "sum_mc_weight_per_process"
             return stats[key].get(str(pid), 0.0)
+
         def denominator_per_pid(weight_name, pid):
             key = f"sum_mc_weight_{weight_name}_per_process"
             return stats[key].get(str(pid), 0.0)
@@ -119,7 +126,9 @@ def normalized_weight_factory(
         # extract the ratio per weight and pid
         self.ratio_per_pid = {
             weight_name: {
-                pid: safe_div(numerator_per_pid(pid), denominator_per_pid(weight_name, pid))
+                pid: safe_div(
+                    numerator_per_pid(pid), denominator_per_pid(weight_name, pid)
+                )
                 for pid in self.unique_process_ids
             }
             for weight_name in self.weight_names

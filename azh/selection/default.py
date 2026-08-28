@@ -1,31 +1,27 @@
-# coding: utf-8
-
 """
 Selection methods for AZH semileptonic.
 """
 
-from operator import and_
-from functools import reduce
 from collections import defaultdict
-from typing import Tuple
+from functools import reduce
+from operator import and_
 
+from columnflow.production.cms.mc_weight import mc_weight
+from columnflow.production.processes import process_ids
+from columnflow.production.util import attach_coffea_behavior
+from columnflow.selection import SelectionResult, Selector, selector
+from columnflow.selection.cms.jets import jet_veto_map
+from columnflow.selection.cms.json_filter import json_filter
+from columnflow.selection.cms.met_filters import met_filters
+from columnflow.selection.stats import increment_stats
 from columnflow.util import maybe_import
 
-from columnflow.selection.stats import increment_stats
-from columnflow.selection import Selector, SelectionResult, selector
-from columnflow.selection.cms.met_filters import met_filters
-from columnflow.selection.cms.json_filter import json_filter
-from columnflow.selection.cms.jets import jet_veto_map
-
-from columnflow.production.util import attach_coffea_behavior
-from columnflow.production.cms.mc_weight import mc_weight
 from azh.production.pileup import pu_weight
-from columnflow.production.processes import process_ids
-
 from azh.selection.jet_selection import jet_selection
 from azh.selection.lepton_selection import lepton_selection
 from azh.selection.trigger import trigger_selection
-    # met categories included via add_categories_met
+
+# met categories included via add_categories_met
 
 
 np = maybe_import("numpy")
@@ -34,22 +30,35 @@ ak = maybe_import("awkward")
 
 @selector(
     uses={
-        process_ids, attach_coffea_behavior,
+        process_ids,
+        attach_coffea_behavior,
         mc_weight,
-        jet_selection, lepton_selection,
-        increment_stats, trigger_selection, pu_weight,
+        jet_selection,
+        lepton_selection,
+        increment_stats,
+        trigger_selection,
+        pu_weight,
         # Jet.<btag discriminator> comes in via jet_selection's own init,
         # which resolves the era-dependent column from cfg.x.btag_default
-        "Jet.pt", "Jet.eta",
+        "Jet.pt",
+        "Jet.eta",
         "PuppiMET.pt",
-        met_filters, json_filter, jet_veto_map,
+        met_filters,
+        json_filter,
+        jet_veto_map,
     },
     produces={
-        process_ids, attach_coffea_behavior,
+        process_ids,
+        attach_coffea_behavior,
         mc_weight,
-        jet_selection, lepton_selection,
-        increment_stats, trigger_selection, pu_weight,
-        met_filters, json_filter, jet_veto_map,
+        jet_selection,
+        lepton_selection,
+        increment_stats,
+        trigger_selection,
+        pu_weight,
+        met_filters,
+        json_filter,
+        jet_veto_map,
     },
     exposed=True,
     check_used_columns=False,
@@ -60,7 +69,7 @@ def default(
     events: ak.Array,
     stats: defaultdict,
     **kwargs,
-) -> Tuple[ak.Array, SelectionResult]:
+) -> tuple[ak.Array, SelectionResult]:
 
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
@@ -117,7 +126,10 @@ def default(
             "sum_mc_weight": (events.mc_weight, Ellipsis),
             "sum_mc_weight_selected": (events.mc_weight, results.event),
             "sum_mc_weight_pu_weight": (events.mc_weight * events.pu_weight, Ellipsis),
-            "sum_mc_weight_pu_weight_selected": (events.mc_weight * events.pu_weight, results.event),
+            "sum_mc_weight_pu_weight_selected": (
+                events.mc_weight * events.pu_weight,
+                results.event,
+            ),
         }
         group_map = {
             "process": {

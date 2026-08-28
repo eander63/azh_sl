@@ -1,24 +1,23 @@
-# coding: utf-8
-
 """
 Producers related to event weights.
 """
 
+from columnflow.columnar_util import Route, has_ak_column, set_ak_column
 from columnflow.production import Producer, producer
-from azh.production.normalized_weights import normalized_weight_factory
-from columnflow.columnar_util import set_ak_column, has_ak_column, Route
 from columnflow.production.cms.btag import split_btag_weights
 from columnflow.production.cms.electron import electron_weights
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
+from columnflow.production.cms.scale import murmuf_envelope_weights, murmuf_weights
 from columnflow.production.normalization import normalization_weights
-from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
-from azh.production.trigger_weights import trigger_weights
-from azh.production.channel_lumi_weight import channel_lumi_weight
-from azh.production.pileup import pu_weight
 from columnflow.util import maybe_import
 
+from azh.production.channel_lumi_weight import channel_lumi_weight
 from azh.production.gen_top import top_pt_weight
+from azh.production.normalized_weights import normalized_weight_factory
+from azh.production.pileup import pu_weight
+from azh.production.trigger_weights import trigger_weights
+
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
 
@@ -34,10 +33,10 @@ def event_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     weight = ak.Array(np.ones(len(events)))
     if self.dataset_inst.is_mc:
         for column in self.config_inst.x.event_weights:
-            if (self.dataset_inst.has_tag("is_ttbar") or (column != "top_pt_weight")):
+            if self.dataset_inst.has_tag("is_ttbar") or (column != "top_pt_weight"):
                 weight = weight * Route(column).apply(events)
         for column in self.dataset_inst.x("event_weights", []):
-            if ((self.dataset_inst.has_tag("is_ttbar")) or (column != "top_pt_weight")):
+            if (self.dataset_inst.has_tag("is_ttbar")) or (column != "top_pt_weight"):
                 if has_ak_column(events, column):
                     weight = weight * Route(column).apply(events)
                 else:
@@ -63,8 +62,33 @@ def zpt_reweight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     Set all weights to 1.0 until you have the real values.
     """
     # Derived from v3 data/MC ratio in pt_z_fine (inclusive, all 22 datasets)
-    pt_bins = np.array([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 23, 26, 30, 35, 40, 50, 60, 100], dtype=np.float32)
-    wt_vals = np.array([1.0122, 0.9431, 0.9144, 0.9531, 1.0157, 1.0734, 1.1036, 1.1138, 1.1090, 1.0926, 1.0779, 1.0472, 1.0073, 0.9771, 0.9625, 0.9677, 0.9835, 1.0], dtype=np.float32)
+    pt_bins = np.array(
+        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 23, 26, 30, 35, 40, 50, 60, 100],
+        dtype=np.float32,
+    )
+    wt_vals = np.array(
+        [
+            1.0122,
+            0.9431,
+            0.9144,
+            0.9531,
+            1.0157,
+            1.0734,
+            1.1036,
+            1.1138,
+            1.1090,
+            1.0926,
+            1.0779,
+            1.0472,
+            1.0073,
+            0.9771,
+            0.9625,
+            0.9677,
+            0.9835,
+            1.0,
+        ],
+        dtype=np.float32,
+    )
 
     pt = ak.to_numpy(events.pt_z)
     idx = np.clip(np.searchsorted(pt_bins, pt) - 1, 0, len(wt_vals) - 1)
@@ -74,40 +98,61 @@ def zpt_reweight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     return events
 
 
-electron_id_weights = electron_weights.derive("electron_id_weights", cls_dict={
-    "weight_name": "electron_id_weight",
-    "get_electron_config": (lambda self: self.config_inst.x.electron_sf_id_names),
-})
+electron_id_weights = electron_weights.derive(
+    "electron_id_weights",
+    cls_dict={
+        "weight_name": "electron_id_weight",
+        "get_electron_config": (lambda self: self.config_inst.x.electron_sf_id_names),
+    },
+)
 
-electron_mid_weights = electron_weights.derive("electron_mid_weights", cls_dict={
-    "weight_name": "electron_mid_weight",
-    "get_electron_config": (lambda self: self.config_inst.x.electron_sf_mid_names),
-})
+electron_mid_weights = electron_weights.derive(
+    "electron_mid_weights",
+    cls_dict={
+        "weight_name": "electron_mid_weight",
+        "get_electron_config": (lambda self: self.config_inst.x.electron_sf_mid_names),
+    },
+)
 
-electron_loreco_weights = electron_weights.derive("electron_loreco_weights", cls_dict={
-    "weight_name": "electron_loreco_weight",
-    "get_electron_config": (lambda self: self.config_inst.x.electron_sf_loreco_names),
-})
+electron_loreco_weights = electron_weights.derive(
+    "electron_loreco_weights",
+    cls_dict={
+        "weight_name": "electron_loreco_weight",
+        "get_electron_config": (
+            lambda self: self.config_inst.x.electron_sf_loreco_names
+        ),
+    },
+)
 
-muon_id_weights = muon_weights.derive("muon_id_weights", cls_dict={
-    "weight_name": "muon_id_weight",
-    "get_muon_config": (lambda self: self.config_inst.x.muon_sf_id_names),
-})
+muon_id_weights = muon_weights.derive(
+    "muon_id_weights",
+    cls_dict={
+        "weight_name": "muon_id_weight",
+        "get_muon_config": (lambda self: self.config_inst.x.muon_sf_id_names),
+    },
+)
 
 normalized_pu_weight = normalized_weight_factory(
     producer_name="normalized_pu_weight",
     weight_producers={pu_weight},
 )
 
-muon_iso_weights = muon_weights.derive("muon_iso_weights", cls_dict={
-    "weight_name": "muon_iso_weight",
-    "get_muon_config": (lambda self: self.config_inst.x.muon_sf_iso_names),
-})
+muon_iso_weights = muon_weights.derive(
+    "muon_iso_weights",
+    cls_dict={
+        "weight_name": "muon_iso_weight",
+        "get_muon_config": (lambda self: self.config_inst.x.muon_sf_iso_names),
+    },
+)
 
-muon_reco_weights = muon_weights.derive("muon_reco_weights", cls_dict={
-    "weight_name": "muon_reco_weight",
-    "get_muon_config": (lambda self: self.config_inst.x.muon_sf_reco_names),
-})
+muon_reco_weights = muon_weights.derive(
+    "muon_reco_weights",
+    cls_dict={
+        "weight_name": "muon_reco_weight",
+        "get_muon_config": (lambda self: self.config_inst.x.muon_sf_reco_names),
+    },
+)
+
 
 @producer
 def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -126,12 +171,20 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         mu_tight = events.Muon.tightId & (events.Muon.pfRelIso04_all < 0.15)
 
         electron_mask = ele_tight & (events.Electron.pt >= 75)
-        electron_mask_mid = ele_tight & (events.Electron.pt >= 20) & (events.Electron.pt < 75)
-        electron_mask_lo = ele_tight & (events.Electron.pt >= 10) & (events.Electron.pt < 20)
+        electron_mask_mid = (
+            ele_tight & (events.Electron.pt >= 20) & (events.Electron.pt < 75)
+        )
+        electron_mask_lo = (
+            ele_tight & (events.Electron.pt >= 10) & (events.Electron.pt < 20)
+        )
 
         events = self[electron_weights](events, electron_mask=electron_mask, **kwargs)
-        events = self[electron_mid_weights](events, electron_mask=electron_mask_mid, **kwargs)
-        events = self[electron_loreco_weights](events, electron_mask=electron_mask_lo, **kwargs)
+        events = self[electron_mid_weights](
+            events, electron_mask=electron_mask_mid, **kwargs
+        )
+        events = self[electron_loreco_weights](
+            events, electron_mask=electron_mask_lo, **kwargs
+        )
         events = self[electron_id_weights](events, electron_mask=ele_tight, **kwargs)
 
         # compute muon weights
@@ -140,7 +193,7 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         muon_mask_sf = mu_tight
         events = self[muon_id_weights](events, muon_mask=muon_mask_sf, **kwargs)
         events = self[muon_iso_weights](events, muon_mask=muon_mask_sf, **kwargs)
-        
+
         # compute trigger weights
         events = self[trigger_weights](events, **kwargs)
 
@@ -178,19 +231,43 @@ def weights_init(self: Producer) -> None:
         # dynamically add dependencies if running on MC
         self.uses |= {
             # tight-ID columns, used to mask which leptons receive scale factors
-            "Electron.mvaIso_WP80", "Muon.tightId", "Muon.pfRelIso04_all",
-            electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
-            muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            "Electron.mvaIso_WP80",
+            "Muon.tightId",
+            "Muon.pfRelIso04_all",
+            electron_weights,
+            electron_id_weights,
+            electron_mid_weights,
+            electron_loreco_weights,
+            muon_id_weights,
+            muon_iso_weights,
+            normalization_weights,
+            mc_weight,
+            pu_weight,
+            normalized_pu_weight,
+            top_pt_weight,
+            murmuf_envelope_weights,
+            murmuf_weights,
             # zpt_reweight,  # DISABLED
             split_btag_weights,
-            trigger_weights, channel_lumi_weight,
+            trigger_weights,
+            channel_lumi_weight,
         }
         self.produces |= {
-            electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
-            muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
+            electron_weights,
+            electron_id_weights,
+            electron_mid_weights,
+            electron_loreco_weights,
+            muon_id_weights,
+            muon_iso_weights,
+            normalization_weights,
+            mc_weight,
+            pu_weight,
+            normalized_pu_weight,
+            top_pt_weight,
+            murmuf_envelope_weights,
+            murmuf_weights,
             # zpt_reweight,  # DISABLED
             split_btag_weights,
-            trigger_weights, channel_lumi_weight,
+            trigger_weights,
+            channel_lumi_weight,
         }

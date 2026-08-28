@@ -1,20 +1,17 @@
-# coding: utf-8
 """
 custom weight producer to apply trigger masks in histogram step
 """
 
 import law
-
-from columnflow.util import maybe_import, InsertableDict
+from columnflow.util import maybe_import
 from columnflow.weight import WeightProducer, weight_producer
-from columnflow.config_util import get_shifts_from_sources
-from columnflow.columnar_util import Route
 from columnflow.weight.all_weights import all_weights
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
 logger = law.logger.get_logger(__name__)
+
 
 @weight_producer(
     mc_only=False,
@@ -36,18 +33,22 @@ def base(self: WeightProducer, events: ak.Array, **kwargs) -> ak.Array:
 
     return events, weights
 
+
 @base.init
 def base_init(self: WeightProducer) -> None:
-    
-    if not getattr(self, "config_inst"):
+
+    if not self.config_inst:
         return
-    
+
     if self.mask_columns:
         for col in self.mask_columns:
             self.uses.add(col)
 
 
-ref_trigger = base.derive("ref_trigger", cls_dict={
-    "mask_fn": lambda self, events: events.HLT.PFMETNoMu120_PFMHTNoMu120_IDTight,
-    "mask_columns": ["HLT.PFMETNoMu120_PFMHTNoMu120_IDTight"],
-})
+ref_trigger = base.derive(
+    "ref_trigger",
+    cls_dict={
+        "mask_fn": lambda self, events: events.HLT.PFMETNoMu120_PFMHTNoMu120_IDTight,
+        "mask_columns": ["HLT.PFMETNoMu120_PFMHTNoMu120_IDTight"],
+    },
+)

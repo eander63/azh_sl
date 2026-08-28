@@ -4,13 +4,14 @@ Config-related object definitions and utils.
 
 from __future__ import annotations
 
-from typing import Callable, Any, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
-from order import UniqueObject, TagMixin
+from order import TagMixin, UniqueObject
 from order.util import typed
 
 
-class TriggerLeg(object):
+class TriggerLeg:
     """
     Container class storing information about trigger legs:
 
@@ -27,7 +28,7 @@ class TriggerLeg(object):
     def __init__(
         self,
         pdg_id: int | None = None,
-        min_pt: float | int | None = None,
+        min_pt: float | None = None,
         trigger_bits: int | Sequence[int] | None = None,
     ):
         super().__init__()
@@ -60,7 +61,7 @@ class TriggerLeg(object):
         return pdg_id
 
     @typed
-    def min_pt(self, min_pt: int | float | None) -> float | None:
+    def min_pt(self, min_pt: float | None) -> float | None:
         if min_pt is None:
             return None
 
@@ -183,13 +184,13 @@ class Trigger(UniqueObject, TagMixin):
     def legs(
         self,
         legs: (
-            dict |
-            tuple[dict] |
-            list[dict] |
-            TriggerLeg |
-            tuple[TriggerLeg] |
-            list[TriggerLeg] |
-            None
+            dict
+            | tuple[dict]
+            | list[dict]
+            | TriggerLeg
+            | tuple[TriggerLeg]
+            | list[TriggerLeg]
+            | None
         ),
     ) -> list[TriggerLeg]:
         if legs is None:

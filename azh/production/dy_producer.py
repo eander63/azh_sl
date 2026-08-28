@@ -1,13 +1,11 @@
-import law
 import order as od
-
-from columnflow.util import maybe_import
-from columnflow.production import producer, Producer
-from columnflow.production.processes import process_ids
 from columnflow.columnar_util import set_ak_column
+from columnflow.production import Producer, producer
+from columnflow.util import maybe_import
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
+
 
 def get_process_id_from_masks(
     events: ak.Array,
@@ -33,12 +31,16 @@ def get_process_id_from_masks(
             proc_id = dataset_inst.get_process(proc_name).id
 
             if not ak.all(process_id[mask] == 0):
-                raise ValueError(f"Events from dataset {dataset_inst.name} have overlapping processes")
+                raise ValueError(
+                    f"Events from dataset {dataset_inst.name} have overlapping processes"
+                )
 
             process_id = ak.where(mask, proc_id, process_id)
 
     if ak.any(process_id == 0):
-        raise ValueError(f"Events from dataset {dataset_inst.name} have not been assigned any process")
+        raise ValueError(
+            f"Events from dataset {dataset_inst.name} have not been assigned any process"
+        )
 
     return process_id
 
@@ -57,7 +59,7 @@ def dy_producer(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # n_partons = events.LHE.NpNLO
 
     genjet_mask = (events.GenJet["pt"] >= 20) & (abs(events.GenJet["eta"]) < 2.4)
-    genjet = (events.GenJet[genjet_mask])
+    genjet = events.GenJet[genjet_mask]
     hf_genjet_mask = (genjet.hadronFlavour == 4) | (genjet.hadronFlavour == 5)
     is_hf = ak.any(hf_genjet_mask, axis=1)
 
@@ -67,7 +69,11 @@ def dy_producer(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     # identify base process as "dy_{mass-window}"
     base_proc_name = "_".join(self.dataset_inst.name.split("_")[:2])
     # print(base_proc_name)
-    if base_proc_name == "dy_m50toinf" and "amcatnlo" in self.dataset_inst.name and not any(f"{n}j" in self.dataset_inst.name for n in range(5)):
+    if (
+        base_proc_name == "dy_m50toinf"
+        and "amcatnlo" in self.dataset_inst.name
+        and not any(f"{n}j" in self.dataset_inst.name for n in range(5))
+    ):
         # inclusive amcatnlo sample - split by gen jet multiplicity and hf/lf
         n_genjet = ak.num(genjet, axis=1)
         process_masks = {
@@ -83,16 +89,36 @@ def dy_producer(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     elif base_proc_name == "dy_m50toinf":
         # separate into njet and hf/lf
         process_masks = {
-            f"{base_proc_name}_0j_hf": ((str(0)+"j" in self.dataset_inst.name) & is_hf),
-            f"{base_proc_name}_1j_hf": ((str(1)+"j" in self.dataset_inst.name) & is_hf),
-            f"{base_proc_name}_2j_hf": ((str(2)+"j" in self.dataset_inst.name) & is_hf),
-            f"{base_proc_name}_3j_hf": ((str(3)+"j" in self.dataset_inst.name) & is_hf),  
-            f"{base_proc_name}_4j_hf": ((str(4)+"j" in self.dataset_inst.name) & is_hf), 
-            f"{base_proc_name}_0j_lf": ((str(0)+"j" in self.dataset_inst.name) & ~is_hf),
-            f"{base_proc_name}_1j_lf": ((str(1)+"j" in self.dataset_inst.name) & ~is_hf),
-            f"{base_proc_name}_2j_lf": ((str(2)+"j" in self.dataset_inst.name) & ~is_hf),
-            f"{base_proc_name}_3j_lf": ((str(3)+"j" in self.dataset_inst.name) & ~is_hf), 
-            f"{base_proc_name}_4j_lf": ((str(4)+"j" in self.dataset_inst.name) & ~is_hf), 
+            f"{base_proc_name}_0j_hf": (
+                (str(0) + "j" in self.dataset_inst.name) & is_hf
+            ),
+            f"{base_proc_name}_1j_hf": (
+                (str(1) + "j" in self.dataset_inst.name) & is_hf
+            ),
+            f"{base_proc_name}_2j_hf": (
+                (str(2) + "j" in self.dataset_inst.name) & is_hf
+            ),
+            f"{base_proc_name}_3j_hf": (
+                (str(3) + "j" in self.dataset_inst.name) & is_hf
+            ),
+            f"{base_proc_name}_4j_hf": (
+                (str(4) + "j" in self.dataset_inst.name) & is_hf
+            ),
+            f"{base_proc_name}_0j_lf": (
+                (str(0) + "j" in self.dataset_inst.name) & ~is_hf
+            ),
+            f"{base_proc_name}_1j_lf": (
+                (str(1) + "j" in self.dataset_inst.name) & ~is_hf
+            ),
+            f"{base_proc_name}_2j_lf": (
+                (str(2) + "j" in self.dataset_inst.name) & ~is_hf
+            ),
+            f"{base_proc_name}_3j_lf": (
+                (str(3) + "j" in self.dataset_inst.name) & ~is_hf
+            ),
+            f"{base_proc_name}_4j_lf": (
+                (str(4) + "j" in self.dataset_inst.name) & ~is_hf
+            ),
         }
     elif base_proc_name == "dy_m4to10" or base_proc_name == "dy_m10to50":
         # separate into hf/lf

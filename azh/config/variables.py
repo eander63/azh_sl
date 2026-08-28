@@ -1,13 +1,10 @@
-# coding: utf-8
-
 """
 Definition of variables.
 """
 
 import order as od
-
-from columnflow.util import maybe_import
 from columnflow.columnar_util import EMPTY_FLOAT
+from columnflow.util import maybe_import
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -72,7 +69,7 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="npvs",
         expression="PV.npvs",
-        binning=(51, -.5, 50.5),
+        binning=(51, -0.5, 50.5),
         x_title="Number of primary vertices",
         discrete_x=True,
     )
@@ -224,48 +221,48 @@ def add_variables(config: od.Config) -> None:
         expression="deltaPhi_MET_Jet1",
         binning=(40, -3.2, 3.2),
         unit="",
-        x_title="$\Delta \phi$ (MET,Jet1) ",
+        x_title=r"$\Delta \phi$ (MET,Jet1) ",
     )
     config.add_variable(
         name="deltaPhi_MET_Jet2",
         expression="deltaPhi_MET_Jet2",
         binning=(40, -3.2, 3.2),
         unit="",
-        x_title="$\Delta \phi$ (MET,Jet2) ",
+        x_title=r"$\Delta \phi$ (MET,Jet2) ",
     )
     config.add_variable(
         name="deltaPhi_MET_Jet3",
         expression="deltaPhi_MET_Jet3",
         binning=(40, -3.2, 3.2),
         unit="",
-        x_title="$\Delta \phi$ (MET,Jet3) ",
+        x_title=r"$\Delta \phi$ (MET,Jet3) ",
     )
     # Jets (3 pt-leading jets)
     for i in range(6):
         config.add_variable(
-            name=f"jet{i+1}_pt",
+            name=f"jet{i + 1}_pt",
             expression=f"Jet.pt[:,{i}]",
             null_value=EMPTY_FLOAT,
-            binning=(40, 0., 400.),
+            binning=(40, 0.0, 400.0),
             unit="GeV",
             x_title=r"Jet %i $p_{T}$" % (i + 1),
         )
         config.add_variable(
-            name=f"jet{i+1}_eta",
+            name=f"jet{i + 1}_eta",
             expression=f"Jet.eta[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(50, -2.5, 2.5),
             x_title=r"Jet %i $\eta$" % (i + 1),
         )
         config.add_variable(
-            name=f"jet{i+1}_phi",
+            name=f"jet{i + 1}_phi",
             expression=f"Jet.phi[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(40, -3.2, 3.2),
             x_title=r"Jet %i $\phi$" % (i + 1),
         )
         config.add_variable(
-            name=f"jet{i+1}_mass",
+            name=f"jet{i + 1}_mass",
             expression=f"Jet.mass[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(40, 0, 200),
@@ -275,22 +272,22 @@ def add_variables(config: od.Config) -> None:
 
     for i in range(2):
         config.add_variable(
-            name=f"Lepton{i+1}_pt",
+            name=f"Lepton{i + 1}_pt",
             expression=f"Leptons.pt[:,{i}]",
             null_value=EMPTY_FLOAT,
-            binning=(40, 0., 400.),
+            binning=(40, 0.0, 400.0),
             unit="GeV",
             x_title=r"Lepton %i $p_{T}$" % (i + 1),
         )
         config.add_variable(
-            name=f"Lepton{i+1}_eta",
+            name=f"Lepton{i + 1}_eta",
             expression=f"Leptons.eta[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(50, -2.5, 2.5),
             x_title=r"Lepton %i $\eta$" % (i + 1),
         )
         config.add_variable(
-            name=f"Lepton{i+1}_phi",
+            name=f"Lepton{i + 1}_phi",
             expression=f"Leptons.phi[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(40, -3.2, 3.2),
@@ -359,7 +356,7 @@ def add_variables(config: od.Config) -> None:
         config.add_variable(
             name=f"cf_lep{i + 1}_pt",
             expression=f"cutflow.lep{i + 1}_pt",
-            binning=(40, 0., 400.),
+            binning=(40, 0.0, 400.0),
             unit="GeV",
             x_title=rf"lepton {i + 1} $p_{{T}}$",
         )
@@ -372,18 +369,18 @@ def add_variables(config: od.Config) -> None:
 
     for i in range(4):
         config.add_variable(
-            name=f"cf_jet{i+1}_pt",
-            expression=f"cutflow.jet{i+1}_pt",
-            binning=(40, 0., 400.),
+            name=f"cf_jet{i + 1}_pt",
+            expression=f"cutflow.jet{i + 1}_pt",
+            binning=(40, 0.0, 400.0),
             unit="GeV",
-            x_title=rf"jet {i+1} $p_{{T}}$",
+            x_title=rf"jet {i + 1} $p_{{T}}$",
         )
 
         config.add_variable(
-            name=f"cf_jet{i+1}_eta",
-            expression=f"cutflow.jet{i+1}_eta",
+            name=f"cf_jet{i + 1}_eta",
+            expression=f"cutflow.jet{i + 1}_eta",
             binning=(50, -2.5, 2.5),
-            x_title=rf"jet {i+1} $\eta$",
+            x_title=rf"jet {i + 1} $\eta$",
         )
 
     # ── 3-lepton variables ──

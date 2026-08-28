@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 Collection of patches of underlying columnflow tasks.
 """
@@ -8,7 +6,6 @@ import os
 
 import law
 from columnflow.util import memoize
-
 
 logger = law.logger.get_logger(__name__)
 
@@ -24,9 +21,18 @@ def patch_bundle_repo_exclude_files():
     exclude_files = [os.path.join(cf_rel, path) for path in BundleRepo.exclude_files]
 
     # add additional files
-    exclude_files.extend([
-        "docs", "tests", "data", "assets", ".law", ".setups", ".data", ".github",
-    ])
+    exclude_files.extend(
+        [
+            "docs",
+            "tests",
+            "data",
+            "assets",
+            ".law",
+            ".setups",
+            ".data",
+            ".github",
+        ]
+    )
 
     # overwrite them
     BundleRepo.exclude_files[:] = exclude_files

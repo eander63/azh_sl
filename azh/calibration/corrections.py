@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 Calibration corrections: value-changing corrections applied before
 selection/reduction. This module holds the definitions only; the composite
@@ -14,11 +12,11 @@ Contents:
 
 from columnflow.calibration import Calibrator, calibrator
 from columnflow.calibration.cms.jets import jec, jer
-from columnflow.util import maybe_import, InsertableDict
-from columnflow.production.util import attach_coffea_behavior
 from columnflow.columnar_util import set_ak_column
+from columnflow.production.util import attach_coffea_behavior
+from columnflow.util import InsertableDict, maybe_import
 
-from azh.util import lv_xyzt, lv_mass
+from azh.util import lv_mass, lv_xyzt
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
@@ -27,6 +25,7 @@ np = maybe_import("numpy")
 # Jet energy: nominal JEC (+ JER for MC)
 # ===========================================================================
 jec_nominal = jec.derive("jec_nominal", cls_dict={"uncertainty_sources": []})
+
 
 @calibrator
 def jet_energy(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
@@ -62,18 +61,37 @@ def jet_energy_init(self: Calibrator) -> None:
 # ===========================================================================
 @calibrator(
     uses={
-        "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
-        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
-        "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.rawFactor",
+        "Electron.pt",
+        "Electron.eta",
+        "Electron.phi",
+        "Electron.mass",
+        "Muon.pt",
+        "Muon.eta",
+        "Muon.phi",
+        "Muon.mass",
+        "Jet.pt",
+        "Jet.eta",
+        "Jet.phi",
+        "Jet.mass",
+        "Jet.rawFactor",
         # index of electrons/muons matched to jets
-        "Jet.muonIdx1", "Jet.muonIdx2", "Jet.electronIdx1", "Jet.electronIdx2",
+        "Jet.muonIdx1",
+        "Jet.muonIdx2",
+        "Jet.electronIdx1",
+        "Jet.electronIdx2",
         # PF energy fractions
-        "Jet.chEmEF", "Jet.muEF",
+        "Jet.chEmEF",
+        "Jet.muEF",
         attach_coffea_behavior,
     },
     produces={
-        "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.rawFactor",
-        "Jet.chEmEF", "Jet.muEF",
+        "Jet.pt",
+        "Jet.eta",
+        "Jet.phi",
+        "Jet.mass",
+        "Jet.rawFactor",
+        "Jet.chEmEF",
+        "Jet.muEF",
     },
 )
 def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
@@ -87,7 +105,9 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
 
     # revert JEC for jet pt and jet mass, set correction factor to 0
     events = set_ak_column(events, "Jet.pt", events.Jet.pt * (1 - events.Jet.rawFactor))
-    events = set_ak_column(events, "Jet.mass", events.Jet.mass * (1 - events.Jet.rawFactor))
+    events = set_ak_column(
+        events, "Jet.mass", events.Jet.mass * (1 - events.Jet.rawFactor)
+    )
     events = set_ak_column(events, "Jet.rawFactor", 0)
 
     # build jet lorentz vectors
@@ -121,7 +141,9 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
         jet_pf_energy_cleaned = jet_pf_energy - jet_lepton_lv.energy
 
         # lepton energy compatible with PF energy fraction (within tolerance)
-        lep_energy_pf_compatible = (jet_lepton_lv.energy < (1 + tolerance) * jet_pf_energy)
+        lep_energy_pf_compatible = (
+            jet_lepton_lv.energy < (1 + tolerance) * jet_pf_energy
+        )
 
         # square of cleaned jet mass; mask values that would give imaginary
         # masses, but keep abs() if only negative within tolerance (lepton fake)
@@ -135,9 +157,8 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
 
         # angle before/after cleaning is similar, OR cleaned pt is very low
         # (high probability that this was a pure lepton fake)
-        angle_change_small = (
-            (jet_lv.delta_r(jet_lv_cleaned) <= np.pi / 2) |
-            (jet_lv_cleaned.pt < 10)
+        angle_change_small = (jet_lv.delta_r(jet_lv_cleaned) <= np.pi / 2) | (
+            jet_lv_cleaned.pt < 10
         )
 
         # AND of cleaning conditions; `None` (no matched lepton) -> no cleaning
@@ -147,7 +168,9 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
         # update jet LV and PF energies where we cleaned
         jet_lv = ak.where(do_clean, jet_lv_cleaned, jet_lv)
         jet_pf_energies[jet_lepton_type] = ak.where(
-            do_clean, jet_pf_energy_cleaned, jet_pf_energy,
+            do_clean,
+            jet_pf_energy_cleaned,
+            jet_pf_energy,
         )
 
     # save updated jet variables
@@ -158,6 +181,7 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
         events = set_ak_column(events, f"Jet.{var}", value)
 
     return events
+
 
 # ===========================================================================
 # Muon momentum scale & smearing (MuonScaRe)
@@ -175,32 +199,47 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
 # pt_corr/pt sanity cut live inside pt_scale/pt_resol, so we don't re-guard.
 # ===========================================================================
 
+
 @calibrator(
     uses={
-        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.charge", "Muon.nTrackerLayers",
-        "event", "luminosityBlock",
+        "Muon.pt",
+        "Muon.eta",
+        "Muon.phi",
+        "Muon.charge",
+        "Muon.nTrackerLayers",
+        "event",
+        "luminosityBlock",
     },
     produces={"Muon.pt"},
 )
 def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
-    pt_scale, pt_resol = self.pt_scale, self.pt_resol   # set in setup
+    pt_scale, pt_resol = self.pt_scale, self.pt_resol  # set in setup
     is_data = self.dataset_inst.is_data
 
     # scale: applied to data AND MC
     pt_corr = pt_scale(
         is_data,
-        events.Muon.pt, events.Muon.eta, events.Muon.phi, events.Muon.charge,
-        self.muon_cset, nested=True,
+        events.Muon.pt,
+        events.Muon.eta,
+        events.Muon.phi,
+        events.Muon.charge,
+        self.muon_cset,
+        nested=True,
     )
     events = set_ak_column(events, "Muon.pt", pt_corr)
 
     # resolution smearing: MC only, on the scale-corrected pt
     if not is_data:
         pt_corr = pt_resol(
-            events.Muon.pt, events.Muon.eta, events.Muon.phi,
+            events.Muon.pt,
+            events.Muon.eta,
+            events.Muon.phi,
             events.Muon.nTrackerLayers,
-            events.event, events.luminosityBlock,
-            self.muon_cset, nested=True, rnd_gen="np",
+            events.event,
+            events.luminosityBlock,
+            self.muon_cset,
+            nested=True,
+            rnd_gen="np",
         )
         events = set_ak_column(events, "Muon.pt", pt_corr)
 
@@ -212,26 +251,35 @@ def muon_scare_requires(self: Calibrator, reqs: dict) -> None:
     if "external_files" in reqs:
         return
     from columnflow.tasks.external import BundleExternalFiles
+
     reqs["external_files"] = BundleExternalFiles.req(self.task)
 
 
 @muon_scare.setup
-def muon_scare_setup(self: Calibrator, reqs: dict, inputs: dict,
-                     reader_targets: InsertableDict) -> None:
-    import sys, os, azh
+def muon_scare_setup(
+    self: Calibrator, reqs: dict, inputs: dict, reader_targets: InsertableDict
+) -> None:
+    import os
+    import sys
+
+    import azh
+
     # repo root = parent of the azh/ package dir; kit lives under modules/
     _repo = os.path.dirname(os.path.dirname(os.path.abspath(azh.__file__)))
     _kit = os.path.join(_repo, "modules", "muonscarekit", "scripts")
     if _kit not in sys.path:
         sys.path.insert(0, _kit)
-    from MuonScaRe import pt_scale, pt_resol
+    from MuonScaRe import pt_resol, pt_scale
+
     self.pt_scale, self.pt_resol = pt_scale, pt_resol
 
     import correctionlib
+
     bundle = reqs["external_files"]
     self.muon_cset = correctionlib.CorrectionSet.from_string(
         bundle.files.muon_scalesmearing.load(formatter="gzip").decode("utf-8"),
     )
+
 
 """
 EGM electron scale & smearing -- eT-dependent flavour (POG-recommended).
@@ -285,7 +333,10 @@ def _build_args(corr, syst, pt, r9, sceta):
 
 @calibrator(
     uses={
-        "Electron.pt", "Electron.eta", "Electron.deltaEtaSC", "Electron.r9",
+        "Electron.pt",
+        "Electron.eta",
+        "Electron.deltaEtaSC",
+        "Electron.r9",
         "event",
     },
     produces={"Electron.pt"},
@@ -304,23 +355,33 @@ def electron_ss(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
     if self.dataset_inst.is_data:
         args = _build_args(
-            self.corr_scale, "scale",
-            flat_pt[do_corr], flat_r9[do_corr], flat_sceta[do_corr],
+            self.corr_scale,
+            "scale",
+            flat_pt[do_corr],
+            flat_r9[do_corr],
+            flat_sceta[do_corr],
         )
         scale = self.corr_scale.evaluate(*args)
         corrected[do_corr] = flat_pt[do_corr] * scale
     else:
         args = _build_args(
-            self.corr_smear, "smear",
-            flat_pt[do_corr], flat_r9[do_corr], flat_sceta[do_corr],
+            self.corr_smear,
+            "smear",
+            flat_pt[do_corr],
+            flat_r9[do_corr],
+            flat_sceta[do_corr],
         )
         sigma = self.corr_smear.evaluate(*args)
 
         # reproducible per-electron gaussian, seeded from (event, object index)
-        event_per_ele = ak.to_numpy(ak.flatten(
-            ak.broadcast_arrays(events.event, ele.pt)[0],
-        )).astype(np.uint64)
-        obj_idx = ak.to_numpy(ak.flatten(ak.local_index(ele.pt, axis=1))).astype(np.uint64)
+        event_per_ele = ak.to_numpy(
+            ak.flatten(
+                ak.broadcast_arrays(events.event, ele.pt)[0],
+            )
+        ).astype(np.uint64)
+        obj_idx = ak.to_numpy(ak.flatten(ak.local_index(ele.pt, axis=1))).astype(
+            np.uint64
+        )
         seeds = (event_per_ele * np.uint64(2654435761) + obj_idx)[do_corr]
 
         gauss = np.empty(do_corr.sum(), dtype=np.float64)
@@ -339,13 +400,16 @@ def electron_ss_requires(self: Calibrator, reqs: dict) -> None:
     if "external_files" in reqs:
         return
     from columnflow.tasks.external import BundleExternalFiles
+
     reqs["external_files"] = BundleExternalFiles.req(self.task)
 
 
 @electron_ss.setup
-def electron_ss_setup(self: Calibrator, reqs: dict, inputs: dict,
-                      reader_targets: InsertableDict) -> None:
+def electron_ss_setup(
+    self: Calibrator, reqs: dict, inputs: dict, reader_targets: InsertableDict
+) -> None:
     import correctionlib
+
     bundle = reqs["external_files"]
     cset = correctionlib.CorrectionSet.from_string(
         bundle.files.electron_ss.load(formatter="gzip").decode("utf-8"),
@@ -353,4 +417,3 @@ def electron_ss_setup(self: Calibrator, reqs: dict, inputs: dict,
     scale_name, smear_name = self.config_inst.x.electron_ss_names
     self.corr_scale = cset[scale_name]
     self.corr_smear = cset[smear_name]
-                        

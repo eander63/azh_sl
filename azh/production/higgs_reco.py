@@ -1,7 +1,8 @@
 # Reconstruction of the heavy Higgs H
-from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 from columnflow.production import Producer, producer
+from columnflow.util import maybe_import
+
 # from azh.production.leptons import choose_lepton
 
 np = maybe_import("numpy")
@@ -12,12 +13,28 @@ ak = maybe_import("awkward")
     # the b-tag discriminator column is era-dependent (ParticleNet for 2022/23,
     # UParT for 2024) and is added dynamically in higgs_reco_init below
     uses={
-        "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass",
-        "BJet.pt", "BJet.eta", "BJet.phi", "BJet.mass",
-        "PuppiMET.pt", "PuppiMET.phi",
+        "Jet.pt",
+        "Jet.eta",
+        "Jet.phi",
+        "Jet.mass",
+        "BJet.pt",
+        "BJet.eta",
+        "BJet.phi",
+        "BJet.mass",
+        "PuppiMET.pt",
+        "PuppiMET.phi",
     },
     produces={
-        "m_h", "m_a", "del_m", "n_jets", "n_bjets","deltaR_b_z","deltaPhi_MET_Jet1","deltaPhi_MET_Jet2","deltaPhi_MET_Jet3","MET_ht"
+        "m_h",
+        "m_a",
+        "del_m",
+        "n_jets",
+        "n_bjets",
+        "deltaR_b_z",
+        "deltaPhi_MET_Jet1",
+        "deltaPhi_MET_Jet2",
+        "deltaPhi_MET_Jet3",
+        "MET_ht",
     },
 )
 def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -44,20 +61,20 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     def _safe_p4(objs, n):
         objs = ak.pad_none(objs, n, axis=1)
         return ak.zip(
-        {
-            "pt": ak.fill_none(objs["pt"], 0.0),      # ["pt"] not .pt -> raw field
-            "eta": ak.fill_none(objs["eta"], 0.0),
-            "phi": ak.fill_none(objs["phi"], 0.0),
-            "mass": ak.fill_none(objs["mass"], 0.0),
-        },
-        with_name="PtEtaPhiMLorentzVector",
-        behavior=events.behavior,
-    )
+            {
+                "pt": ak.fill_none(objs["pt"], 0.0),  # ["pt"] not .pt -> raw field
+                "eta": ak.fill_none(objs["eta"], 0.0),
+                "phi": ak.fill_none(objs["phi"], 0.0),
+                "mass": ak.fill_none(objs["mass"], 0.0),
+            },
+            with_name="PtEtaPhiMLorentzVector",
+            behavior=events.behavior,
+        )
 
     sorted_bjets = _safe_p4(sorted_bjets, 2)
     light_jets = _safe_p4(light_jets, 6)
     sorted_jets = _safe_p4(sorted_jets, 6)
-    
+
     num_jets = ak.num(events.Jet, axis=-1)
     num_bjets = ak.num(events.BJet, axis=-1)
 
@@ -65,14 +82,26 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         num_jets == 4,
         ak.where(
             num_bjets > 2,
-            sorted_jets[:, 0] + sorted_jets[:, 1] + sorted_jets[:, 2] + sorted_jets[:, 3],
+            sorted_jets[:, 0]
+            + sorted_jets[:, 1]
+            + sorted_jets[:, 2]
+            + sorted_jets[:, 3],
             ak.where(
                 num_bjets == 2,
-                sorted_bjets[:, 0] + sorted_bjets[:, 1] + light_jets[:, 0] + light_jets[:, 1],
+                sorted_bjets[:, 0]
+                + sorted_bjets[:, 1]
+                + light_jets[:, 0]
+                + light_jets[:, 1],
                 ak.where(
                     num_bjets == 1,
-                    sorted_bjets[:, 0] + light_jets[:, 0] + light_jets[:, 1] + light_jets[:, 2],
-                    light_jets[:, 0] + light_jets[:, 1] + light_jets[:, 2] + light_jets[:, 3],
+                    sorted_bjets[:, 0]
+                    + light_jets[:, 0]
+                    + light_jets[:, 1]
+                    + light_jets[:, 2],
+                    light_jets[:, 0]
+                    + light_jets[:, 1]
+                    + light_jets[:, 2]
+                    + light_jets[:, 3],
                 ),
             ),
         ),
@@ -80,27 +109,63 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
             num_jets == 5,
             ak.where(
                 num_bjets > 2,
-                sorted_jets[:, 0] + sorted_jets[:, 1] + sorted_jets[:, 2] + sorted_jets[:, 3] + sorted_jets[:, 4],
+                sorted_jets[:, 0]
+                + sorted_jets[:, 1]
+                + sorted_jets[:, 2]
+                + sorted_jets[:, 3]
+                + sorted_jets[:, 4],
                 ak.where(
                     num_bjets == 2,
-                    sorted_bjets[:, 0] + sorted_bjets[:, 1] + light_jets[:, 0] + light_jets[:, 1] + light_jets[:, 2],
+                    sorted_bjets[:, 0]
+                    + sorted_bjets[:, 1]
+                    + light_jets[:, 0]
+                    + light_jets[:, 1]
+                    + light_jets[:, 2],
                     ak.where(
                         num_bjets == 1,
-                        sorted_bjets[:, 0] + light_jets[:, 0] + light_jets[:, 1] + light_jets[:, 2] + light_jets[:, 3],
-                        light_jets[:, 0] + light_jets[:, 1] + light_jets[:, 2] + light_jets[:, 3] + light_jets[:, 4],
+                        sorted_bjets[:, 0]
+                        + light_jets[:, 0]
+                        + light_jets[:, 1]
+                        + light_jets[:, 2]
+                        + light_jets[:, 3],
+                        light_jets[:, 0]
+                        + light_jets[:, 1]
+                        + light_jets[:, 2]
+                        + light_jets[:, 3]
+                        + light_jets[:, 4],
                     ),
                 ),
             ),
             ak.where(
                 num_bjets > 2,
-                sorted_jets[:, 0] + sorted_jets[:, 1] + sorted_jets[:, 2] + sorted_jets[:, 3] + sorted_jets[:, 4] + sorted_jets[:, 5],
+                sorted_jets[:, 0]
+                + sorted_jets[:, 1]
+                + sorted_jets[:, 2]
+                + sorted_jets[:, 3]
+                + sorted_jets[:, 4]
+                + sorted_jets[:, 5],
                 ak.where(
                     num_bjets == 2,
-                    sorted_bjets[:, 0] + sorted_bjets[:, 1] + light_jets[:, 0] + light_jets[:, 1] + light_jets[:, 2] + light_jets[:, 3],
+                    sorted_bjets[:, 0]
+                    + sorted_bjets[:, 1]
+                    + light_jets[:, 0]
+                    + light_jets[:, 1]
+                    + light_jets[:, 2]
+                    + light_jets[:, 3],
                     ak.where(
                         num_bjets == 1,
-                        sorted_bjets[:, 0] + light_jets[:, 0] + light_jets[:, 1] + light_jets[:, 2] + light_jets[:, 3] + light_jets[:, 4],
-                        light_jets[:, 0] + light_jets[:, 1] + light_jets[:, 2] + light_jets[:, 3] + light_jets[:, 4] + light_jets[:, 5],
+                        sorted_bjets[:, 0]
+                        + light_jets[:, 0]
+                        + light_jets[:, 1]
+                        + light_jets[:, 2]
+                        + light_jets[:, 3]
+                        + light_jets[:, 4],
+                        light_jets[:, 0]
+                        + light_jets[:, 1]
+                        + light_jets[:, 2]
+                        + light_jets[:, 3]
+                        + light_jets[:, 4]
+                        + light_jets[:, 5],
                     ),
                 ),
             ),
@@ -122,7 +187,12 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     a = z + h
     mass_a = a.mass
     # leading_b = ak.where((ak.num(events.BJet, axis=-1) > 0),sorted_bjets[:, 0],)
-    deltaR_b_z = np.sqrt(np.abs((sorted_bjets[:, 0].eta - z.eta)**2 + (sorted_bjets[:, 0].phi - z.phi)**2))
+    deltaR_b_z = np.sqrt(
+        np.abs(
+            (sorted_bjets[:, 0].eta - z.eta) ** 2
+            + (sorted_bjets[:, 0].phi - z.phi) ** 2
+        )
+    )
     # loosened baseline can yield 0 b-jets: sorted_bjets is padded to >=2 so the
     # positional access is safe, but sentinel the value where there is no b-jet
     deltaR_b_z = ak.where(n_bjets >= 1, deltaR_b_z, -1.0)
@@ -149,6 +219,7 @@ def higgs_reco(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column(events, "deltaPhi_MET_Jet3", deltaPhi_MET_Jet3)
     events = set_ak_column(events, "MET_ht", MET_ht)
     return events
+
 
 @higgs_reco.init
 def higgs_reco_init(self: Producer, **kwargs) -> None:

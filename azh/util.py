@@ -1,15 +1,15 @@
-# coding: utf-8
+from functools import partial, wraps
 
 from columnflow.util import maybe_import
-from functools import wraps, partial
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
 coffea = maybe_import("coffea")
 
 
-
-def masked_sorted_indices(mask: ak.Array, sort_var: ak.Array, ascending: bool = False) -> ak.Array:
+def masked_sorted_indices(
+    mask: ak.Array, sort_var: ak.Array, ascending: bool = False
+) -> ak.Array:
     """
     Helper function to obtain the correct indices of an object mask
     """
@@ -21,6 +21,7 @@ def call_once_on_config(include_hash=False):
     """
     Parametrized decorator to ensure that function *func* is only called once for the config *config*
     """
+
     def outer(func):
         @wraps(func)
         def inner(config, *args, **kwargs):
@@ -33,12 +34,16 @@ def call_once_on_config(include_hash=False):
 
             config.add_tag(tag)
             return func(config, *args, **kwargs)
+
         return inner
+
     return outer
+
 
 #
 # functions for operating on lorentz vectors
 #
+
 
 def ak_extract_fields(arr, fields, **kwargs):
     """
@@ -50,23 +55,26 @@ def ak_extract_fields(arr, fields, **kwargs):
         kwargs["behavior"] = arr.behavior
 
     return ak.zip(
-        {
-            field: getattr(arr, field)
-            for field in fields
-        },
+        {field: getattr(arr, field) for field in fields},
         **kwargs,
     )
 
 
-_lv_base = partial(ak_extract_fields, behavior=coffea.nanoevents.methods.nanoaod.behavior)
+_lv_base = partial(
+    ak_extract_fields, behavior=coffea.nanoevents.methods.nanoaod.behavior
+)
 
 lv_xyzt = partial(_lv_base, fields=["x", "y", "z", "t"], with_name="LorentzVector")
 lv_xyzt.__doc__ = """Construct a `LorentzVectorArray` from an input array."""
 
-lv_mass = partial(_lv_base, fields=["pt", "eta", "phi", "mass"], with_name="PtEtaPhiMLorentzVector")
+lv_mass = partial(
+    _lv_base, fields=["pt", "eta", "phi", "mass"], with_name="PtEtaPhiMLorentzVector"
+)
 lv_mass.__doc__ = """Construct a `PtEtaPhiMLorentzVectorArray` from an input array."""
 
-lv_energy = partial(_lv_base, fields=["pt", "eta", "phi", "energy"], with_name="PtEtaPhiELorentzVector")
+lv_energy = partial(
+    _lv_base, fields=["pt", "eta", "phi", "energy"], with_name="PtEtaPhiELorentzVector"
+)
 lv_energy.__doc__ = """Construct a `PtEtaPhiELorentzVectorArray` from an input array."""
 
 
@@ -89,6 +97,7 @@ def lv_sum(lv_arrays):
 #
 # functions for matching between collections of Lorentz vectors
 #
+
 
 def delta_r_match(dst_lvs, src_lv, max_dr=None):
     """
@@ -117,7 +126,7 @@ def delta_r_match(dst_lvs, src_lv, max_dr=None):
     best_match_dst_lv = ak.firsts(dst_lvs[best_match_idx])
 
     # filter dst_lvs to remove the best matches (if any)
-    keep = (ak.local_index(dst_lvs, axis=1) != ak.firsts(best_match_idx))
+    keep = ak.local_index(dst_lvs, axis=1) != ak.firsts(best_match_idx)
     keep = ak.fill_none(keep, True)
     dst_lvs = ak.mask(dst_lvs, keep)
     dst_lvs = ak.where(ak.is_none(dst_lvs, axis=0), [[]], dst_lvs)
@@ -144,7 +153,9 @@ def delta_r_match_multiple(dst_lvs, src_lvs, max_dr=None):
     # filtering the destination array each time
     best_match_dst_lvs = []
     for i in range(max_num):
-        best_match_dst_lv, dst_lvs = delta_r_match(dst_lvs, src_lvs[:, i], max_dr=max_dr)
+        best_match_dst_lv, dst_lvs = delta_r_match(
+            dst_lvs, src_lvs[:, i], max_dr=max_dr
+        )
         best_match_dst_lv = ak.unflatten(best_match_dst_lv, 1)
         best_match_dst_lvs.append(best_match_dst_lv)
 

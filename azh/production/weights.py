@@ -1,25 +1,25 @@
-# coding: utf-8
 
 """
 Producers related to event weights.
 """
 
+from columnflow.columnar_util import Route, has_ak_column, set_ak_column
 from columnflow.production import Producer, producer
-from azh.production.normalized_weights import normalized_weight_factory
-from columnflow.columnar_util import set_ak_column, has_ak_column, Route
 from columnflow.production.cms.btag import split_btag_weights
 from columnflow.production.cms.electron import electron_weights
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
-from columnflow.production.normalization import normalization_weights
 from columnflow.production.cms.pdf import pdf_weights
-from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
-from azh.production.trigger_weights import trigger_weights
-from azh.production.channel_lumi_weight import channel_lumi_weight
-from azh.production.pileup import pu_weight
+from columnflow.production.cms.scale import murmuf_envelope_weights, murmuf_weights
+from columnflow.production.normalization import normalization_weights
 from columnflow.util import maybe_import
 
+from azh.production.channel_lumi_weight import channel_lumi_weight
 from azh.production.gen_top import top_pt_weight
+from azh.production.normalized_weights import normalized_weight_factory
+from azh.production.pileup import pu_weight
+from azh.production.trigger_weights import trigger_weights
+
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
 

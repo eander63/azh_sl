@@ -4,25 +4,25 @@ Configuration of the Run 3 AZH analysis.
 
 from __future__ import annotations
 
+import functools
+import logging
 import os
 import re
-import logging
-from typing import Set
 
-import yaml
-from scinum import Number
-import order as od
 import law
-import functools
-
-from columnflow.util import DotDict
+import order as od
+import yaml
 from cmsdb.util import add_decay_process
-from azh.config.analysis_azh_run3 import analysis_azh
-from azh.config.categories import add_categories_selection, add_categories_production
-from azh.config.variables import add_variables
 from columnflow.config_util import (
-    get_root_processes_from_campaign, get_shifts_from_sources
+    get_root_processes_from_campaign,
+    get_shifts_from_sources,
 )
+from columnflow.util import DotDict
+from scinum import Number
+
+from azh.config.analysis_azh_run3 import analysis_azh
+from azh.config.categories import add_categories_production, add_categories_selection
+from azh.config.variables import add_variables
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -30,7 +30,14 @@ logger = logging.getLogger(__name__)
 
 def modify_cmsdb_processes():
     from cmsdb.processes import (
-        dy, dy_m10to50, dy_m50toinf, dy_m50toinf_0j, dy_m50toinf_1j, dy_m50toinf_2j,dy_m50toinf_3j,dy_m50toinf_4j,
+        dy,
+        dy_m10to50,
+        dy_m50toinf,
+        dy_m50toinf_0j,
+        dy_m50toinf_1j,
+        dy_m50toinf_2j,
+        dy_m50toinf_3j,
+        dy_m50toinf_4j,
     )
     decay_map = {
         "lf": {
@@ -123,7 +130,7 @@ def add_config(
     cfg = analysis_azh.add_config(campaign, name=config_name, id=config_id)
     # use custom get_dataset_lfns function
     cfg.x.get_dataset_lfns = get_dataset_lfns
-    cfg.x.get_dataset_lfns_sandbox = f"bash::$CF_BASE/sandboxes/venv_columnar_dev.sh"
+    cfg.x.get_dataset_lfns_sandbox = "bash::$CF_BASE/sandboxes/venv_columnar_dev.sh"
 
     labels = {
         "tt": "$t\\bar{t}$",
@@ -587,8 +594,7 @@ def add_config(
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
         if limit_dataset_files:
             for info in dataset.info.values():
-                if info.n_files > limit_dataset_files:
-                    info.n_files = limit_dataset_files
+                info.n_files = min(info.n_files, limit_dataset_files)
         if dataset.name.startswith("tt"):
             dataset.add_tag({"is_ttbar"})
         if dataset.name.startswith("dy"):
@@ -865,13 +871,7 @@ def add_config(
     nominal = float(cfg.x.luminosity.nominal)
     if year == 2022 and campaign.x.EE == "pre":
         cfg.x.channel_lumis = {"muon": 7448.0, "egamma": 7989.5, "nominal": nominal}
-    elif year == 2022 and campaign.x.EE == "post":
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
-    elif year == 2023 and campaign.x.BPix == "pre":
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
-    elif year == 2023 and campaign.x.BPix == "post":
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
-    elif year == 2024:
+    elif year == 2022 and campaign.x.EE == "post" or year == 2023 and campaign.x.BPix == "pre" or year == 2023 and campaign.x.BPix == "post" or year == 2024:
         cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
 
     # MET filters
@@ -942,25 +942,10 @@ def add_config(
     # <name>_2023 / <name>_2024 spellings against those campaigns' JME files
     # before processing them -- list the correction keys as we did for 2022.
     JEC_SOURCES_TOTAL = ["Total"]
-    JEC_SOURCES_REDUCED = [
-        # correlated across years
-        "Regrouped_Absolute",
-        "Regrouped_BBEC1",
-        "Regrouped_EC2",
-        "Regrouped_FlavorQCD",
-        "Regrouped_HF",
-        "Regrouped_RelativeBal",
-        # era-specific
-        f"Regrouped_Absolute_{year}",
-        f"Regrouped_BBEC1_{year}",
-        f"Regrouped_EC2_{year}",
-        f"Regrouped_HF_{year}",
-        f"Regrouped_RelativeSample_{year}",
-    ]
     jec_uncertainty_sources = JEC_SOURCES_TOTAL
 
     # print(jerc_campaign)
-    if not jerc_postfix == "BPix":
+    if jerc_postfix != "BPix":
         cfg.x.jec = DotDict.wrap({
             "campaign": jerc_campaign,
             "version": {
@@ -1195,7 +1180,7 @@ def add_config(
     }
 
     # helper to add column aliases for both shifts of a source
-    def add_aliases(shift_source: str, aliases: Set[str], selection_dependent: bool):
+    def add_aliases(shift_source: str, aliases: set[str], selection_dependent: bool):
         """
         Register column aliases for both directions of *shift_source*.
 
@@ -1378,10 +1363,10 @@ def add_config(
 
     # pinned snapshot per POG, per era
     cat_date = {
-        "2022preEE":    {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-06-05"},  # noqa
-        "2022postEE":   {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-06-05"},  # noqa
-        "2023preBPix":  {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-07-15"},  # noqa
-        "2023postBPix": {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-07-15"},  # noqa
+        "2022preEE":    {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-06-05"},
+        "2022postEE":   {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-06-05"},
+        "2023preBPix":  {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-07-15"},
+        "2023postBPix": {"LUM": "2024-01-31", "BTV": "2025-08-20", "MUO": "2026-06-18", "EGM": "2025-12-15", "JME": "2026-07-15"},
         "2024": {
             "LUM": "2026-04-15",
             "BTV": "2026-03-10",
@@ -1441,51 +1426,51 @@ def add_config(
     if year == 2022 and campaign.x.EE == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),
                 "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileup_JSON.txt", "v1"),
+                "json": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileup_JSON.txt", "v1"),
             },
         }))
     elif year == 2022 and campaign.x.EE == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),
                 "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),
+                "json": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),
             },
         }))
     elif year == 2023 and campaign.x.BPix == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/BC/pileup_JSON.txt", "v1"),
+                "json": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/BC/pileup_JSON.txt", "v1"),
             },
         }))
     elif year == 2023 and campaign.x.BPix == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/D/pileup_JSON.txt", "v1"),
+                "json": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/PileUp/D/pileup_JSON.txt", "v1"),
             },
         }))
     elif year == 2024:
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json", "v1"),  # noqa
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json", "v1"),
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
-                "json": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/PileUp/pileup_JSON-2024CDEFGHI_Golden.txt", "v1"),  # noqa
+                "json": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/PileUp/pileup_JSON-2024CDEFGHI_Golden.txt", "v1"),
             },
         }))
     
@@ -1510,38 +1495,38 @@ def add_config(
             "Pileup.nTrueInt",
             "LHEScaleWeight",
             "GenPart.*",
-        } | set(  # Jets
+        } | {  # Jets
             f"{jet_obj}.{field}"
             for jet_obj in ["Jet"]
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", cfg.x.btag_default.column, "hadronFlavour", "rawFactor", "btagDeepFlavQG"]  # noqa
-        ) | set(  # BJets
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", cfg.x.btag_default.column, "hadronFlavour", "rawFactor", "btagDeepFlavQG"]
+        } | {  # BJets
             f"{jet_obj}.{field}"
             for jet_obj in ["BJet"]
             for field in [
                 "pt", "eta", "phi", "mass", cfg.x.btag_default.column, "hadronFlavour",
             ]
-        )
-          | set(  # Muons
+        }
+          | {  # Muons
             f"{mu_obj}.{field}"
             for mu_obj in ["Muon"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
             for field in ["pt", "eta", "phi", "mass", "pdgId", "charge", "tightId", "pfRelIso04_all"]
-        ) | set(  # Electrons
+        } | {  # Electrons
             f"{e_obj}.{field}"
             for e_obj in ["Electron"]
             # NOTE: if we run into storage troubles, skip Bjet and Lightjet
             for field in ["pt", "eta", "phi", "mass", "pdgId", "deltaEtaSC", "charge", "mvaIso_WP80"]
-        ) | set(  # MET
+        } | {  # MET
             f"PuppiMET.{field}"
             for field in ["pt", "phi"]
-        ) | set(  # MET
+        } | {  # MET
             f"GenMET.{field}"
             for field in ["pt", "phi"]
-        ) | set(  # GenJets
+        } | {  # GenJets
             f"{gen_jet_obj}.{field}"
             for gen_jet_obj in ["GenJet"]
             for field in ["pt", "eta", "phi", "mass", "hadronFlavour"]
-        )
+        }
     )
 
     # event weight columns as keys in an ordered dict, mapped to shift instances they depend on

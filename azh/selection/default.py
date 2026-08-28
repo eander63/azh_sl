@@ -1,34 +1,31 @@
-# coding: utf-8
 
 """
 Selection methods for AZH semileptonic.
 """
 
-from operator import and_
-from functools import reduce
 from collections import defaultdict
-from typing import Tuple
+from functools import reduce
+from operator import and_
 
-from columnflow.util import maybe_import
 from columnflow.columnar_util import Route
 from columnflow.config_util import get_shifts_from_sources
-
-from columnflow.selection.stats import increment_stats
-from columnflow.selection import Selector, SelectionResult, selector
-from columnflow.selection.cms.met_filters import met_filters
-from columnflow.selection.cms.json_filter import json_filter
-from columnflow.selection.cms.jets import jet_veto_map
-
-from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.pdf import pdf_weights
-from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
-from azh.production.pileup import pu_weight
+from columnflow.production.cms.scale import murmuf_envelope_weights, murmuf_weights
 from columnflow.production.processes import process_ids
+from columnflow.production.util import attach_coffea_behavior
+from columnflow.selection import SelectionResult, Selector, selector
+from columnflow.selection.cms.jets import jet_veto_map
+from columnflow.selection.cms.json_filter import json_filter
+from columnflow.selection.cms.met_filters import met_filters
+from columnflow.selection.stats import increment_stats
+from columnflow.util import maybe_import
 
+from azh.production.pileup import pu_weight
 from azh.selection.jet_selection import jet_selection
 from azh.selection.lepton_selection import lepton_selection
 from azh.selection.trigger import trigger_selection
+
     # met categories included via add_categories_met
 
 
@@ -66,7 +63,7 @@ def default(
     events: ak.Array,
     stats: defaultdict,
     **kwargs,
-) -> Tuple[ak.Array, SelectionResult]:
+) -> tuple[ak.Array, SelectionResult]:
 
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)

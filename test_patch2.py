@@ -14,8 +14,8 @@ histogram identical to nominal. So the three lists have to agree exactly:
 Alias formatting and shift lookup run against real order objects; the column
 inventory is parsed out of the patched source files.
 """
-import re
 import ast
+import re
 import sys
 from pathlib import Path
 
@@ -147,7 +147,7 @@ for shift in cfg.shifts:
 # ---------------------------------------------------------------------------
 # (b) event_weights entries in the patched config
 # ---------------------------------------------------------------------------
-config_level = set(re.findall(r'^\s+"(\w+)": get_shifts\(', CFG_SRC, re.M))
+config_level = set(re.findall(r'^\s+"(\w+)": get_shifts\(', CFG_SRC, re.MULTILINE))
 for col in config_level:
     check(col in produced, f"cfg.x.event_weights has '{col}', which nothing produces")
 

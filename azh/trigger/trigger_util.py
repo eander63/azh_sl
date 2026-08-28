@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 Some utils for trigger studies and efficiency calculations
 """
@@ -7,7 +5,6 @@ Some utils for trigger studies and efficiency calculations
 from __future__ import annotations
 
 import law
-
 from columnflow.util import maybe_import
 
 logger = law.logger.get_logger(__name__)
@@ -32,11 +29,7 @@ def safe_div(num, den, default=1.0):
     return np.where(
         (num == 0) & (den == 0),
         default,
-        np.where(
-            (num >= 0) & (den > 0),
-            num / den,
-            1.0
-        )
+        np.where((num >= 0) & (den > 0), num / den, 1.0),
     )
 
 
@@ -45,7 +38,8 @@ def binom_int(num, den, confint=0.68):
     calculates clopper-pearson error
     """
     from scipy.stats import beta
-    quant = (1 - confint) / 2.
+
+    quant = (1 - confint) / 2.0
     low = beta.ppf(quant, num, den - num + 1)
     high = beta.ppf(1 - quant, num + 1, den - num)
     return (np.nan_to_num(low), np.where(np.isnan(high), 1, high))
@@ -61,7 +55,12 @@ def calc_efficiency_errors(num, den):
     num_scale = np.nan_to_num(num.values() / num.variances(), nan=1)
     den_scale = num_scale  # np.nan_to_num(den.values() / den.variances(), nan=1)
 
-    efficiency = np.nan_to_num((num.values()*num_scale) / (den.values()*den_scale), nan=0, posinf=1, neginf=0)
+    efficiency = np.nan_to_num(
+        (num.values() * num_scale) / (den.values() * den_scale),
+        nan=0,
+        posinf=1,
+        neginf=0,
+    )
 
     if np.any(efficiency > 1):
         logger.warning(
@@ -115,15 +114,17 @@ def calc_sf_uncertainty(efficiencies: dict, errors: dict, alpha: np.ndarray):
 
     # combine errors
     uncertainty = np.sqrt(
-        (sym_errors[0] / efficiencies[1]) ** 2 + (efficiencies[0] * sym_errors[1] / efficiencies[1] ** 2) ** 2 # + (1 - alpha) ** 2  # noqa
+        (sym_errors[0] / efficiencies[1]) ** 2
+        + (efficiencies[0] * sym_errors[1] / efficiencies[1] ** 2)
+        ** 2  # + (1 - alpha) ** 2
     )
 
     return np.nan_to_num(uncertainty, nan=0, posinf=1, neginf=0)
 
 
 def calculate_efficiencies(
-        h: hist.Hist,
-        trigger: str,
+    h: hist.Hist,
+    trigger: str,
 ) -> dict:
     """
     Calculates the efficiencies for the different triggers.
@@ -132,10 +133,12 @@ def calculate_efficiencies(
     efficiency_unc = {}
     # loop over processes
     for proc in range(h.axes[0].size):
-
-        efficiency = np.nan_to_num(h[proc, ..., hist.loc(trigger)].values() / h[proc, ..., 0].values(),
-                                   nan=0, posinf=1, neginf=0
-                                   )
+        efficiency = np.nan_to_num(
+            h[proc, ..., hist.loc(trigger)].values() / h[proc, ..., 0].values(),
+            nan=0,
+            posinf=1,
+            neginf=0,
+        )
 
         if np.any(efficiency > 1):
             logger.warning(
@@ -148,7 +151,9 @@ def calculate_efficiencies(
 
         efficiencies[proc] = efficiency
 
-        efficiency_unc[proc] = calc_efficiency_errors(h[proc, ..., hist.loc(trigger)], h[proc, ..., 0])
+        efficiency_unc[proc] = calc_efficiency_errors(
+            h[proc, ..., hist.loc(trigger)], h[proc, ..., 0]
+        )
 
     return efficiencies, efficiency_unc
 
@@ -159,17 +164,23 @@ def rebin_hist(h, axis_name, edges):
 
     ax = h.axes[axis_name]
     ax_idx = [a.name for a in h.axes].index(axis_name)
-    if not all([np.isclose(x, ax.edges).any() for x in edges]):
+    if not all(np.isclose(x, ax.edges).any() for x in edges):
         raise ValueError(
             f"Cannot rebin histogram due to incompatible edges for axis '{ax.name}'\n"
             f"Edges of histogram are {ax.edges}, requested rebinning to {edges}",
         )
 
     # If you rebin to a subset of initial range, keep the overflow and underflow
-    overflow = ax.traits.overflow or (edges[-1] < ax.edges[-1] and not np.isclose(edges[-1], ax.edges[-1]))
-    underflow = ax.traits.underflow or (edges[0] > ax.edges[0] and not np.isclose(edges[0], ax.edges[0]))
+    overflow = ax.traits.overflow or (
+        edges[-1] < ax.edges[-1] and not np.isclose(edges[-1], ax.edges[-1])
+    )
+    underflow = ax.traits.underflow or (
+        edges[0] > ax.edges[0] and not np.isclose(edges[0], ax.edges[0])
+    )
     flow = overflow or underflow
-    new_ax = hist.axis.Variable(edges, name=ax.name, overflow=overflow, underflow=underflow)
+    new_ax = hist.axis.Variable(
+        edges, name=ax.name, overflow=overflow, underflow=underflow
+    )
     axes = list(h.axes)
     axes[ax_idx] = new_ax
 
@@ -192,11 +203,13 @@ def rebin_hist(h, axis_name, edges):
     # Take is used because reduceat sums i:len(array) for the last entry, in the case
     # where the final bin isn't the same between the initial and rebinned histogram, you
     # want to drop this value. Add tolerance of 1/2 min bin width to avoid numeric issues
-    hnew.values(flow=flow)[...] = np.add.reduceat(h.values(flow=flow), edge_idx,
-            axis=ax_idx).take(indices=range(new_ax.size + underflow + overflow), axis=ax_idx)
+    hnew.values(flow=flow)[...] = np.add.reduceat(
+        h.values(flow=flow), edge_idx, axis=ax_idx
+    ).take(indices=range(new_ax.size + underflow + overflow), axis=ax_idx)
     if hnew._storage_type() == hist.storage.Weight():
-        hnew.variances(flow=flow)[...] = np.add.reduceat(h.variances(flow=flow), edge_idx,
-                axis=ax_idx).take(indices=range(new_ax.size + underflow + overflow), axis=ax_idx)
+        hnew.variances(flow=flow)[...] = np.add.reduceat(
+            h.variances(flow=flow), edge_idx, axis=ax_idx
+        ).take(indices=range(new_ax.size + underflow + overflow), axis=ax_idx)
     return hnew
 
 
@@ -247,32 +260,35 @@ def optimise_binning1d(
         # calculate scale factors and uncertainties
         for weight_producer in calculator.weight_producers:
             # calculate efficiencies. process, shift, variable, bin
-            efficiencies[weight_producer], efficiency_unc[weight_producer] = calculate_efficiencies(
-                hists[weight_producer][calculator.variables[0]][:, ..., :], calculator.trigger
+            efficiencies[weight_producer], efficiency_unc[weight_producer] = (
+                calculate_efficiencies(
+                    hists[weight_producer][calculator.variables[0]][:, ..., :],
+                    calculator.trigger,
                 )
+            )
 
         # calculate scale factors, second weight producer is used
         scale_factors = np.nan_to_num(
-            efficiencies[calculator.weight_producers[1]][0] / efficiencies[calculator.weight_producers[1]][1],
+            efficiencies[calculator.weight_producers[1]][0]
+            / efficiencies[calculator.weight_producers[1]][1],
             nan=1,
             posinf=1,
             neginf=1,
-            )
+        )
         # calculate alpha factors
         alpha_factors = np.nan_to_num(
-            efficiencies[calculator.weight_producers[0]][1] / efficiencies[calculator.weight_producers[1]][1],
+            efficiencies[calculator.weight_producers[0]][1]
+            / efficiencies[calculator.weight_producers[1]][1],
             nan=1,
             posinf=1,
             neginf=1,
-            )
+        )
 
         # only use the efficiencies and uncertainties of the second weight producer
         efficiencies = efficiencies[calculator.weight_producers[1]]
         efficiency_unc = efficiency_unc[calculator.weight_producers[1]]
         # calculate scale factor uncertainties, only statistical uncertainties are considered right now
-        uncertainties = calc_sf_uncertainty(
-            efficiencies, efficiency_unc, alpha_factors
-            )
+        uncertainties = calc_sf_uncertainty(efficiencies, efficiency_unc, alpha_factors)
 
         # check for uncertainties larger than 5%
         rel_unc = uncertainties / scale_factors
@@ -280,14 +296,17 @@ def optimise_binning1d(
         # maybe np.where((rel_unc > target_uncertainty) or rel_unc == 0.0)[0] to merge empty bins?
 
         # merge bins
-        if len(low_stat_bins) > 0 and edges[low_stat_bins[0]+1] != 400.0:
-            edges = np.delete(edges, low_stat_bins[0]+1)
+        if len(low_stat_bins) > 0 and edges[low_stat_bins[0] + 1] != 400.0:
+            edges = np.delete(edges, low_stat_bins[0] + 1)
         else:
             bins_optimised = True
 
         # merge empty bins
         empty_bins = np.where(rel_unc == 0.0)[0]
-        if len(empty_bins) > 1 and [edges[empty_bins[0]], edges[empty_bins[1]]] != [0.0, 400.0]:
+        if len(empty_bins) > 1 and [edges[empty_bins[0]], edges[empty_bins[1]]] != [
+            0.0,
+            400.0,
+        ]:
             edges = np.delete(edges, empty_bins[1])
 
     logger.info(f"new edges: {edges}")

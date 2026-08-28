@@ -2,9 +2,10 @@
 Trigger selection methods.
 """
 
-from columnflow.selection import Selector, SelectionResult, selector
+from columnflow.columnar_util import optional_column as opt
+from columnflow.columnar_util import set_ak_column
+from columnflow.selection import SelectionResult, Selector, selector
 from columnflow.util import maybe_import
-from columnflow.columnar_util import set_ak_column, optional_column as opt
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -19,7 +20,11 @@ E_TAGS = {"single_e", "di_e"}
     uses={
         "run",
         # nano columns
-        "TrigObj.id", "TrigObj.pt", "TrigObj.eta", "TrigObj.phi", "TrigObj.filterBits",
+        "TrigObj.id",
+        "TrigObj.pt",
+        "TrigObj.eta",
+        "TrigObj.phi",
+        "TrigObj.filterBits",
     },
     produces={
         # new columns
@@ -75,8 +80,11 @@ def trigger_selection(
         fired = events.HLT[trigger.hlt_field] == 1
         if trigger.run_range:
             fired = fired & (
-                ((trigger.run_range[0] is None) | (trigger.run_range[0] <= events.run)) &
-                ((trigger.run_range[1] is None) | (trigger.run_range[1] >= events.run))
+                ((trigger.run_range[0] is None) | (trigger.run_range[0] <= events.run))
+                & (
+                    (trigger.run_range[1] is None)
+                    | (trigger.run_range[1] >= events.run)
+                )
             )
 
         # get trigger objects for fired events per leg
@@ -114,7 +122,9 @@ def trigger_selection(
         if applies:
             any_fired = any_fired | fired_and_all_legs_match
             trigger_data.append((trigger, fired_and_all_legs_match, leg_masks))
-            ids = ak.where(fired_and_all_legs_match, np.float32(trigger.id), np.float32(np.nan))
+            ids = ak.where(
+                fired_and_all_legs_match, np.float32(trigger.id), np.float32(np.nan)
+            )
             trigger_ids.append(ak.singletons(ak.nan_to_none(ids)))
 
     # store the fired trigger ids
@@ -133,11 +143,11 @@ def trigger_selection(
     else:
         has_mu = self.dataset_inst.has_tag("mu")
         has_egamma = self.dataset_inst.has_tag("egamma")
-        if has_mu and not has_egamma:            # Muon PD
+        if has_mu and not has_egamma:  # Muon PD
             trigger_step = fired_mu
-        elif has_egamma and not has_mu:          # EGamma PD
+        elif has_egamma and not has_mu:  # EGamma PD
             trigger_step = fired_e & ~fired_mu
-        else:                                    # MuonEG / both-tagged -> drop
+        else:  # MuonEG / both-tagged -> drop
             trigger_step = ak.zeros_like(events.run, dtype=bool)
 
     trigger_step = ak.fill_none(trigger_step, False)

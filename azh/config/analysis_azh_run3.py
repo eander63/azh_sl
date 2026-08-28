@@ -1,18 +1,17 @@
-# coding: utf-8
-
 """
 Configuration of the AZH analysis.
 """
 
 # import functools
 
+import os
 
 import law
-import os
 import order as od
-# from scinum import Number
 
+# from scinum import Number
 from columnflow.util import maybe_import
+
 # from columnflow.columnar_util import EMPTY_FLOAT, ColumnCollection
 # from columnflow.config_util import (
 #     get_root_processes_from_campaign, add_shift_aliases, get_shifts_from_sources, add_category,
@@ -68,23 +67,33 @@ analysis_azh.set_aux("config_groups", {})
 # an example config is setup below, based on cms NanoAOD v9 for Run2 2017, focussing on
 # ttbar and single top MCs, plus single muon data
 # update this config or add additional ones to accomodate the needs of your analysis
-from azh.config.config_run3 import add_config
-import cmsdb.campaigns.run3_2022_preEE_nano_v12
 import cmsdb.campaigns.run3_2022_postEE_nano_v12
-import cmsdb.campaigns.run3_2023_preBPix_nano_v12
+import cmsdb.campaigns.run3_2022_preEE_nano_v12
 import cmsdb.campaigns.run3_2023_postBPix_nano_v12
+import cmsdb.campaigns.run3_2023_preBPix_nano_v12
 import cmsdb.campaigns.run3_2024_nano_v15
+
+from azh.config.config_run3 import add_config
+
 # import cmsdb.campaigns.run3_2022_postEE_nano_v12
 # from cmsdb.campaigns.run2_2017_nano_v9 import campaign_run2_2017_nano_v9
 # import cmsdb.campaigns.run2_2017_nano_v9
 # campaign_run2_2017_nano_v9 = cmsdb.campaigns.run2_2017_nano_v9.campaign_run2_2017_nano_v9
-campaign_run3_2022_preEE_nano_v12 = cmsdb.campaigns.run3_2022_preEE_nano_v12.campaign_run3_2022_preEE_nano_v12
+campaign_run3_2022_preEE_nano_v12 = (
+    cmsdb.campaigns.run3_2022_preEE_nano_v12.campaign_run3_2022_preEE_nano_v12
+)
 campaign_run3_2022_preEE_nano_v12.x.EE = "pre"
-campaign_run3_2022_postEE_nano_v12 = cmsdb.campaigns.run3_2022_postEE_nano_v12.campaign_run3_2022_postEE_nano_v12
+campaign_run3_2022_postEE_nano_v12 = (
+    cmsdb.campaigns.run3_2022_postEE_nano_v12.campaign_run3_2022_postEE_nano_v12
+)
 campaign_run3_2022_postEE_nano_v12.x.EE = "post"
-campaign_run3_2023_preBPix_nano_v12 = cmsdb.campaigns.run3_2023_preBPix_nano_v12.campaign_run3_2023_preBPix_nano_v12
+campaign_run3_2023_preBPix_nano_v12 = (
+    cmsdb.campaigns.run3_2023_preBPix_nano_v12.campaign_run3_2023_preBPix_nano_v12
+)
 campaign_run3_2023_preBPix_nano_v12.x.BPix = "pre"
-campaign_run3_2023_postBPix_nano_v12 = cmsdb.campaigns.run3_2023_postBPix_nano_v12.campaign_run3_2023_postBPix_nano_v12
+campaign_run3_2023_postBPix_nano_v12 = (
+    cmsdb.campaigns.run3_2023_postBPix_nano_v12.campaign_run3_2023_postBPix_nano_v12
+)
 campaign_run3_2023_postBPix_nano_v12.x.BPix = "post"
 # 2024 is a single undivided era, so there is no pre/post aux to set here.
 # Note this campaign is NanoAOD v15, not v12 like the four above.
@@ -96,7 +105,7 @@ campaign_run3_2024_nano_v15 = (
 # (creates copies of all linked datasets, processes, etc. to allow for encapsulated customization)
 # campaign = campaign_run2_2017_nano_v9.copy()
 
-#2022
+# 2022
 config_2022pre = add_config(
     analysis_azh,
     campaign_run3_2022_preEE_nano_v12.copy(),
@@ -133,7 +142,7 @@ config_2022post_limited = add_config(
     limit_dataset_files=1,
 )
 
-#2023
+# 2023
 config_2023pre = add_config(
     analysis_azh,
     campaign_run3_2023_preBPix_nano_v12.copy(),
@@ -160,7 +169,7 @@ config_2023post_limited = add_config(
     config_id=42,
     limit_dataset_files=1,
 )
-#2024
+# 2024
 config_2024 = add_config(
     analysis_azh,
     campaign_run3_2024_nano_v15.copy(),
@@ -179,12 +188,18 @@ config_2024_limited = add_config(
 # NOTE: cf resolves these entries with law.util.brace_expand (strings), so use
 # config *names* here, not the Config objects.
 analysis_azh.x.config_groups["run3"] = [
-    "config_2022pre", "config_2022post", "config_2023pre", "config_2023post",
+    "config_2022pre",
+    "config_2022post",
+    "config_2023pre",
+    "config_2023post",
     "config_2024",
 ]
 # the four NanoAOD v12 eras only, i.e. everything the AZH signal samples exist for
 analysis_azh.x.config_groups["run3_v12"] = [
-    "config_2022pre", "config_2022post", "config_2023pre", "config_2023post",
+    "config_2022pre",
+    "config_2022post",
+    "config_2023pre",
+    "config_2023post",
 ]
 # # get all root processes
 # procs = get_root_processes_from_campaign(campaign)
@@ -344,7 +359,7 @@ analysis_azh.x.config_groups["run3_v12"] = [
 # cfg.x.external_files = DotDict.wrap({
 #     # lumi files
 #     "lumi": {
-#         "golden": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt", "v1"),  # noqa
+#         "golden": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt", "v1"),
 #         "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
 #     },
 

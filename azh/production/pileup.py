@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 Pileup weight from the LUM correctionlib file (puWeights.json).
 
@@ -12,9 +10,9 @@ Structure mirrors the muon/electron calibrators: a main producer plus a
 (open the JSON once and hand it to correctionlib).
 """
 
-from columnflow.production import Producer, producer
-from columnflow.util import maybe_import, InsertableDict
 from columnflow.columnar_util import set_ak_column
+from columnflow.production import Producer, producer
+from columnflow.util import InsertableDict, maybe_import
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
@@ -47,6 +45,7 @@ def pu_weight_requires(self: Producer, reqs: dict) -> None:
     if "external_files" in reqs:
         return
     from columnflow.tasks.external import BundleExternalFiles
+
     reqs["external_files"] = BundleExternalFiles.req(self.task)
 
 
@@ -58,6 +57,7 @@ def pu_weight_setup(
     reader_targets: InsertableDict,
 ) -> None:
     import correctionlib
+
     bundle = reqs["external_files"]
     cset = correctionlib.CorrectionSet.from_string(
         bundle.files.pu_sf.load(formatter="gzip").decode("utf-8"),

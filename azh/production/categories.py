@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 Categorizers
 
@@ -21,8 +19,8 @@ This is what lets a single store serve both the Z-peak validation
 
 from __future__ import annotations
 
-from columnflow.util import maybe_import
 from columnflow.categorization import Categorizer, categorizer
+from columnflow.util import maybe_import
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -30,10 +28,10 @@ ak = maybe_import("awkward")
 
 # --- B2G-24-002 Table 1 thresholds ----------------------------------------
 Z_MASS = 91.188
-Z_MASS_WINDOW = 25.0      # |m_ll - m_Z| < 25 GeV
-MET_CUT = 40.0            # pT_miss > 40 GeV
-N_JETS_MIN = 4            # >= 4 jets, pT > 15 GeV, |eta| < 4.7
-MIN_MLL_CUT = 12.0        # Min(m_ll) > 12 GeV, all pairings
+Z_MASS_WINDOW = 25.0  # |m_ll - m_Z| < 25 GeV
+MET_CUT = 40.0  # pT_miss > 40 GeV
+N_JETS_MIN = 4  # >= 4 jets, pT > 15 GeV, |eta| < 4.7
+MIN_MLL_CUT = 12.0  # Min(m_ll) > 12 GeV, all pairings
 LEP_PT_1 = 25.0
 LEP_PT_2 = 20.0
 LEP_PT_3 = 15.0
@@ -56,15 +54,19 @@ def _require(events: ak.Array, *columns: str) -> None:
             "producer chain, and that these columns survive keep_columns.",
         )
 
+
 # ---------------------------------------------------------------------
 # Multiplicity axis
 # ---------------------------------------------------------------------
+
 
 @categorizer(
     uses={"n_tight_leptons", "lep1_pt", "lep2_pt"},
     call_force=True,
 )
-def catid_2l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def catid_2l(
+    self: Categorizer, events: ak.Array, **kwargs
+) -> tuple[ak.Array, ak.Array]:
     """
     Dilepton validation region: exactly 2 tight leptons.
 
@@ -77,21 +79,28 @@ def catid_2l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
     _require(events, "n_tight_leptons", "lep1_pt", "lep2_pt")
 
     mask = (
-        (events.n_tight_leptons == 2) &
-        (events.lep1_pt > LEP_PT_1) &
-        (events.lep2_pt > LEP_PT_2)
+        (events.n_tight_leptons == 2)
+        & (events.lep1_pt > LEP_PT_1)
+        & (events.lep2_pt > LEP_PT_2)
     )
     return events, ak.fill_none(mask, False)
 
 
 @categorizer(
     uses={
-        "n_tight_leptons", "n_leptons_pt10", "charge_sum", "min_mll",
-        "lep1_pt", "lep2_pt", "lep3_pt",
+        "n_tight_leptons",
+        "n_leptons_pt10",
+        "charge_sum",
+        "min_mll",
+        "lep1_pt",
+        "lep2_pt",
+        "lep3_pt",
     },
     call_force=True,
 )
-def catid_3l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def catid_3l(
+    self: Categorizer, events: ak.Array, **kwargs
+) -> tuple[ak.Array, ak.Array]:
     """
     3-lepton analysis selection (B2G-24-002 Table 1, preselection block):
 
@@ -105,30 +114,39 @@ def catid_3l(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, a
     """
     _require(
         events,
-        "n_tight_leptons", "n_leptons_pt10", "charge_sum", "min_mll",
-        "lep1_pt", "lep2_pt", "lep3_pt",
+        "n_tight_leptons",
+        "n_leptons_pt10",
+        "charge_sum",
+        "min_mll",
+        "lep1_pt",
+        "lep2_pt",
+        "lep3_pt",
     )
 
     mask = (
-        (events.n_tight_leptons == 3) &
-        (events.n_leptons_pt10 == 3) &
-        (events.lep1_pt > LEP_PT_1) &
-        (events.lep2_pt > LEP_PT_2) &
-        (events.lep3_pt > LEP_PT_3) &
-        (events.min_mll > MIN_MLL_CUT) &
-        (abs(events.charge_sum) == 1)
+        (events.n_tight_leptons == 3)
+        & (events.n_leptons_pt10 == 3)
+        & (events.lep1_pt > LEP_PT_1)
+        & (events.lep2_pt > LEP_PT_2)
+        & (events.lep3_pt > LEP_PT_3)
+        & (events.min_mll > MIN_MLL_CUT)
+        & (abs(events.charge_sum) == 1)
     )
     return events, ak.fill_none(mask, False)
+
 
 # ---------------------------------------------------------------------
 # Shared kinematic baseline
 # ---------------------------------------------------------------------
 
+
 @categorizer(
     uses={"m_z", "PuppiMET.pt", "cutflow.n_jet_loose"},
     call_force=True,
 )
-def catid_baseline(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def catid_baseline(
+    self: Categorizer, events: ak.Array, **kwargs
+) -> tuple[ak.Array, ak.Array]:
     """
     B2G-24-002 "Base event selection", minus the lepton block and the b-jet
     count:
@@ -143,9 +161,9 @@ def catid_baseline(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Ar
     _require(events, "m_z", "PuppiMET", "cutflow")
 
     mask = (
-        (abs(events.m_z - Z_MASS) < Z_MASS_WINDOW) &
-        (events.PuppiMET.pt > MET_CUT) &
-        (events.cutflow.n_jet_loose >= N_JETS_MIN)
+        (abs(events.m_z - Z_MASS) < Z_MASS_WINDOW)
+        & (events.PuppiMET.pt > MET_CUT)
+        & (events.cutflow.n_jet_loose >= N_JETS_MIN)
     )
     return events, ak.fill_none(mask, False)
 
@@ -155,28 +173,35 @@ def catid_baseline(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Ar
 # The WZ CR (0 b-jets) is unblinded.
 # ---------------------------------------------------------------------
 
+
 @categorizer(uses={catid_baseline, "cutflow.n_bjet"}, call_force=True)
-def catid_sr_2b(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def catid_sr_2b(
+    self: Categorizer, events: ak.Array, **kwargs
+) -> tuple[ak.Array, ak.Array]:
     """>=2 b-jet signal region. BLINDED: MC only."""
     events, base = self[catid_baseline](events, **kwargs)
     mask = base & (events.cutflow.n_bjet >= 2)
     if self.dataset_inst.is_data:
-        mask = ak.zeros_like(mask) > 0   # blind
+        mask = ak.zeros_like(mask) > 0  # blind
     return events, mask
 
 
 @categorizer(uses={catid_baseline, "cutflow.n_bjet"}, call_force=True)
-def catid_sr_1b(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def catid_sr_1b(
+    self: Categorizer, events: ak.Array, **kwargs
+) -> tuple[ak.Array, ak.Array]:
     """Exactly 1 b-jet signal region. BLINDED: MC only."""
     events, base = self[catid_baseline](events, **kwargs)
     mask = base & (events.cutflow.n_bjet == 1)
     if self.dataset_inst.is_data:
-        mask = ak.zeros_like(mask) > 0   # blind
+        mask = ak.zeros_like(mask) > 0  # blind
     return events, mask
 
 
 @categorizer(uses={catid_baseline, "cutflow.n_bjet"}, call_force=True)
-def catid_wz_cr(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+def catid_wz_cr(
+    self: Categorizer, events: ak.Array, **kwargs
+) -> tuple[ak.Array, ak.Array]:
     """0 b-jet WZ control region. Data + MC (NOT blinded)."""
     events, base = self[catid_baseline](events, **kwargs)
     return events, base & (events.cutflow.n_bjet == 0)

@@ -1,30 +1,27 @@
-# coding: utf-8
-
 """
 Tasks to calculate and save trigger scale factors.
 """
 
 from __future__ import annotations
 
-import luigi
 import law
+import luigi
 import order as od
-
 from columnflow.tasks.framework.base import Requirements
-from columnflow.util import maybe_import, DotDict
 from columnflow.tasks.framework.histograms import (
     HistogramsUserSingleShiftBase,
 )
 from columnflow.tasks.framework.parameters import MultiSettingsParameter
 from columnflow.tasks.framework.remote import RemoteWorkflow
 from columnflow.tasks.histograms import MergeHistograms
+from columnflow.util import DotDict, maybe_import
 
 from azh.trigger.trigger_util import (
-    calculate_efficiencies,
     calc_sf_uncertainty,
+    calculate_efficiencies,
     optimise_binning1d,
     optimise_binning2d,
-    rebin_hist
+    rebin_hist,
 )
 
 logger = law.logger.get_logger(__name__)
@@ -78,7 +75,7 @@ class CalculateTriggerScaleFactors(
     premade_edges = luigi.BoolParameter(
         default=False,
         description="Use premade bin edges for the optimisation",
-        )
+    )
 
     # upstream requirements
     reqs = Requirements(
@@ -108,7 +105,9 @@ class CalculateTriggerScaleFactors(
 
     def store_parts(self):
         parts = super().store_parts()
-        parts.insert_before("version", "weights", f"weights_{self.weight_producers_repr}")
+        parts.insert_before(
+            "version", "weights", f"weights_{self.weight_producers_repr}"
+        )
         return parts
 
     def load_histogram(
@@ -129,7 +128,11 @@ class CalculateTriggerScaleFactors(
             dataset = dataset.name
         if isinstance(variable, od.Variable):
             variable = variable.name
-        histogram = self.input()[weight_producer][dataset]["collection"][0]["hists"].targets[variable].load(formatter="pickle")  # noqa
+        histogram = (
+            self.input()[weight_producer][dataset]["collection"][0]["hists"]
+            .targets[variable]
+            .load(formatter="pickle")
+        )
         return histogram
 
     def calc_sf_and_unc(
@@ -165,10 +168,12 @@ class CalculateTriggerScaleFactors(
                 if "npvs" not in var and "process" not in var:
                     h2 = h2[{var: sum}]
 
-                half_point = int(np.where(np.cumsum(h2.values()) >= (np.sum(h2.values()) / 2))[0][0])
+                half_point = int(
+                    np.where(np.cumsum(h2.values()) >= (np.sum(h2.values()) / 2))[0][0]
+                )
                 self.half_point = half_point
 
-            for region in sf_envelope.keys():
+            for region in sf_envelope:
                 slice_borders = {
                     "down": (0, half_point),
                     "up": (half_point, len(h2.values())),
@@ -178,44 +183,58 @@ class CalculateTriggerScaleFactors(
                     self.weight_producers[1]: {},
                 }
                 for weight_producer in self.weight_producers:
-                    h1 = hists[weight_producer][self.variables[0]][{
-                        "npvs": slice(slice_borders[region][0], slice_borders[region][1])}]
-                    hists2[weight_producer][self.variables[0]] = h1[:, :, 0:len(h1[0, 0, :, 0].values()):sum, :]
+                    h1 = hists[weight_producer][self.variables[0]][
+                        {
+                            "npvs": slice(
+                                slice_borders[region][0], slice_borders[region][1]
+                            )
+                        }
+                    ]
+                    hists2[weight_producer][self.variables[0]] = h1[
+                        :, :, 0 : len(h1[0, 0, :, 0].values()) : sum, :
+                    ]
 
-                sf_envelope[region], _, _, _ = self.calc_sf_and_unc(hists2, envelope=True)
+                sf_envelope[region], _, _, _ = self.calc_sf_and_unc(
+                    hists2, envelope=True
+                )
 
             for weight_producer in self.weight_producers:
-                hists[weight_producer][self.variables[0]] = hists[weight_producer][self.variables[0]][{"npvs": sum}]
+                hists[weight_producer][self.variables[0]] = hists[weight_producer][
+                    self.variables[0]
+                ][{"npvs": sum}]
 
         for weight_producer in self.weight_producers:
             # calculate efficiencies. process, shift, variable, bin
-            efficiencies[weight_producer], efficiency_unc[weight_producer] = calculate_efficiencies(
-                hists[weight_producer][self.variables[0]][:, ..., :], int(self.trigger)
+            efficiencies[weight_producer], efficiency_unc[weight_producer] = (
+                calculate_efficiencies(
+                    hists[weight_producer][self.variables[0]][:, ..., :],
+                    int(self.trigger),
                 )
+            )
 
         # calculate scale factors, second weight producer is used
         scale_factors = np.nan_to_num(
-            efficiencies[self.weight_producers[1]][0] / efficiencies[self.weight_producers[1]][1],
+            efficiencies[self.weight_producers[1]][0]
+            / efficiencies[self.weight_producers[1]][1],
             nan=1,
             posinf=1,
             neginf=1,
-            )
+        )
         scale_factors[scale_factors == 0] = 1
         # calculate alpha factors
         alpha_factors = np.nan_to_num(
-            efficiencies[self.weight_producers[0]][1] / efficiencies[self.weight_producers[1]][1],
+            efficiencies[self.weight_producers[0]][1]
+            / efficiencies[self.weight_producers[1]][1],
             nan=1,
             posinf=1,
             neginf=1,
-            )
+        )
 
         # only use the efficiencies and uncertainties of the second weight producer
         efficiencies = efficiencies[self.weight_producers[1]]
         efficiency_unc = efficiency_unc[self.weight_producers[1]]
         # calculate scale factor uncertainties, only statistical uncertainties are considered right now
-        uncertainties = calc_sf_uncertainty(
-            efficiencies, efficiency_unc, alpha_factors
-            )
+        uncertainties = calc_sf_uncertainty(efficiencies, efficiency_unc, alpha_factors)
 
         if not envelope:
             # symmetrise the envelope
@@ -229,14 +248,26 @@ class CalculateTriggerScaleFactors(
         if envelope:
             return scale_factors, uncertainties, efficiencies, efficiency_unc
         else:
-            return scale_factors, uncertainties, efficiencies, efficiency_unc, sf_env_unc, unc_with_sf_env, alpha_factors, sf_envelope  # noqa
+            return (
+                scale_factors,
+                uncertainties,
+                efficiencies,
+                efficiency_unc,
+                sf_env_unc,
+                unc_with_sf_env,
+                alpha_factors,
+                sf_envelope,
+            )
 
     def output(self):
         return {
-            "trigger_scale_factors": self.target(f"sf_{int(self.trigger)}_{self.variables[0]}{self.suffix}.json"),
-            "trigger_sf_plot":
-            self.target(f"{self.categories[0]}_{int(self.trigger)}_{self.variables[0]}_sf_plot{self.suffix}.pdf"),
-            }
+            "trigger_scale_factors": self.target(
+                f"sf_{int(self.trigger)}_{self.variables[0]}{self.suffix}.json"
+            ),
+            "trigger_sf_plot": self.target(
+                f"{self.categories[0]}_{int(self.trigger)}_{self.variables[0]}_sf_plot{self.suffix}.pdf"
+            ),
+        }
 
     def workflow_requires(self):
         reqs = super().workflow_requires()
@@ -256,15 +287,26 @@ class CalculateTriggerScaleFactors(
             self.weight_producers[1]: {},
         }
 
+        edges1p2 = [0.0, 25.0, 35.0, 44.0, 51.0, 57.0, 64.0, 80.0, 110.0, 400.0]
+        edges2p1 = [0.0, 15.0, 24.0, 35.0, 64.0, 400.0]
 
-        edges1p2 = [0., 25., 35., 44., 51., 57., 64., 80., 110., 400.] # noqa
-        edges2p1 = [0., 15., 24., 35., 64., 400.] # noqa
+        mmedges1p1 = [
+            0.0,
+            25.0,
+            37.0,
+            47.0,
+            55.0,
+            66.0,
+            81.0,
+            96.0,
+            111.0,
+            146.0,
+            400.0,
+        ]
+        mmedges2p1 = [0.0, 15.0, 28.0, 37.0, 47.0, 400.0]
 
-        mmedges1p1 = [  0.,  25.,  37.,  47.,  55.,  66.,  81.,  96., 111., 146., 400.] # noqa
-        mmedges2p1 = [  0.,  15.,  28.,  37.,  47., 400.] # noqa
-
-        mixedges1 = [0., 25., 35., 46., 56., 67., 80., 95., 168., 400.]
-        mixedges2 = [0., 15., 25., 35., 46., 400.]
+        mixedges1 = [0.0, 25.0, 35.0, 46.0, 56.0, 67.0, 80.0, 95.0, 168.0, 400.0]
+        mixedges2 = [0.0, 15.0, 25.0, 35.0, 46.0, 400.0]
 
         edgesee = {"mli_lep_pt": edges1p2, "mli_lep2_pt": edges2p1}
         edgesmu = {"mli_lep_pt": mmedges1p1, "mli_lep2_pt": mmedges2p1}
@@ -275,19 +317,31 @@ class CalculateTriggerScaleFactors(
             for dataset in self.datasets:
                 for variable in self.variables:
                     h_in = self.load_histogram(weight_producer, dataset, variable)
-                    h_in = self.slice_histogram(h_in, self.processes, self.categories, self.shift)
+                    h_in = self.slice_histogram(
+                        h_in, self.processes, self.categories, self.shift
+                    )
                     h_in = h_in[{"category": sum}]
                     h_in = h_in[{"shift": sum}]
                     # apply variable settings
                     for var in self.variable_settings:
                         if var in h_in.axes.name:
-                            h_in = h_in[{var: hist.rebin(int(self.variable_settings[var]["rebin"]))}]
+                            h_in = h_in[
+                                {
+                                    var: hist.rebin(
+                                        int(self.variable_settings[var]["rebin"])
+                                    )
+                                }
+                            ]
                         else:
-                            logger.warning(f"Variable {var} not found in histogram, skipping rebinning")
+                            logger.warning(
+                                f"Variable {var} not found in histogram, skipping rebinning"
+                            )
                     if self.premade_edges:
                         for var in h_in.axes.name[1:3]:
-                            h_in = rebin_hist(h_in, var, pre_edges[int(self.trigger)][var])
-                    if variable in hists[weight_producer].keys():
+                            h_in = rebin_hist(
+                                h_in, var, pre_edges[int(self.trigger)][var]
+                            )
+                    if variable in hists[weight_producer]:
                         hists[weight_producer][variable] += h_in
                     else:
                         hists[weight_producer][variable] = h_in
@@ -296,9 +350,7 @@ class CalculateTriggerScaleFactors(
 
         # optimise 1d binning
         if len(self.variables[0].split("-")[:-1]) == 1:
-
             if not self.bins_optimised:
-
                 hists, _ = optimise_binning1d(
                     calculator=self,
                     hists=hists,
@@ -310,47 +362,55 @@ class CalculateTriggerScaleFactors(
         elif len(self.variables[0].split("-")[:-1]) > 2 and not self.bins_optimised:
             logger.warning(
                 "Binning optimisation not implemented for histograms with more than 2 dimensions, using default binning"
-                )
+            )
             self.bins_optimised = True
 
         # normal procedure for optimised binning, sf_envelope, unc_with_sf_env
         if self.bins_optimised:
-
-            #scale_factors, uncertainties, efficiencies, efficiency_unc, sf_env_unc, unc_with_sf_env, alpha_factors, sf_envelope = self.calc_sf_and_unc(hists, envelope=False)  # noqa
-            scale_factors, uncertainties, efficiencies, efficiency_unc = self.calc_sf_and_unc(hists, envelope=True)  # noqa
+            # scale_factors, uncertainties, efficiencies, efficiency_unc, sf_env_unc, unc_with_sf_env, alpha_factors, sf_envelope = self.calc_sf_and_unc(hists, envelope=False)
+            scale_factors, uncertainties, efficiencies, efficiency_unc = (
+                self.calc_sf_and_unc(hists, envelope=True)
+            )
             scale_factors[uncertainties == 0.0] = 1.0
 
-            sfhist = hist.Hist(*hists[self.weight_producers[0]][self.variables[0]][0, ..., 0].axes, data=scale_factors)
+            sfhist = hist.Hist(
+                *hists[self.weight_producers[0]][self.variables[0]][0, ..., 0].axes,
+                data=scale_factors,
+            )
             sfhist.name = f"sf_{int(self.trigger)}_{self.variables[0]}"
             sfhist.label = "out"
 
             nominal_scale_factors = correctionlib.convert.from_histogram(sfhist)
-            nominal_scale_factors.description = f"{int(self.trigger)} scale factors, binned in {self.variables[0]}"
+            nominal_scale_factors.description = (
+                f"{int(self.trigger)} scale factors, binned in {self.variables[0]}"
+            )
 
             # set overflow bins behavior (default is to raise an error when out of bounds)
             nominal_scale_factors.data.flow = "clamp"
 
             # add uncertainties
             sfhist_up = hist.Hist(
-                *hists[self.weight_producers[0]][self.variables[0]][0, ..., 0].axes, data=scale_factors + uncertainties
-                )
+                *hists[self.weight_producers[0]][self.variables[0]][0, ..., 0].axes,
+                data=scale_factors + uncertainties,
+            )
             sfhist_up.name = f"sf_{int(self.trigger)}_{self.variables[0]}_up"
             sfhist_up.label = "out"
 
             upwards_scale_factors = correctionlib.convert.from_histogram(sfhist_up)
-            upwards_scale_factors.description = f"{int(self.trigger)} scale factors, binned in {self.variables[0]}, upwards variation" # noqa
+            upwards_scale_factors.description = f"{int(self.trigger)} scale factors, binned in {self.variables[0]}, upwards variation"
 
             # set overflow bins behavior (default is to raise an error when out of bounds)
             upwards_scale_factors.data.flow = "clamp"
 
             sfhist_down = hist.Hist(
-                *hists[self.weight_producers[0]][self.variables[0]][0, ..., 0].axes, data=scale_factors - uncertainties
-                )
+                *hists[self.weight_producers[0]][self.variables[0]][0, ..., 0].axes,
+                data=scale_factors - uncertainties,
+            )
             sfhist_down.name = f"sf_{int(self.trigger)}_{self.variables[0]}_down"
             sfhist_down.label = "out"
 
             downwards_scale_factors = correctionlib.convert.from_histogram(sfhist_down)
-            downwards_scale_factors.description = f"{int(self.trigger)} scale factors, binned in {self.variables[0]}, downwards variation" # noqa
+            downwards_scale_factors.description = f"{int(self.trigger)} scale factors, binned in {self.variables[0]}, downwards variation"
 
             # set overflow bins behavior (default is to raise an error when out of bounds)
             downwards_scale_factors.data.flow = "clamp"
@@ -363,7 +423,7 @@ class CalculateTriggerScaleFactors(
                     nominal_scale_factors,
                     upwards_scale_factors,
                     downwards_scale_factors,
-                    ],
+                ],
             )
             cset_json = cset.json(exclude_unset=True)
 
@@ -375,7 +435,12 @@ class CalculateTriggerScaleFactors(
                 if len(sfhist.axes.size) == 2:
                     fig, ax = plt.subplots()
                 else:
-                    fig, axs = plt.subplots(2, 1, gridspec_kw=dict(height_ratios=[7, 5], hspace=0), sharex=True)
+                    fig, axs = plt.subplots(
+                        2,
+                        1,
+                        gridspec_kw={"height_ratios": [7, 5], "hspace": 0},
+                        sharex=True,
+                    )
                     (ax, rax) = axs
                     # fig, ax = plt.subplots()
 
@@ -388,11 +453,19 @@ class CalculateTriggerScaleFactors(
                             for j in range(len(sfhist.axes[1].centers)):
                                 unc = uncertainties[i, j]  # rel_unc[i, j]
                                 value = scale_factors[i, j]
-                                if unc > 0:
-                                    if sfhist.axes[0].centers[i] < 400 and sfhist.axes[1].centers[j] < 400:
-                                        ax.text(sfhist.axes[0].centers[i], sfhist.axes[1].centers[j],
-                                                f'{value:.2f}\n$\\pm${unc:.2f}',
-                                                ha='center', va='center', color='white', fontsize=12)
+                                if unc > 0 and (
+                                    sfhist.axes[0].centers[i] < 400
+                                    and sfhist.axes[1].centers[j] < 400
+                                ):
+                                    ax.text(
+                                        sfhist.axes[0].centers[i],
+                                        sfhist.axes[1].centers[j],
+                                        f"{value:.2f}\n$\\pm${unc:.2f}",
+                                        ha="center",
+                                        va="center",
+                                        color="white",
+                                        fontsize=12,
+                                    )
                         ax.plot([1, 400], [1, 400], linestyle="dashed", color="gray")
                         ax.set_xscale("log")
                         ax.set_yscale("log")
@@ -412,17 +485,23 @@ class CalculateTriggerScaleFactors(
                         ax.set_xlabel(r"Leading lepton $p_T$ / GeV")
                         ax.set_ylabel(r"Subleading lepton $p_T$ / GeV")
                     else:
-                        fig, axs = plt.subplots(4, 1, gridspec_kw=dict(hspace=0), sharex=True)
+                        fig, axs = plt.subplots(
+                            4, 1, gridspec_kw={"hspace": 0}, sharex=True
+                        )
                         for key in [4, 3, 2, 1]:
-                            axs[key-1].errorbar(
-                                x=sfhist[:, key].axes.centers[0], y=sfhist[:, key].values(),
+                            axs[key - 1].errorbar(
+                                x=sfhist[:, key].axes.centers[0],
+                                y=sfhist[:, key].values(),
                                 yerr=uncertainties[:, key],
                                 fmt="o",
-                                label=f"{sfhist[0,:].axes.edges[0][key]}<lep2 $p_T$<{sfhist[0,:].axes.edges[0][key+1]}")
+                                label=f"{sfhist[0, :].axes.edges[0][key]}<lep2 $p_T$<{sfhist[0, :].axes.edges[0][key + 1]}",
+                            )
 
-                            axs[key-1].set_ylim(0.70, 1.13)
-                            axs[key-1].legend(loc="lower right")
-                            axs[key-1].plot([15, 400], [1, 1], linestyle="dashed", color="gray")
+                            axs[key - 1].set_ylim(0.70, 1.13)
+                            axs[key - 1].legend(loc="lower right")
+                            axs[key - 1].plot(
+                                [15, 400], [1, 1], linestyle="dashed", color="gray"
+                            )
 
                         axs[0].set_ylabel("Data/MC")
                         axs[-1].set_xlabel(r"Leading lepton $p_T$ / GeV")
@@ -440,18 +519,31 @@ class CalculateTriggerScaleFactors(
                     # proc_label0 = proc_label0[:-4] if "DL" in proc_label0 else proc_label0
                     # proc_label1 = proc_label1[:-4] if "DL" in proc_label1 else proc_label1
                     ax.errorbar(
-                        x=sfhist.axes[0].centers, y=efficiencies[0], yerr=efficiency_unc[0],
-                        fmt="o", label=f"{proc_label0}")
+                        x=sfhist.axes[0].centers,
+                        y=efficiencies[0],
+                        yerr=efficiency_unc[0],
+                        fmt="o",
+                        label=f"{proc_label0}",
+                    )
                     ax.errorbar(
-                        x=sfhist.axes[0].centers, y=efficiencies[1], yerr=efficiency_unc[1],
-                        fmt="o", label=f"{proc_label1}")
+                        x=sfhist.axes[0].centers,
+                        y=efficiencies[1],
+                        yerr=efficiency_unc[1],
+                        fmt="o",
+                        label=f"{proc_label1}",
+                    )
                     # rax.errorbar(x=sfhist.axes[0].centers, y=scale_factors, yerr=unc_with_sf_env, fmt="o",
                     #              color="tab:orange")
                     # rax.errorbar(x=sfhist.axes[0].centers, y=sfhist.values(), xerr=4.5, fmt=",", color="tab:grey")
                     # comb_unc = np.sqrt(uncertainties**2 + sf_env_unc**2 + (1-alpha_factors)**2)
                     # rax.errorbar(x=sfhist.axes[0].centers, y=sfhist.values(), yerr=comb_unc, fmt=",",
                     #              label="total uncertainty", elinewidth=4)
-                    rax.errorbar(x=sfhist.axes[0].centers-2, y=sfhist.values(), yerr=uncertainties, fmt="o")
+                    rax.errorbar(
+                        x=sfhist.axes[0].centers - 2,
+                        y=sfhist.values(),
+                        yerr=uncertainties,
+                        fmt="o",
+                    )
                     # rax.errorbar(x=sfhist.axes[0].centers-2, y=sfhist.values(), yerr=uncertainties, fmt=",",
                     #              label="statistical", elinewidth=4)
                     # rax.errorbar(x=sfhist.axes[0].centers, y=sfhist.values(), yerr=np.sqrt((1-alpha_factors)**2),
@@ -478,8 +570,9 @@ class CalculateTriggerScaleFactors(
                     # ax.set_xlabel(r"Leading lepton $p_T$ / GeV")
 
                     label = self.config_inst.get_category(self.categories[0]).label
-                    ax.annotate(label, xy=(0.05, 0.85), xycoords="axes fraction",
-                                fontsize=20)
+                    ax.annotate(
+                        label, xy=(0.05, 0.85), xycoords="axes fraction", fontsize=20
+                    )
 
                 ax.legend(fontsize=26)
                 cms_label_kwargs = {
@@ -489,20 +582,21 @@ class CalculateTriggerScaleFactors(
                     "data": False,
                     "exp": "",
                     "com": self.config_inst.campaign.ecm,
-                    "lumi": round(0.001 * self.config_inst.x.luminosity.get("nominal"), 2)
+                    "lumi": round(
+                        0.001 * self.config_inst.x.luminosity.get("nominal"), 2
+                    ),
                 }
                 mplhep.cms.label(**cms_label_kwargs)
                 fig.tight_layout()
 
         # optimising the binning for 2d histograms results in a non uniform binning, a different workflow is needed
         elif len(self.variables[0].split("-")[:-1]) == 2:
-
             # optimise second axis, return accondingly optimised edges of first axis
             histslices, edges2 = optimise_binning2d(
                 calculator=self,
                 hists=hists,
                 target_uncertainty1=0.02,
-                target_uncertainty2=0.04
+                target_uncertainty2=0.04,
             )
 
             sliced_scale_factors = {}
@@ -514,7 +608,9 @@ class CalculateTriggerScaleFactors(
             x_edges = hists[self.weight_producers[0]][self.variables[0]].axes[1].edges
 
             for key, sliced_hist in histslices.items():
-                scale_factors, uncertainties, efficiencies, efficiency_unc = self.calc_sf_and_unc(sliced_hist)
+                scale_factors, uncertainties, efficiencies, efficiency_unc = (
+                    self.calc_sf_and_unc(sliced_hist)
+                )
                 scale_factors[uncertainties == 0.0] = None
                 sliced_scale_factors[key] = scale_factors
                 sliced_uncertainties[key] = uncertainties
@@ -526,22 +622,28 @@ class CalculateTriggerScaleFactors(
 
             plot_unrolled = False
             if plot_unrolled:
-                fig, axs = plt.subplots(len(x_edges)-1, 1, gridspec_kw=dict(hspace=0), sharex=True)
+                fig, axs = plt.subplots(
+                    len(x_edges) - 1, 1, gridspec_kw={"hspace": 0}, sharex=True
+                )
 
                 for key, h in histslices.items():
                     axs[key].errorbar(
-                        x=h[self.weight_producers[0]][self.variables[0]].axes[1].centers, y=sliced_scale_factors[key],
+                        x=h[self.weight_producers[0]][self.variables[0]]
+                        .axes[1]
+                        .centers,
+                        y=sliced_scale_factors[key],
                         yerr=sliced_uncertainties[key],
-                        fmt="o", label=f"{x_edges[key]}<lep2pt<{x_edges[key+1]}")
+                        fmt="o",
+                        label=f"{x_edges[key]}<lep2pt<{x_edges[key + 1]}",
+                    )
 
                     axs[key].set_ylim(0.87, 1.13)
                     axs[key].legend()
 
-                axs[int(len(x_edges)/2)].set_ylabel("Data/MC")
+                axs[int(len(x_edges) / 2)].set_ylabel("Data/MC")
                 ax = axs[0]
 
             else:
-
                 sfs = np.ones(shape=(400, 400))
                 sfs[0, :] = None
                 sfs[:, 0] = None
@@ -549,7 +651,7 @@ class CalculateTriggerScaleFactors(
                     for j in range(1, 400):
                         idx = np.searchsorted(x_edges, i) - 1
                         idy = np.searchsorted(edges2[idx], j) - 1
-                        if j > x_edges[idx+1]:
+                        if j > x_edges[idx + 1]:
                             sfs[i, j] = None
                         else:
                             sfs[i, j] = sliced_scale_factors[idx][idy]
@@ -559,7 +661,9 @@ class CalculateTriggerScaleFactors(
                 sfhist.label = "out"
                 plt.style.use(mplhep.style.CMS)
                 fig, ax = plt.subplots()
-                sfhist.plot2d(ax=ax,)
+                sfhist.plot2d(
+                    ax=ax,
+                )
                 ax.plot([0, 150], [0, 150], linestyle="dashed", color="gray")
                 ax.set_xlim(0, 150)
                 ax.set_xticks([50, 100, 150])
@@ -575,7 +679,7 @@ class CalculateTriggerScaleFactors(
                 "data": False,
                 "exp": "",
                 "com": self.config_inst.campaign.ecm,
-                "lumi": round(0.001 * self.config_inst.x.luminosity.get("nominal"), 2)
+                "lumi": round(0.001 * self.config_inst.x.luminosity.get("nominal"), 2),
             }
             mplhep.cms.label(**cms_label_kwargs)
             fig.tight_layout()

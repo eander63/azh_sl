@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 Definition of categories.
 
@@ -43,12 +41,11 @@ The two modes:
 """
 
 import law
-
-from columnflow.util import maybe_import
-from columnflow.config_util import create_category_combinations
-from azh.util import call_once_on_config
-
 import order as od
+from columnflow.config_util import create_category_combinations
+from columnflow.util import maybe_import
+
+from azh.util import call_once_on_config
 
 logger = law.logger.get_logger(__name__)
 
@@ -90,16 +87,23 @@ def kwargs_fn(categories: dict[str, od.Category]):
 # Base categories (single-axis)
 # ---------------------------------------------------------------------
 
+
 @call_once_on_config()
 def add_incl_cat(config: od.Config) -> None:
-    config.add_category(name="cat_incl", id=1, selection="catid_incl", label="Inclusive")
+    config.add_category(
+        name="cat_incl", id=1, selection="catid_incl", label="Inclusive"
+    )
 
 
 @call_once_on_config()
 def add_lepton_categories(config: od.Config) -> None:
     """Flavor of the Z candidate (not the total lepton count)."""
-    config.add_category(name="2e", id=10, selection="catid_selection_2e", label="Z → ee")
-    config.add_category(name="2mu", id=20, selection="catid_selection_2mu", label="Z → μμ")
+    config.add_category(
+        name="2e", id=10, selection="catid_selection_2e", label="Z → ee"
+    )
+    config.add_category(
+        name="2mu", id=20, selection="catid_selection_2mu", label="Z → μμ"
+    )
 
 
 @call_once_on_config()
@@ -113,6 +117,7 @@ def add_multiplicity_categories(config: od.Config) -> None:
 # Selection-time categories (used in SelectEvents)
 # ---------------------------------------------------------------------
 
+
 @call_once_on_config()
 def add_categories_selection(config: od.Config) -> None:
     add_lepton_categories(config)
@@ -122,6 +127,7 @@ def add_categories_selection(config: od.Config) -> None:
 # ---------------------------------------------------------------------
 # Production-time categories (used in ProduceColumns)
 # ---------------------------------------------------------------------
+
 
 @call_once_on_config()
 def add_categories_production(config: od.Config) -> None:
@@ -149,27 +155,43 @@ def add_categories_regions(config: od.Config) -> None:
     add_lepton_categories(config)
     add_multiplicity_categories(config)
 
-    config.add_category(name="wz_cr", id=4000, selection="catid_wz_cr", label="WZ CR (0b)")
+    config.add_category(
+        name="wz_cr", id=4000, selection="catid_wz_cr", label="WZ CR (0b)"
+    )
     config.add_category(name="sr_1b", id=5000, selection="catid_sr_1b", label="1b SR")
-    config.add_category(name="sr_2b", id=6000, selection="catid_sr_2b", label=r"$\geq$2b SR")
+    config.add_category(
+        name="sr_2b", id=6000, selection="catid_sr_2b", label=r"$\geq$2b SR"
+    )
 
-    common = dict(name_fn=name_fn, kwargs_fn=kwargs_fn, skip_existing=True)
+    common = {"name_fn": name_fn, "kwargs_fn": kwargs_fn, "skip_existing": True}
 
     # (1) multiplicity x flavor  ->  2l__2e, 2l__2mu, 3l__2e, 3l__2mu
-    create_category_combinations(config, {
-        "multiplicity": [config.get_category(n) for n in ["2l", "3l"]],
-        "flavor": [config.get_category(n) for n in ["2e", "2mu"]],
-    }, **common)
+    create_category_combinations(
+        config,
+        {
+            "multiplicity": [config.get_category(n) for n in ["2l", "3l"]],
+            "flavor": [config.get_category(n) for n in ["2e", "2mu"]],
+        },
+        **common,
+    )
 
     # (2) 3l x region  ->  3l__wz_cr, 3l__sr_1b, 3l__sr_2b  (flavor-inclusive)
-    create_category_combinations(config, {
-        "mult": [config.get_category("3l")],
-        "region": [config.get_category(n) for n in ["wz_cr", "sr_1b", "sr_2b"]],
-    }, **common)
+    create_category_combinations(
+        config,
+        {
+            "mult": [config.get_category("3l")],
+            "region": [config.get_category(n) for n in ["wz_cr", "sr_1b", "sr_2b"]],
+        },
+        **common,
+    )
 
     # (3) (3l__flavor) x region  ->  3l__2e__wz_cr, ... , 3l__2mu__sr_2b
     #     parents (3l__2e etc.) were created by call (1); regions are singles.
-    create_category_combinations(config, {
-        "mult_flavor": [config.get_category(n) for n in ["3l__2e", "3l__2mu"]],
-        "region": [config.get_category(n) for n in ["wz_cr", "sr_1b", "sr_2b"]],
-    }, **common)
+    create_category_combinations(
+        config,
+        {
+            "mult_flavor": [config.get_category(n) for n in ["3l__2e", "3l__2mu"]],
+            "region": [config.get_category(n) for n in ["wz_cr", "sr_1b", "sr_2b"]],
+        },
+        **common,
+    )

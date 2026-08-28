@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 Custom base tasks.
 """
@@ -8,11 +6,11 @@ from columnflow.tasks.framework.base import BaseTask
 
 
 class AZHTask(BaseTask):
-
     task_namespace = "azh"
 
 
 import os
+
 import law
 from columnflow.tasks.framework.remote import HTCondorWorkflow
 

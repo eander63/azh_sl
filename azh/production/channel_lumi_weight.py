@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Per-channel luminosity correction (era-aware).
 
@@ -26,9 +25,9 @@ Per-era brilcalc procedure (recommended):
     brilcalc lumi -c web -i <GOLDEN.json> --hltpath "HLT_Ele30_WPTight_Gsf*" --byls
 """
 
-from columnflow.production import Producer, producer
 from columnflow.columnar_util import set_ak_column
-from columnflow.util import maybe_import, InsertableDict
+from columnflow.production import Producer, producer
+from columnflow.util import InsertableDict, maybe_import
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
@@ -46,7 +45,7 @@ def channel_lumi_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
     weight = ak.ones_like(events.event, dtype=np.float32)
     weight = ak.where(is_mumu, np.float32(self.sf_muon), weight)
-    weight = ak.where(is_ee,   np.float32(self.sf_electron), weight)
+    weight = ak.where(is_ee, np.float32(self.sf_electron), weight)
 
     events = set_ak_column(events, "channel_lumi_weight", weight)
     return events
@@ -72,5 +71,5 @@ def channel_lumi_weight_setup(
         return
 
     nominal = float(lumis["nominal"])
-    self.sf_muon     = float(lumis["muon"])   / nominal
+    self.sf_muon = float(lumis["muon"]) / nominal
     self.sf_electron = float(lumis["egamma"]) / nominal

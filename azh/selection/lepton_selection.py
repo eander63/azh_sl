@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 Lepton selection.
 
@@ -25,11 +23,9 @@ Tight definitions (Electron mvaIso_WP80, Muon tightId + relIso < 0.15) are
 computed downstream from the kept columns, not here.
 """
 
-from typing import Tuple
-
-from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
-from columnflow.selection import Selector, SelectionResult, selector
+from columnflow.selection import SelectionResult, Selector, selector
+from columnflow.util import maybe_import
 
 from azh.util import masked_sorted_indices
 
@@ -38,10 +34,10 @@ np = maybe_import("numpy")
 
 
 # --- fixed acceptance constants (changing these costs a reprocess) ----------
-PT_FLOOR = 10.0           # below the paper's 4th-lepton veto (10 GeV)
+PT_FLOOR = 10.0  # below the paper's 4th-lepton veto (10 GeV)
 ELE_ETA_MAX = 2.5
-ELE_CRACK_LO = 1.44       # ECAL barrel/endcap transition, lower edge
-ELE_CRACK_HI = 1.56       # ECAL barrel/endcap transition, upper edge
+ELE_CRACK_LO = 1.44  # ECAL barrel/endcap transition, lower edge
+ELE_CRACK_HI = 1.56  # ECAL barrel/endcap transition, upper edge
 MUO_ETA_MAX = 2.4
 MUO_ISO_LOOSE = 0.25
 
@@ -49,19 +45,37 @@ MUO_ISO_LOOSE = 0.25
 @selector(
     uses={
         # Electron
-        "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
-        "Electron.charge", "Electron.deltaEtaSC",
-        "Electron.mvaIso_WP80", "Electron.mvaIso_WP90",
+        "Electron.pt",
+        "Electron.eta",
+        "Electron.phi",
+        "Electron.mass",
+        "Electron.charge",
+        "Electron.deltaEtaSC",
+        "Electron.mvaIso_WP80",
+        "Electron.mvaIso_WP90",
         # Muon
-        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
+        "Muon.pt",
+        "Muon.eta",
+        "Muon.phi",
+        "Muon.mass",
         "Muon.charge",
-        "Muon.looseId", "Muon.tightId", "Muon.pfRelIso04_all",
+        "Muon.looseId",
+        "Muon.tightId",
+        "Muon.pfRelIso04_all",
     },
     produces={
-        "cutflow.n_ele_loose", "cutflow.n_muo_loose", "cutflow.n_lep_loose",
-        "cutflow.n_ele_tight", "cutflow.n_muo_tight", "cutflow.n_lep_tight",
-        "cutflow.lep1_pt", "cutflow.lep2_pt", "cutflow.lep3_pt",
-        "cutflow.lep1_eta", "cutflow.lep2_eta", "cutflow.lep3_eta",
+        "cutflow.n_ele_loose",
+        "cutflow.n_muo_loose",
+        "cutflow.n_lep_loose",
+        "cutflow.n_ele_tight",
+        "cutflow.n_muo_tight",
+        "cutflow.n_lep_tight",
+        "cutflow.lep1_pt",
+        "cutflow.lep2_pt",
+        "cutflow.lep3_pt",
+        "cutflow.lep1_eta",
+        "cutflow.lep2_eta",
+        "cutflow.lep3_eta",
     },
     exposed=True,
 )
@@ -69,22 +83,19 @@ def lepton_selection(
     self: Selector,
     events: ak.Array,
     **kwargs,
-) -> Tuple[ak.Array, SelectionResult]:
+) -> tuple[ak.Array, SelectionResult]:
 
     # ------------------------------------------------------------------
     # Electrons: acceptance on supercluster eta, with the ECAL crack removed
     # ------------------------------------------------------------------
     abs_eta_sc = abs(events.Electron.eta + events.Electron.deltaEtaSC)
 
-    ele_acceptance = (
-        (abs_eta_sc < ELE_ETA_MAX) &
-        ~((abs_eta_sc > ELE_CRACK_LO) & (abs_eta_sc < ELE_CRACK_HI))
+    ele_acceptance = (abs_eta_sc < ELE_ETA_MAX) & ~(
+        (abs_eta_sc > ELE_CRACK_LO) & (abs_eta_sc < ELE_CRACK_HI)
     )
 
     ele_loose_mask = (
-        (events.Electron.pt > PT_FLOOR) &
-        ele_acceptance &
-        (events.Electron.mvaIso_WP90)
+        (events.Electron.pt > PT_FLOOR) & ele_acceptance & (events.Electron.mvaIso_WP90)
     )
 
     # tight = loose + WP80. Counted for cutflow only; the analysis-level count
@@ -95,16 +106,14 @@ def lepton_selection(
     # Muons
     # ------------------------------------------------------------------
     muo_loose_mask = (
-        (events.Muon.pt > PT_FLOOR) &
-        (abs(events.Muon.eta) < MUO_ETA_MAX) &
-        (events.Muon.looseId) &
-        (events.Muon.pfRelIso04_all < MUO_ISO_LOOSE)
+        (events.Muon.pt > PT_FLOOR)
+        & (abs(events.Muon.eta) < MUO_ETA_MAX)
+        & (events.Muon.looseId)
+        & (events.Muon.pfRelIso04_all < MUO_ISO_LOOSE)
     )
 
     muo_tight_mask = (
-        muo_loose_mask &
-        (events.Muon.tightId) &
-        (events.Muon.pfRelIso04_all < 0.15)
+        muo_loose_mask & (events.Muon.tightId) & (events.Muon.pfRelIso04_all < 0.15)
     )
 
     ele_loose_mask = ak.fill_none(ele_loose_mask, False)
@@ -138,9 +147,8 @@ def lepton_selection(
     n_muo_pos = ak.sum(muo_loose_mask & (events.Muon.charge > 0), axis=1)
     n_muo_neg = ak.sum(muo_loose_mask & (events.Muon.charge < 0), axis=1)
 
-    has_ossf = (
-        ((n_ele_pos >= 1) & (n_ele_neg >= 1)) |
-        ((n_muo_pos >= 1) & (n_muo_neg >= 1))
+    has_ossf = ((n_ele_pos >= 1) & (n_ele_neg >= 1)) | (
+        (n_muo_pos >= 1) & (n_muo_neg >= 1)
     )
     lep_sel = ak.fill_none(has_ossf, False)
 
@@ -157,10 +165,12 @@ def lepton_selection(
     # Leading-3 flavor-merged lepton kinematics, for cutflow plots only.
     # ------------------------------------------------------------------
     lep_pt = ak.concatenate(
-        [events.Electron.pt[ele_indices], events.Muon.pt[muo_indices]], axis=1,
+        [events.Electron.pt[ele_indices], events.Muon.pt[muo_indices]],
+        axis=1,
     )
     lep_eta = ak.concatenate(
-        [events.Electron.eta[ele_indices], events.Muon.eta[muo_indices]], axis=1,
+        [events.Electron.eta[ele_indices], events.Muon.eta[muo_indices]],
+        axis=1,
     )
     order = ak.argsort(lep_pt, axis=1, ascending=False)
     lep_pt = ak.pad_none(lep_pt[order], 3)
@@ -168,11 +178,13 @@ def lepton_selection(
 
     for i in range(3):
         events = set_ak_column(
-            events, f"cutflow.lep{i + 1}_pt",
+            events,
+            f"cutflow.lep{i + 1}_pt",
             ak.fill_none(lep_pt[:, i], -100.0),
         )
         events = set_ak_column(
-            events, f"cutflow.lep{i + 1}_eta",
+            events,
+            f"cutflow.lep{i + 1}_eta",
             ak.fill_none(lep_eta[:, i], -100.0),
         )
 

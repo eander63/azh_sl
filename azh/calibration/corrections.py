@@ -68,6 +68,15 @@ def jet_energy(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 @jet_energy.init
 def jet_energy_init(self: Calibrator) -> None:
     # full jec (with uncertainty sources) + jer for mc, nominal-only jec for data
+    #
+    # NOTE: the JEC/JER shifts are deliberately NOT declared here. They are
+    # declared on the selector (azh/selection/default.py), because SelectEvents
+    # and ReduceEvents are the tasks that set register_selector_shifts = True and
+    # therefore the tasks whose local_shift -- and hence column aliases -- respond
+    # to the shift. Declaring them here instead makes CalibrateEvents rerun once
+    # per shift for byte-identical output (jec never inspects shift_inst; it
+    # writes every Jet.pt_jec_<source>_<dir> column in a single nominal pass)
+    # while SelectEvents still reads the unshifted Jet.pt.
     if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
         self.uses |= {jec_full, jer_puppi}
         self.produces |= {jec_full, jer_puppi}
@@ -370,6 +379,20 @@ def electron_ss_setup(self: Calibrator, reqs: dict, inputs: dict,
         bundle.files.electron_ss.load(formatter="gzip").decode("utf-8"),
     )
     scale_name, smear_name = self.config_inst.x.electron_ss_names
+
+    # correctionlib raises a bare "IndexError: map::at" for an unknown key, which
+    # says nothing about which name failed or what was available. The EGM scale
+    # corrections carry era suffixes (EGMScale_ElePTsplit_2022preEE etc.), so a
+    # name copied between eras fails here -- report it usefully.
+    available = list(cset.keys())
+    missing = [n for n in (scale_name, smear_name) if n not in available]
+    if missing:
+        raise KeyError(
+            f"electron S&S correction(s) {missing} not found for config "
+            f"'{self.config_inst.name}'. Check cfg.x.electron_ss_names against the "
+            f"era's electronSS_EtDependent.json.gz, which provides: {available}",
+        )
+
     self.corr_scale = cset[scale_name]
     self.corr_smear = cset[smear_name]
                         

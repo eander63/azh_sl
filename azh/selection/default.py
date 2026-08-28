@@ -11,6 +11,7 @@ from typing import Tuple
 
 from columnflow.util import maybe_import
 from columnflow.columnar_util import Route
+from columnflow.config_util import get_shifts_from_sources
 
 from columnflow.selection.stats import increment_stats
 from columnflow.selection import Selector, SelectionResult, selector
@@ -167,3 +168,36 @@ def default(
     )
 
     return events, results
+
+
+@default.init
+def default_init(self: Selector) -> None:
+    """
+    Declare the JEC/JER shifts this selector implements.
+
+    This has to live on the *selector*, not the calibrator: SelectEvents and
+    ReduceEvents set register_selector_shifts = True (columnflow
+    tasks/selection.py:57, tasks/reduction.py:54), while register_calibrators_shifts
+    is False everywhere. Only a task that implements a shift gets
+    local_shift = <shift>, and the column aliases are read from local_shift_inst
+    (tasks/selection.py:150, tasks/reduction.py:110).
+
+    Declaring these on the calibrator instead makes the shift resolve globally
+    (shift=jec_Total_up) but leaves local_shift=nominal at SelectEvents, so the
+    nominal Jet.pt is read and the shifted histogram comes out bit-identical to
+    nominal -- with no warning, because missing_column_alias_strategy is
+    "original".
+
+    Note the jec calibrator never inspects shift_inst: it writes every
+    Jet.pt_jec_<source>_<dir> column in one pass. So CalibrateEvents does not
+    need to rerun per shift, and should stay at nominal.
+    """
+    if not getattr(self, "dataset_inst", None) or self.dataset_inst.is_data:
+        return
+
+    sources = self.config_inst.x.jec.get("uncertainty_sources") or []
+    shift_sources = [f"jec_{source}" for source in sources] + ["jer"]
+    self.shifts |= {
+        shift_inst.name
+        for shift_inst in get_shifts_from_sources(self.config_inst, *shift_sources)
+    }

@@ -920,6 +920,45 @@ def add_config(
     if year == 2023:
         jer_campaign += f"_Run{'Cv1234' if campaign.has_tag('preBPix') else 'D'}"
 
+    # JES uncertainty sources.
+    #
+    # "Total" is the quadrature sum of all ~27 individual sources: one nuisance,
+    # no correlation structure. Fine for commissioning.
+    #
+    # The AN-2022/158 reduced set (Sec. 9.1, l. 734-738) is 11 groups, 6 correlated
+    # across years and 5 era-specific, which is what the final fit needs so the
+    # fit can pull the barrel and endcap terms independently. Verified present in
+    # the 2022 JME file as Summer22_22Sep2023_V4_MC_Regrouped_<name>_AK4PFPuppi.
+    #
+    # Cost: each source is selection_dependent, so a full
+    # Calibrate -> Select -> Reduce -> Produce pass per direction, i.e. ~22 chain
+    # passes per dataset versus 2 for "Total".
+    #
+    # Switching is a one-line change: swap JEC_SOURCES_TOTAL for
+    # JEC_SOURCES_REDUCED below. The selector reads the list from the config
+    # (azh/selection/default.py), so the new shifts register automatically.
+    #
+    # TODO: the era-specific names are verified for 2022 only. Confirm the
+    # <name>_2023 / <name>_2024 spellings against those campaigns' JME files
+    # before processing them -- list the correction keys as we did for 2022.
+    JEC_SOURCES_TOTAL = ["Total"]
+    JEC_SOURCES_REDUCED = [
+        # correlated across years
+        "Regrouped_Absolute",
+        "Regrouped_BBEC1",
+        "Regrouped_EC2",
+        "Regrouped_FlavorQCD",
+        "Regrouped_HF",
+        "Regrouped_RelativeBal",
+        # era-specific
+        f"Regrouped_Absolute_{year}",
+        f"Regrouped_BBEC1_{year}",
+        f"Regrouped_EC2_{year}",
+        f"Regrouped_HF_{year}",
+        f"Regrouped_RelativeSample_{year}",
+    ]
+    jec_uncertainty_sources = JEC_SOURCES_TOTAL
+
     # print(jerc_campaign)
     if not jerc_postfix == "BPix":
         cfg.x.jec = DotDict.wrap({
@@ -930,9 +969,7 @@ def add_config(
             "jet_type": jet_type,
             "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
             "levels_for_type1_met": ["L1FastJet"],
-            "uncertainty_sources": [
-                "Total",
-            ],
+            "uncertainty_sources": jec_uncertainty_sources,
         })
     else:
         cfg.x.jec = DotDict.wrap({
@@ -943,9 +980,7 @@ def add_config(
             "jet_type": jet_type,
             "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
             "levels_for_type1_met": ["L1FastJet"],
-            "uncertainty_sources": [
-                "Total",
-            ],
+            "uncertainty_sources": jec_uncertainty_sources,
         })
 
     # JER
@@ -1089,24 +1124,41 @@ def add_config(
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "wp80iso")
+        # TODO: UNVERIFIED -- the 2022preEE file names its scale correction
+        # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
+        # too. List the keys in this era's electronSS_EtDependent.json.gz before
+        # processing it; electron_ss_setup now reports them on failure.
         cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
+        # VERIFIED against Run3-22CDSep23-Summer22-NanoAODv12/2025-12-15/
+        # electronSS_EtDependent.json.gz: the scale correction carries an era
+        # suffix, 'SmearAndSyst' is a generic alias for EGMSmearAndSyst_ElePT_2022
+        # and needs none. The previous value here was the 2024 name, which does
+        # not exist in this file (correctionlib raised a bare "IndexError: map::at").
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022preEE", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2023postBPix":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptD", "wp80iso")
+        # TODO: UNVERIFIED -- the 2022preEE file names its scale correction
+        # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
+        # too. List the keys in this era's electronSS_EtDependent.json.gz before
+        # processing it; electron_ss_setup now reports them on failure.
         cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2023preBPix":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptC", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
+        # TODO: UNVERIFIED -- the 2022preEE file names its scale correction
+        # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
+        # too. List the keys in this era's electronSS_EtDependent.json.gz before
+        # processing it; electron_ss_setup now reports them on failure.
         cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
     elif era_key == "2024":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2024Prompt", "RecoAbove75")

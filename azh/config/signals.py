@@ -84,6 +84,18 @@ def process_name(m_a: int, m_h: int) -> str:
     return f"azh_htt_zll_a{m_a}_h{m_h}"
 
 
+# Generator suffix on the cmsdb dataset names. The processes are named
+# `azh_htt_zll_a<mA>_h<mH>` but the datasets carry the generator, e.g.
+# `azh_htt_zll_a1000_h330_amcatnlo`. Kept as a constant because it is the kind
+# of thing that changes when samples are reproduced.
+AZH_DATASET_SUFFIX = "_amcatnlo"
+
+
+def dataset_name(m_a: int, m_h: int) -> str:
+    """cmsdb dataset name for one mass point (process name + generator suffix)."""
+    return f"{process_name(m_a, m_h)}{AZH_DATASET_SUFFIX}"
+
+
 def masses(name: str) -> tuple[int, int]:
     """
     Inverse of :py:func:`process_name`: recover (mA, mH) from a process name.
@@ -95,6 +107,9 @@ def masses(name: str) -> tuple[int, int]:
     prefix = "azh_htt_zll_a"
     if not name.startswith(prefix) or "_h" not in name:
         raise ValueError(f"'{name}' is not an AZH signal process name")
+    # tolerate a dataset name being passed in
+    if name.endswith(AZH_DATASET_SUFFIX):
+        name = name[: -len(AZH_DATASET_SUFFIX)]
     a_str, _, h_str = name[len(prefix):].partition("_h")
     return int(a_str), int(h_str)
 
@@ -104,6 +119,15 @@ def masses(name: str) -> tuple[int, int]:
 # scans -- produces a reproducible order.
 AZH_SIGNAL_PROCESSES: tuple[str, ...] = tuple(
     process_name(m_a, m_h)
+    for m_a in sorted(MASS_GRID)
+    for m_h in sorted(MASS_GRID[m_a])
+)
+
+
+# Flat, ordered tuple of all signal DATASET names, in the same order as
+# AZH_SIGNAL_PROCESSES so the two zip together.
+AZH_SIGNAL_DATASETS: tuple[str, ...] = tuple(
+    dataset_name(m_a, m_h)
     for m_a in sorted(MASS_GRID)
     for m_h in sorted(MASS_GRID[m_a])
 )

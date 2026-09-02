@@ -267,10 +267,18 @@ def check_datasets(cfg, res):
     for dataset in data:
         tags = {t for t in ("mu", "egamma") if dataset.has_tag(t)}
         if dataset.name.startswith("data_muoneg"):
-            # MuonEG is registered but the analysis uses single-lepton triggers,
-            # so it is expected to be untagged. Flagged as INFO not WARN.
-            if tags:
-                res.warn(f"{dataset.name}: MuonEG PD unexpectedly tagged {tags}")
+            # config_run3.py deliberately tags MuonEG with BOTH 'mu' and
+            # 'egamma', so single-mu and single-e triggers both apply to it.
+            # That is a choice, not a bug -- but it means MuonEG can contain the
+            # same events as the Muon and EGamma PDs, so anything that sums data
+            # datasets needs an explicit PD-overlap scheme or it double counts.
+            if tags == {"mu", "egamma"}:
+                res.info(
+                    f"{dataset.name}: tagged mu+egamma, so single-lepton triggers "
+                    f"apply; confirm PD overlap removal before summing data",
+                )
+            else:
+                res.warn(f"{dataset.name}: MuonEG PD tagged {tags or 'nothing'}")
             continue
         if not tags:
             res.fail(
@@ -313,16 +321,42 @@ def check_processes(cfg, res):
         if not list(dataset.processes):
             res.fail(f"{dataset.name}: no process attached")
 
-    # Cross sections at the Run 3 centre-of-mass energy. A missing xsec means
-    # normalization_weights cannot normalise the sample.
+    # Cross sections at the Run 3 centre-of-mass energy.
+    #
+    # SCOPE: only the processes DIRECTLY attached to a dataset are checked, not
+    # their whole subtree. cmsdb defines many sub-processes that no sample
+    # covers (HT bins, jet bins, hf/lf and decay splits), and columnflow's
+    # normalization_weights explicitly `continue`s past any process without an
+    # xsec at ecm. So a missing xsec on an unused child is harmless; a missing
+    # xsec on a process that events are actually assigned to silently gives
+    # those events a normalization weight of ZERO.
     ecm = cfg.campaign.ecm
     for dataset in cfg.datasets:
         if dataset.is_data:
             continue
         for process in dataset.processes:
-            for leaf, _, _ in process.walk_processes(include_self=True):
-                if leaf.is_leaf_process and ecm not in leaf.xsecs:
-                    res.fail(f"process '{leaf.name}': no cross section at ecm={ecm}")
+            if ecm not in process.xsecs:
+                res.fail(
+                    f"dataset '{dataset.name}' -> process '{process.name}': no cross "
+                    f"section at ecm={ecm}; normalization weight will be 0",
+                )
+
+    # Producers that REASSIGN process_id after selection (dy_producer rewrites it
+    # to <base>_<njet>j_<hf|lf>) rely on child processes that this check cannot
+    # see. Report them so their xsec status can be judged by eye.
+    for dataset in cfg.datasets:
+        if not dataset.has_tag("is_dy"):
+            continue
+        for process in dataset.processes:
+            children = [c for c, _, _ in process.walk_processes(include_self=False)]
+            no_xsec = [c.name for c in children if ecm not in c.xsecs]
+            if no_xsec:
+                res.info(
+                    f"dataset '{dataset.name}': {len(no_xsec)} child process(es) lack an "
+                    f"xsec at ecm={ecm}, e.g. {no_xsec[:4]}. Harmless if process_id is "
+                    f"only reassigned AFTER normalization_weights runs -- verify the "
+                    f"producer order in azh/production/default.py.",
+                )
 
     # Signal grid completeness. 2024 ships no azh campaign, so absence there is
     # expected and reported as INFO rather than FAIL.
@@ -357,8 +391,11 @@ def check_processes(cfg, res):
     no_dataset = [p for p in present if p not in dataset_names]
     if no_dataset:
         res.fail(
-            f"{len(no_dataset)} signal processes have no dataset of the same name, "
-            f"e.g. {no_dataset[:5]}",
+            f"{len(no_dataset)}/{len(present)} signal processes have no dataset. "
+            f"Check whether `dataset_names` in config_run3.py lists any azh_* "
+            f"entries at all -- registering the processes without the datasets "
+            f"makes the signal unrunnable and leaves the `startswith(\"azh\")` "
+            f"tagging branch dead. e.g. {no_dataset[:3]}",
         )
 
 
@@ -422,9 +459,14 @@ def _check_keys(res, label, path, corr_name, key_specs):
 
     for input_name, used_value in key_specs.items():
         if input_name not in input_names(corr):
-            res.fail(
-                f"{label}/{corr_name}: no input named '{input_name}'; "
-                f"inputs are {input_names(corr)}",
+            # Not an error. columnflow builds the argument list by iterating
+            # `corrector.inputs` and looking each name up in its variable map,
+            # so a configured value the corrector never asks for is simply
+            # dropped. Run 3 muon_Z.json is already per-era, so it declares no
+            # 'year' input and cfg.x.muon_sf_*_names[1] goes unused.
+            res.info(
+                f"{label}/{corr_name}: configured '{input_name}'='{used_value}' is "
+                f"unused -- corrector inputs are {input_names(corr)}",
             )
             continue
         valid = category_keys(corr, input_name)
@@ -526,9 +568,13 @@ def check_corrections(cfg, res):
 
     trig_names = cfg.x("electron_sf_trig_names", None)
     if trig_names:
+        # Electron-HLT-SF inputs are (year, ValType, Path, eta, pt) -- the third
+        # config entry is the HLT path name, NOT a working point as it is for
+        # Electron-ID-SF. azh/production/trigger_weights.py already calls it
+        # positionally in that order.
         _check_keys(
             res, "electron trigger", external_path(ext.get("electron_sf_hlt")),
-            trig_names[0], {"year": trig_names[1], "WorkingPoint": trig_names[2]},
+            trig_names[0], {"year": trig_names[1], "Path": trig_names[2]},
         )
 
     ss_names = cfg.x("electron_ss_names", None)

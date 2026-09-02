@@ -192,14 +192,22 @@ def _data_datasets(config_inst, flavor: str) -> list[str]:
     muon-PD data into a `2e` category would count events no electron trigger
     ever selected.
 
-    `data_muoneg_*` is registered in the config but carries neither tag, so no
-    trigger applies to it and it is correctly excluded here.
+    MuonEG is excluded by name. config_run3.py tags `data_muoneg_*` with BOTH
+    "mu" and "egamma", so a pure tag filter would put it in the 2e AND the 2mu
+    category, double counting every event in it. Beyond that, MuonEG overlaps
+    the Muon and EGamma PDs by construction -- an event firing IsoMu24 appears
+    in both Muon and MuonEG -- so it cannot be summed with them without an
+    explicit PD priority scheme. Until that scheme exists, leave it out.
     """
     tag = "mu" if flavor == "2mu" else "egamma"
     return [
         dataset_inst.name
         for dataset_inst in config_inst.datasets
-        if dataset_inst.is_data and dataset_inst.has_tag(tag)
+        if (
+            dataset_inst.is_data and
+            dataset_inst.has_tag(tag) and
+            not dataset_inst.name.startswith("data_muoneg")
+        )
     ]
 
 

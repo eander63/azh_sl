@@ -95,12 +95,6 @@ muon_id_weights = muon_weights.derive("muon_id_weights", cls_dict={
     "get_muon_config": (lambda self: self.config_inst.x.muon_sf_id_names),
 })
 
-# Lower edge of the muon_Z.json ID/iso pT binning. Muons below this get no
-# ID/iso scale factor (weight 1) rather than an out-of-range corrector call.
-# If the MUO POG JSON is ever revised to extend lower, verify with:
-#   raw["corrections"][...]["data"] -> binning node with input "pt"
-MUON_SF_PT_MIN = self.config_inst.x.muon_sf_pt_min
-
 normalized_pu_weight = normalized_weight_factory(
     producer_name="normalized_pu_weight",
     weight_producers={pu_weight},
@@ -152,19 +146,19 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[electron_id_weights](events, electron_mask=ele_tight, **kwargs)
 
         # compute muon weights
-        # muon_Z.json ID/iso bins start at 15 GeV, NOT 10 as previously claimed
-        # here (verified against Run3-22CDSep23-Summer22-NanoAODv12/muon_Z.json.gz:
-        # NUM_TightID_DEN_TrackerMuons and NUM_TightPFIso_DEN_TightID both have pt
-        # binning [15.0, inf]). PT_FLOOR in lepton_selection is 10, so tight muons
-        # below 15 exist and used to make correctionlib raise "Index below bounds".
+        # Lower edge of the muon_Z.json ID/iso pT binning, per era: 2022/23
+        # start at 15, 2024 extends to 10. Muons below the edge get no ID/iso
+        # scale factor (weight 1) rather than an out-of-range corrector call.
         #
         # Restricting rather than clamping is the physics-correct choice: the
         # analysis pT thresholds (25/20/15) are applied downstream as categories,
-        # so no *selected* lepton is ever below 15 GeV. A sub-15 tight muon is
-        # always an extra lepton, and giving it an efficiency correction adds a
-        # spurious factor -- precisely what the tight-subset masking above exists
-        # to avoid in the 2l regions, which have no loose veto.
-        muon_mask_sf = mu_tight & (events.Muon.pt >= MUON_SF_PT_MIN)
+        # so no *selected* lepton is ever below the threshold. A sub-threshold
+        # tight muon is always an extra lepton, and giving it an efficiency
+        # correction adds a spurious factor -- precisely what the tight-subset
+        # masking above exists to avoid in the 2l regions, which have no loose
+        # veto.
+        muon_sf_pt_min = self.config_inst.x.muon_sf_pt_min
+        muon_mask_sf = mu_tight & (events.Muon.pt >= muon_sf_pt_min)
         events = self[muon_id_weights](events, muon_mask=muon_mask_sf, **kwargs)
         events = self[muon_iso_weights](events, muon_mask=muon_mask_sf, **kwargs)
         

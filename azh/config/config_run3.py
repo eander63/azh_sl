@@ -23,7 +23,7 @@ from azh.config.variables import add_variables
 from columnflow.config_util import (
     get_root_processes_from_campaign, get_shifts_from_sources
 )
-from azh.config.signals import AZH_SIGNAL_PROCESSES
+from azh.config.signals import AZH_SIGNAL_DATASETS, AZH_SIGNAL_PROCESSES
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -317,6 +317,10 @@ def add_config(
         *[f"data_e_{e}" for e in "cdefghi"],
         *[f"data_muoneg_{e}" for e in "cdefghi"],
     ]),
+
+    # AZH signal. The 2024 campaign ships no azh.py, so this is guarded the
+    # same way the process list is stripped further down.
+    *if_not_era(year=2024, values=list(AZH_SIGNAL_DATASETS)),
     ]
     
 
@@ -865,7 +869,7 @@ def add_config(
         # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
         # too. List the keys in this era's electronSS_EtDependent.json.gz before
         # processing it; electron_ss_setup now reports them on failure.
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022postEE", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
@@ -886,7 +890,7 @@ def add_config(
         # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
         # too. List the keys in this era's electronSS_EtDependent.json.gz before
         # processing it; electron_ss_setup now reports them on failure.
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023postBPIX", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2023preBPix":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
@@ -896,7 +900,7 @@ def add_config(
         # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
         # too. List the keys in this era's electronSS_EtDependent.json.gz before
         # processing it; electron_ss_setup now reports them on failure.
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
+        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023preBPIX", "SmearAndSyst")
     elif era_key == "2024":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2024Prompt", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2024Prompt", "Reco20to75")
@@ -912,6 +916,10 @@ def add_config(
     cfg.x.muon_sf_id_names = ("NUM_TightID_DEN_TrackerMuons", era_key)
     cfg.x.muon_sf_iso_names = ("NUM_TightPFIso_DEN_TightID", era_key)
     cfg.x.muon_sf_trig_names = ("NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight", era_key)
+    # Lower edge of the muon_Z.json ID/iso pT binning. 2022/23 start at 15;
+    # 2024 extends to 10. Masking above the true floor silently assigns SF = 1
+    # to muons that do have a measured scale factor.
+    cfg.x.muon_sf_pt_min = 10.0 if year == 2024 else 15.0
     # era-branched HLT electron SF. VERIFY the period string AND the HLT category
     # ("HLT_SF_Ele30_MVAiso80ID") against electronHlt.json per era (introspection cmd).
     if f"{year}{corr_postfix}" == "2022preEE":

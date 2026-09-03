@@ -99,7 +99,7 @@ muon_id_weights = muon_weights.derive("muon_id_weights", cls_dict={
 # ID/iso scale factor (weight 1) rather than an out-of-range corrector call.
 # If the MUO POG JSON is ever revised to extend lower, verify with:
 #   raw["corrections"][...]["data"] -> binning node with input "pt"
-MUON_SF_PT_MIN = 15.0
+MUON_SF_PT_MIN = self.config_inst.x.muon_sf_pt_min
 
 normalized_pu_weight = normalized_weight_factory(
     producer_name="normalized_pu_weight",

@@ -663,25 +663,12 @@ def add_config(
 
     # JES uncertainty sources.
     #
-    # "Total" is the quadrature sum of all ~27 individual sources: one nuisance,
-    # no correlation structure. Fine for commissioning.
-    #
-    # The AN-2022/158 reduced set (Sec. 9.1, l. 734-738) is 11 groups, 6 correlated
-    # across years and 5 era-specific, which is what the final fit needs so the
-    # fit can pull the barrel and endcap terms independently. Verified present in
-    # the 2022 JME file as Summer22_22Sep2023_V4_MC_Regrouped_<name>_AK4PFPuppi.
-    #
-    # Cost: each source is selection_dependent, so a full
-    # Calibrate -> Select -> Reduce -> Produce pass per direction, i.e. ~22 chain
-    # passes per dataset versus 2 for "Total".
-    #
-    # Switching is a one-line change: swap JEC_SOURCES_TOTAL for
-    # JEC_SOURCES_REDUCED below. The selector reads the list from the config
-    # (azh/selection/default.py), so the new shifts register automatically.
-    #
-    # TODO: the era-specific names are verified for 2022 only. Confirm the
-    # <name>_2023 / <name>_2024 spellings against those campaigns' JME files
-    # before processing them -- list the correction keys as we did for 2022.
+    # Era suffix used by JME for the era-specific Regrouped_* sources. This is
+    # the JERC postfix, NOT the bare year: the files contain
+    # Regrouped_Absolute_2022EE and Regrouped_Absolute_2023BPix. Verified
+    # against all five campaigns by tests/validate_configs.py.
+    jec_era = f"{year}{jerc_postfix}"
+
     JEC_SOURCES_TOTAL = ["Total"]
     JEC_SOURCES_REDUCED = [
         # correlated across years
@@ -692,11 +679,11 @@ def add_config(
         "Regrouped_HF",
         "Regrouped_RelativeBal",
         # era-specific
-        f"Regrouped_Absolute_{year}",
-        f"Regrouped_BBEC1_{year}",
-        f"Regrouped_EC2_{year}",
-        f"Regrouped_HF_{year}",
-        f"Regrouped_RelativeSample_{year}",
+        f"Regrouped_Absolute_{jec_era}",
+        f"Regrouped_BBEC1_{jec_era}",
+        f"Regrouped_EC2_{jec_era}",
+        f"Regrouped_HF_{jec_era}",
+        f"Regrouped_RelativeSample_{jec_era}",
     ]
     jec_uncertainty_sources = JEC_SOURCES_TOTAL
 

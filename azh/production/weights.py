@@ -7,7 +7,7 @@ Producers related to event weights.
 from columnflow.production import Producer, producer
 from azh.production.normalized_weights import normalized_weight_factory
 from columnflow.columnar_util import set_ak_column, has_ak_column, Route
-from azh.production.btag import split_btag_weights
+from azh.production.btag import split_btag_wp_weights
 from columnflow.production.cms.electron import electron_weights
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
@@ -169,7 +169,7 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[channel_lumi_weight](events, **kwargs)
 
         # compute btag weights
-        events = self[split_btag_weights](events, **kwargs)
+        events = self[split_btag_wp_weights](events, **kwargs)
 
         # # compute top pT weights (disabled for now)
         if self.dataset_inst.has_tag("is_ttbar"):
@@ -217,7 +217,7 @@ def weights_init(self: Producer) -> None:
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
             pdf_weights, normalized_scale_weights,
             # zpt_reweight,  # DISABLED
-            split_btag_weights,
+            split_btag_wp_weights,
             trigger_weights, channel_lumi_weight,
         }
         self.produces |= {
@@ -226,6 +226,6 @@ def weights_init(self: Producer) -> None:
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
             pdf_weights, normalized_scale_weights,
             # zpt_reweight,  # DISABLED
-            split_btag_weights,
+            split_btag_wp_weights,
             trigger_weights, channel_lumi_weight,
         }

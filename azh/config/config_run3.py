@@ -833,19 +833,62 @@ def add_config(
     })
 
     # btag weight configuration
-    from columnflow.production.cms.btag import SplitBTagSFConfig
+    #
+    # BTV ships no merged correction set for any Run 3 era -- every
+    # btagging.json.gz provides *_comb (b/c) and *_light (udsg) separately --
+    # so columnflow's btag_wp_weights, whose correction_set is a single string,
+    # cannot be used directly. azh/production/btag.py derives from it and
+    # replaces only the corrector lookup.
+    from azh.production.btag import SplitBTagWPSFConfig
+    from columnflow.selection.cms.btag import BTagWPCountConfig
+
     if year == 2024:
-        cfg.x.btag_sf = SplitBTagSFConfig(
-            correction_set=("UParTAK4_light", "UParTAK4_comb"),
-            discriminator="btagUParTAK4B",
-            corrector_kwargs={"working_point": "M"},
-        )
+        btag_cs_heavy, btag_cs_light = "UParTAK4_comb", "UParTAK4_light"
     else:
-        cfg.x.btag_sf = SplitBTagSFConfig(
-            correction_set=("particleNet_light", "particleNet_comb"),
-            discriminator="btagPNetB",
-            corrector_kwargs={"working_point": "M"},
-        )
+        btag_cs_heavy, btag_cs_light = "particleNet_comb", "particleNet_light"
+
+    # Binning of the MC tagging efficiency measurement, eff = N(pass WP)/N(total)
+    # per (pt, |eta|, flavour) bin. AN-2022/158 Sec. 4.5 defines the same
+    # quantity; the Run 2 analysis measured it in ttZ samples only, whereas the
+    # dataset_groups below derive it per process group (see note in the wiring
+    # doc). Bins that come out empty raise in the producer with the offending
+    # (flavor, pt, abs_eta) values listed.
+    cfg.x.btag_wp_count_config = BTagWPCountConfig(
+        jet_name="Jet",
+        btag_column=cfg.x.btag_default.column,
+        btag_wps={"medium": cfg.x.btag_default.wp},
+        pt_edges=(20, 30, 50, 70, 100, 140, 200, 300, 600, 10_000),
+        abs_eta_edges=(0.0, 1.0, 1.5, 2.0, 2.5),
+    )
+
+    # Only the medium WP is corrected: catid_sr_1b / sr_2b / wz_cr all split on
+    # medium-WP counts (AN Table 16). Adding working points the analysis never
+    # cuts on would only dilute the per-bin statistics of the efficiency map.
+    cfg.x.btag_wp_sf_config = SplitBTagWPSFConfig(
+        jet_name="Jet",
+        btag_column=cfg.x.btag_default.column,
+        correction_set=btag_cs_heavy,
+        correction_set_light=btag_cs_light,
+        btag_wps={"medium": cfg.x.btag_default.wp},
+        weight_name="btag_weight",
+        # Start with the variations every era supports; widen once these are
+        # confirmed to produce histograms that differ from nominal.
+        systs={
+            "up_correlated": "up_correlated",
+            "down_correlated": "down_correlated",
+            "up_uncorrelated": "up_uncorrelated",
+            "down_uncorrelated": "down_uncorrelated",
+        },
+        dataset_groups=[
+            ["tt_sl_powheg", "tt_dl_powheg", "tt_fh_powheg"],
+            ["dy_m50toinf_amcatnlo", "dy_m10to50_amcatnlo"],
+            ["st_tchannel_t_4f_powheg", "st_tchannel_tbar_4f_powheg",
+             "st_twchannel_t_sl_powheg", "st_twchannel_tbar_sl_powheg",
+             "st_twchannel_t_dl_powheg", "st_twchannel_tbar_dl_powheg"],
+            ["ttz_zll_m4to50_amcatnlo", "ttz_zll_m50toinf_amcatnlo"],
+            ["ww_pythia", "zz_pythia", "wz_pythia"],
+        ],
+    )
 
     # names of electron correction sets and working points
     # (used in the electron_sf producer)

@@ -12,7 +12,8 @@ Structure mirrors the muon/electron calibrators: a main producer plus a
 
 from columnflow.columnar_util import set_ak_column
 from columnflow.production import Producer, producer
-from columnflow.util import InsertableDict, maybe_import
+from law.util import InsertableDict
+from columnflow.util import maybe_import
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")

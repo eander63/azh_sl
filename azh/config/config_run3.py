@@ -320,7 +320,9 @@ def add_config(
 
     # AZH signal. The 2024 campaign ships no azh.py, so this is guarded the
     # same way the process list is stripped further down.
-    *if_not_era(year=2024, values=list(AZH_SIGNAL_DATASETS)),
+    # DEFERRED: signal samples pending GrASP beyond 2023; the grid also asks for
+    # points absent from the campaigns (e.g. a500_h370). See fixes_round2.md §1.
+    # *if_not_era(year=2024, values=list(AZH_SIGNAL_DATASETS)),
     ]
     
 

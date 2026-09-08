@@ -1,6 +1,7 @@
 from columnflow.columnar_util import flat_np_view, layout_ak_array, set_ak_column
 from columnflow.selection import SelectionResult, Selector, selector
-from columnflow.util import InsertableDict, maybe_import
+from law.util import InsertableDict
+from columnflow.util import maybe_import
 
 from azh.util import masked_sorted_indices
 

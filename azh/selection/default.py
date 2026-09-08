@@ -30,6 +30,7 @@ from azh.selection.jet_selection import jet_selection
 from azh.selection.lepton_selection import lepton_selection
 from azh.selection.trigger import trigger_selection
     # met categories included via add_categories_met
+from columnflow.selection.cms.btag import fill_btag_wp_count_hists
 
 
 np = maybe_import("numpy")
@@ -42,6 +43,7 @@ ak = maybe_import("awkward")
         mc_weight,
         jet_selection, lepton_selection,
         increment_stats, trigger_selection, pu_weight,
+        fill_btag_wp_count_hists,
         murmuf_weights, murmuf_envelope_weights, pdf_weights,
         # Jet.<btag discriminator> comes in via jet_selection's own init,
         # which resolves the era-dependent column from cfg.x.btag_default
@@ -65,6 +67,7 @@ def default(
     self: Selector,
     events: ak.Array,
     stats: defaultdict,
+    hists: dict,
     **kwargs,
 ) -> Tuple[ak.Array, SelectionResult]:
 
@@ -166,6 +169,20 @@ def default(
         group_map=group_map,
         **kwargs,
     )
+
+    # Per-(pt, |eta|, flavour, WP) jet counts for the MC b-tagging efficiency
+    # measurement (AN-2022/158 Sec. 4.5: eff_f(i,j) = N_f^btagged / N_f^total).
+    # BTV requires analyses to derive these from their own selected jets; the
+    # producer divides the per-WP bins by the "total" bin at setup time.
+    # objects.Jet.Jet is the same index set ReduceEvents keeps, so the
+    # efficiency is measured on exactly the jets the weight is applied to.
+    if self.dataset_inst.is_mc:
+        self[fill_btag_wp_count_hists](
+            events,
+            event_mask=results.event,
+            jet_mask=results.objects.Jet.Jet,
+            hists=hists,
+        )
 
     return events, results
 

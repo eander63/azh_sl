@@ -9,7 +9,8 @@ For ee events: SF on leading electron passing Ele30 threshold (pt > 32).
 
 from columnflow.columnar_util import set_ak_column
 from columnflow.production import Producer, producer
-from columnflow.util import InsertableDict, maybe_import
+from law.util import InsertableDict
+from columnflow.util import maybe_import
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")

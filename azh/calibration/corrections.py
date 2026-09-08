@@ -14,7 +14,8 @@ from columnflow.calibration import Calibrator, calibrator
 from columnflow.calibration.cms.jets import jec, jer
 from columnflow.columnar_util import set_ak_column
 from columnflow.production.util import attach_coffea_behavior
-from columnflow.util import InsertableDict, maybe_import
+from law.util import InsertableDict
+from columnflow.util import maybe_import
 
 from azh.util import lv_mass, lv_xyzt
 

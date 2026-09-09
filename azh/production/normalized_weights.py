@@ -98,11 +98,14 @@ def normalized_weight_factory(
     ) -> None:
         from columnflow.tasks.selection import MergeSelectionStats
 
-        reqs["selection_stats"] = MergeSelectionStats.req(
+        # v0.3.1: MergeSelectionStats is no longer a merge-forest task, so
+        # `tree_index` and `exclude_params_forest_merge` are both gone. Branch
+        # selection now depends on whether the requiring task is the workflow
+        # or a single branch -- see normalized_pu_weight_requires in
+        # columnflow/production/normalization.py for the reference pattern.
+        reqs["selection_stats"] = MergeSelectionStats.req_different_branching(
             task,
-            tree_index=0,
-            branch=-1,
-            _exclude=MergeSelectionStats.exclude_params_forest_merge,
+            branch=-1 if task.is_workflow() else 0,
         )
 
     @normalized_weight.setup
@@ -115,9 +118,10 @@ def normalized_weight_factory(
         **kwargs,
     ) -> None:
         # load the selection stats
-        stats = inputs["selection_stats"]["collection"][0]["stats"].load(
-            formatter="json"
-        )
+        # v0.3.1: the ["collection"][0] wrapper was part of the forest-merge
+        # output structure and is gone; the requirement now yields the target
+        # dict directly.
+        stats = inputs["selection_stats"]["stats"].load(formatter="json")
         # only normalize weights whose per-process sums were actually booked in
         # the selection stats; pileup systematic shifts (e.g. pu_weight_minbias_xs_up)
         # are absent from the preEE stats and must not be required for nominal plots

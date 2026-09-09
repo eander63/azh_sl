@@ -8,9 +8,9 @@ from columnflow.production import Producer, producer
 from azh.production.normalized_weights import normalized_weight_factory
 from columnflow.columnar_util import set_ak_column, has_ak_column, Route
 from azh.production.btag import split_btag_wp_weights
-from columnflow.production.cms.electron import electron_weights
+from columnflow.production.cms.electron import electron_weights, ElectronSFConfig
 from columnflow.production.cms.mc_weight import mc_weight
-from columnflow.production.cms.muon import muon_weights
+from columnflow.production.cms.muon import muon_weights, MuonSFConfig
 from columnflow.production.normalization import normalization_weights
 from columnflow.production.cms.pdf import pdf_weights
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
@@ -77,22 +77,22 @@ def zpt_reweight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 electron_id_weights = electron_weights.derive("electron_id_weights", cls_dict={
     "weight_name": "electron_id_weight",
-    "get_electron_config": (lambda self: self.config_inst.x.electron_sf_id_names),
+    "get_electron_config": (lambda self: ElectronSFConfig.new(self.config_inst.x.electron_sf_id_names)),
 })
 
 electron_mid_weights = electron_weights.derive("electron_mid_weights", cls_dict={
     "weight_name": "electron_mid_weight",
-    "get_electron_config": (lambda self: self.config_inst.x.electron_sf_mid_names),
+    "get_electron_config": (lambda self: ElectronSFConfig.new(self.config_inst.x.electron_sf_mid_names)),
 })
 
 electron_loreco_weights = electron_weights.derive("electron_loreco_weights", cls_dict={
     "weight_name": "electron_loreco_weight",
-    "get_electron_config": (lambda self: self.config_inst.x.electron_sf_loreco_names),
+    "get_electron_config": (lambda self: ElectronSFConfig.new(self.config_inst.x.electron_sf_loreco_names)),
 })
 
 muon_id_weights = muon_weights.derive("muon_id_weights", cls_dict={
     "weight_name": "muon_id_weight",
-    "get_muon_config": (lambda self: self.config_inst.x.muon_sf_id_names),
+    "get_muon_config": (lambda self: MuonSFConfig.new(self.config_inst.x.muon_sf_id_names)),
 })
 
 normalized_pu_weight = normalized_weight_factory(
@@ -112,12 +112,12 @@ normalized_scale_weights = normalized_weight_factory(
 
 muon_iso_weights = muon_weights.derive("muon_iso_weights", cls_dict={
     "weight_name": "muon_iso_weight",
-    "get_muon_config": (lambda self: self.config_inst.x.muon_sf_iso_names),
+    "get_muon_config": (lambda self: MuonSFConfig.new(self.config_inst.x.muon_sf_iso_names)),
 })
 
 muon_reco_weights = muon_weights.derive("muon_reco_weights", cls_dict={
     "weight_name": "muon_reco_weight",
-    "get_muon_config": (lambda self: self.config_inst.x.muon_sf_reco_names),
+    "get_muon_config": (lambda self: MuonSFConfig.new(self.config_inst.x.muon_sf_reco_names)),
 })
 
 @producer

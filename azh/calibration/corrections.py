@@ -65,7 +65,10 @@ def jet_energy(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
 
 @jet_energy.init
-def jet_energy_init(self: Calibrator) -> None:
+def jet_energy_init(
+    self: Calibrator,
+    **kwargs,
+) -> None:
     # full jec (with uncertainty sources) + jer for mc, nominal-only jec for data
     #
     # NOTE: the JEC/JER shifts are deliberately NOT declared here. They are
@@ -275,17 +278,27 @@ def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
 
 @muon_scare.requires
-def muon_scare_requires(self: Calibrator, reqs: dict) -> None:
+def muon_scare_requires(
+    self: Calibrator,
+    task,
+    reqs: dict,
+    **kwargs,
+) -> None:
     if "external_files" in reqs:
         return
     from columnflow.tasks.external import BundleExternalFiles
 
-    reqs["external_files"] = BundleExternalFiles.req(self.task)
+    reqs["external_files"] = BundleExternalFiles.req(task)
 
 
 @muon_scare.setup
 def muon_scare_setup(
-    self: Calibrator, reqs: dict, inputs: dict, reader_targets: InsertableDict
+    self: Calibrator,
+    task,
+    reqs: dict,
+    inputs: dict,
+    reader_targets: InsertableDict,
+    **kwargs,
 ) -> None:
     import os
     import sys
@@ -424,17 +437,27 @@ def electron_ss(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
 
 @electron_ss.requires
-def electron_ss_requires(self: Calibrator, reqs: dict) -> None:
+def electron_ss_requires(
+    self: Calibrator,
+    task,
+    reqs: dict,
+    **kwargs,
+) -> None:
     if "external_files" in reqs:
         return
     from columnflow.tasks.external import BundleExternalFiles
 
-    reqs["external_files"] = BundleExternalFiles.req(self.task)
+    reqs["external_files"] = BundleExternalFiles.req(task)
 
 
 @electron_ss.setup
 def electron_ss_setup(
-    self: Calibrator, reqs: dict, inputs: dict, reader_targets: InsertableDict
+    self: Calibrator,
+    task,
+    reqs: dict,
+    inputs: dict,
+    reader_targets: InsertableDict,
+    **kwargs,
 ) -> None:
     import correctionlib
 

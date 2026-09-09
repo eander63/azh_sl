@@ -72,7 +72,10 @@ def normalized_weight_factory(
         return events
 
     @normalized_weight.init
-    def normalized_weight_init(self: Producer) -> None:
+    def normalized_weight_init(
+        self: Producer,
+        **kwargs,
+    ) -> None:
         self.weight_producers = weight_producers
 
         # resolve weight names
@@ -87,11 +90,16 @@ def normalized_weight_factory(
         }
 
     @normalized_weight.requires
-    def normalized_weight_requires(self: Producer, reqs: dict) -> None:
+    def normalized_weight_requires(
+        self: Producer,
+        task,
+        reqs: dict,
+        **kwargs,
+    ) -> None:
         from columnflow.tasks.selection import MergeSelectionStats
 
         reqs["selection_stats"] = MergeSelectionStats.req(
-            self.task,
+            task,
             tree_index=0,
             branch=-1,
             _exclude=MergeSelectionStats.exclude_params_forest_merge,
@@ -99,7 +107,12 @@ def normalized_weight_factory(
 
     @normalized_weight.setup
     def normalized_weight_setup(
-        self: Producer, reqs: dict, inputs: dict, reader_targets: InsertableDict
+        self: Producer,
+        task,
+        reqs: dict,
+        inputs: dict,
+        reader_targets: InsertableDict,
+        **kwargs,
     ) -> None:
         # load the selection stats
         stats = inputs["selection_stats"]["collection"][0]["stats"].load(

@@ -55,9 +55,11 @@ def channel_lumi_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 @channel_lumi_weight.setup
 def channel_lumi_weight_setup(
     self: Producer,
+    task,
     reqs: dict,
     inputs: dict,
     reader_targets: InsertableDict,
+    **kwargs,
 ) -> None:
     lumis = self.config_inst.x("channel_lumis", None)
     if not lumis:

@@ -4,7 +4,12 @@ from columnflow.util import maybe_import
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
-coffea = maybe_import("coffea")
+# maybe_import returns the LEAF module for a dotted name, so this binds
+# coffea.nanoevents.methods.nanoaod directly, not the coffea package. Importing
+# the bare package instead would not bind .nanoevents at all -- that only ever
+# worked by side effect of some other import happening first, which stopped
+# holding under columnflow v0.3.1's import order.
+nanoaod = maybe_import("coffea.nanoevents.methods.nanoaod")
 
 
 def masked_sorted_indices(
@@ -61,7 +66,7 @@ def ak_extract_fields(arr, fields, **kwargs):
 
 
 _lv_base = partial(
-    ak_extract_fields, behavior=coffea.nanoevents.methods.nanoaod.behavior
+    ak_extract_fields, behavior=nanoaod.behavior
 )
 
 lv_xyzt = partial(_lv_base, fields=["x", "y", "z", "t"], with_name="LorentzVector")

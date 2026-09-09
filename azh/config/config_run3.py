@@ -483,7 +483,7 @@ def add_config(
     cfg.x.default_calibrator = "skip_jecunc"
     cfg.x.default_selector = "default"
     cfg.x.default_producer = "default"
-    cfg.x.default_weight_producer = "all_weights"
+    cfg.x.default_hist_producer = "all_weights"
     cfg.x.default_inference_model = "default"
     cfg.x.default_categories = ["cat_incl"]
     cfg.x.default_variables = ["jet1_pt"]

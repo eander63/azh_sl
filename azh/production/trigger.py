@@ -52,7 +52,10 @@ def trigger(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 # initialize the trigger producer, triggers can be set in the trigger config
 @trigger.init
-def trigger_init(self: Producer) -> None:
+def trigger_init(
+    self: Producer,
+    **kwargs,
+) -> None:
 
     for trigger in self.config_inst.x("triggers", []):
         self.uses.add(f"HLT.{trigger.hlt_field}")

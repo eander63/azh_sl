@@ -188,7 +188,10 @@ def default(
 
 
 @default.init
-def default_init(self: Selector) -> None:
+def default_init(
+    self: Selector,
+    **kwargs,
+) -> None:
     """
     Declare the JEC/JER shifts this selector implements.
 

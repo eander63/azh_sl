@@ -162,22 +162,29 @@ def jet_selection_init(self: Selector, **kwargs) -> None:
 
 
 @jet_selection.requires
-def jet_selection_requires(self: Selector, reqs: dict) -> None:
+def jet_selection_requires(
+    self: Selector,
+    task,
+    reqs: dict,
+    **kwargs,
+) -> None:
     if not self.config_inst.x.jet_id.from_correctionlib:
         return
     if "external_files" in reqs:
         return
     from columnflow.tasks.external import BundleExternalFiles
 
-    reqs["external_files"] = BundleExternalFiles.req(self.task)
+    reqs["external_files"] = BundleExternalFiles.req(task)
 
 
 @jet_selection.setup
 def jet_selection_setup(
     self: Selector,
+    task,
     reqs: dict,
     inputs: dict,
     reader_targets: InsertableDict,
+    **kwargs,
 ) -> None:
     jid = self.config_inst.x.jet_id
     if not jid.from_correctionlib:

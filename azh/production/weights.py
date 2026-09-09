@@ -206,7 +206,10 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 
 @weights.init
-def weights_init(self: Producer) -> None:
+def weights_init(
+    self: Producer,
+    **kwargs,
+) -> None:
     if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
         # dynamically add dependencies if running on MC
         self.uses |= {

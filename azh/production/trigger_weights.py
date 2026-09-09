@@ -118,20 +118,27 @@ def trigger_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 
 @trigger_weights.requires
-def trigger_weights_requires(self: Producer, reqs: dict) -> None:
+def trigger_weights_requires(
+    self: Producer,
+    task,
+    reqs: dict,
+    **kwargs,
+) -> None:
     if "external_files" in reqs:
         return
     from columnflow.tasks.external import BundleExternalFiles
 
-    reqs["external_files"] = BundleExternalFiles.req(self.task)
+    reqs["external_files"] = BundleExternalFiles.req(task)
 
 
 @trigger_weights.setup
 def trigger_weights_setup(
     self: Producer,
+    task,
     reqs: dict,
     inputs: dict,
     reader_targets: InsertableDict,
+    **kwargs,
 ) -> None:
     bundle = reqs["external_files"]
 

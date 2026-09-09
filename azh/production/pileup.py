@@ -42,20 +42,27 @@ def pu_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 
 @pu_weight.requires
-def pu_weight_requires(self: Producer, reqs: dict) -> None:
+def pu_weight_requires(
+    self: Producer,
+    task,
+    reqs: dict,
+    **kwargs,
+) -> None:
     if "external_files" in reqs:
         return
     from columnflow.tasks.external import BundleExternalFiles
 
-    reqs["external_files"] = BundleExternalFiles.req(self.task)
+    reqs["external_files"] = BundleExternalFiles.req(task)
 
 
 @pu_weight.setup
 def pu_weight_setup(
     self: Producer,
+    task,
     reqs: dict,
     inputs: dict,
     reader_targets: InsertableDict,
+    **kwargs,
 ) -> None:
     import correctionlib
 

@@ -4,8 +4,8 @@ custom weight producer to apply trigger masks in histogram step
 
 import law
 from columnflow.util import maybe_import
-from columnflow.weight import WeightProducer, weight_producer
-from columnflow.weight.all_weights import all_weights
+from columnflow.histogramming import HistProducer, hist_producer
+from columnflow.histogramming.default import all_weights
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -13,15 +13,15 @@ ak = maybe_import("awkward")
 logger = law.logger.get_logger(__name__)
 
 
-@weight_producer(
+@hist_producer(
     mc_only=False,
     uses={all_weights},
     mask_fn=None,
     mask_columns=None,
 )
-def base(self: WeightProducer, events: ak.Array, **kwargs) -> ak.Array:
+def base(self: HistProducer, events: ak.Array, **kwargs) -> ak.Array:
     """
-    WeightProducer that applies the trigger masks to the events.
+    HistProducer that applies the trigger masks to the events.
     """
     if self.mask_fn:
         events = events[self.mask_fn(events)]
@@ -35,7 +35,10 @@ def base(self: WeightProducer, events: ak.Array, **kwargs) -> ak.Array:
 
 
 @base.init
-def base_init(self: WeightProducer) -> None:
+def base_init(
+    self: HistProducer,
+    **kwargs,
+) -> None:
 
     if not self.config_inst:
         return

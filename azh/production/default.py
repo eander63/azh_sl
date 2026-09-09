@@ -73,7 +73,10 @@ def default(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 
 @default.init
-def default_init(self: Producer) -> None:
+def default_init(
+    self: Producer,
+    **kwargs,
+) -> None:
     if getattr(self, "dataset_inst", None) and self.dataset_inst.has_tag("is_dy"):
         self.uses.add(dy_producer)
         self.produces.add(dy_producer)

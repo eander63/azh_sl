@@ -180,7 +180,11 @@ def default(
         self[fill_btag_wp_count_hists](
             events,
             event_mask=results.event,
-            jet_mask=results.objects.Jet.Jet,
+            # Boolean mask over the full Jet collection, not the index array in
+            # results.objects.Jet.Jet. Upstream applies this before the event
+            # mask (`events.Jet[jet_mask][event_mask]`, btag.py:72), so passing
+            # indices selects the wrong jets and undercounts.
+            jet_mask=results.aux["jet_mask"],
             hists=hists,
         )
 

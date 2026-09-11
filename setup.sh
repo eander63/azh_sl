@@ -115,6 +115,18 @@ setup_azh() {
         done
     fi
 
+    # Apply local patches against the pinned columnflow version. Idempotent: the
+    # --check guard skips any patch that is already applied, so re-running setup
+    # is safe. See patches/ for what each one fixes and why.
+    local azh_patch
+    for azh_patch in "${AZH_BASE}"/patches/*.patch; do
+        [ -e "${azh_patch}" ] || continue
+        if ( cd "${CF_BASE}" && git apply --check "${azh_patch}" &> /dev/null ); then
+            ( cd "${CF_BASE}" && git apply "${azh_patch}" )
+            echo "applied patch: $( basename "${azh_patch}" )"
+        fi
+    done
+
 
     #
     # git hooks

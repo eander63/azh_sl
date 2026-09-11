@@ -1,0 +1,25 @@
+diff --git a/columnflow/calibration/cms/jets.py b/columnflow/calibration/cms/jets.py
+index 477625d..b298091 100644
+--- a/columnflow/calibration/cms/jets.py
++++ b/columnflow/calibration/cms/jets.py
+@@ -1023,7 +1023,19 @@ def jer(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
+         sfunc = run_evaluator("sfunc", variable_map)
+         for jer_postfix in self.jer_postfixes:
+             sign = 1 if jer_postfix.endswith("_up") else -1
+-            jersf[jer_postfix] = jersf[""] * (1 + sign * sfunc)
++            # The SFUncertainty values are ABSOLUTE, not relative: the variation is
++            # sf +- unc, not sf * (1 +- unc).
++            #
++            # Verified against the POG's own nom/up/down for Summer22: on the 546
++            # (eta, pt) points where the JRV1 (jsonpog, systematic-axis format) and
++            # JRV2 (CAT, SFUncertainty format) nominal scale factors agree exactly,
++            # the additive form reproduces the POG up/down to 0.002 -- i.e. rounding
++            # -- while the multiplicative form is off by up to 0.2.
++            #
++            # This is a silent failure mode: the multiplicative form yields
++            # variations that exist and look plausible but are mis-scaled by roughly
++            # 10%, so nothing downstream flags it.
++            jersf[jer_postfix] = jersf[""] + sign * sfunc
+     else:
+         for jer_postfix in self.jer_postfixes:
+             direction = jer_postfix.rsplit("_", 1)[-1]

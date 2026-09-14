@@ -1077,6 +1077,25 @@ def add_config(
         cfg.add_shift(name=f"btag_{unc}_up", id=100 + 2 * i, type="shape")
         cfg.add_shift(name=f"btag_{unc}_down", id=101 + 2 * i, type="shape")
 
+    # b-tag fixed-WP scale factor uncertainties. BTV splits these into a piece
+    # correlated across years (method/hadronisation) and one that is not (the
+    # per-year measurement statistics), so they are two nuisances rather than one.
+    # Column names come from BTagWPSFConfig.systs: btag_weight_<direction>_<kind>.
+    cfg.add_shift(name="btag_correlated_up", id=61, type="shape")
+    cfg.add_shift(name="btag_correlated_down", id=62, type="shape")
+    add_aliases(
+        "btag_correlated",
+        {"btag_weight": "btag_weight_{direction}_correlated"},
+        selection_dependent=False,
+    )
+    cfg.add_shift(name="btag_uncorrelated_up", id=63, type="shape")
+    cfg.add_shift(name="btag_uncorrelated_down", id=64, type="shape")
+    add_aliases(
+        "btag_uncorrelated",
+        {"btag_weight": "btag_weight_{direction}_uncorrelated"},
+        selection_dependent=False,
+    )
+
     cfg.add_shift(name="mur_up", id=201, type="shape")
     cfg.add_shift(name="mur_down", id=202, type="shape")
     cfg.add_shift(name="muf_up", id=203, type="shape")
@@ -1331,6 +1350,7 @@ def add_config(
     # An empty list therefore means "computed, stored, but never varied".
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
+        "btag_weight": get_shifts("btag_correlated", "btag_uncorrelated"),
         "channel_lumi_weight": [],        # per-channel lumi correction (muon: x0.9344, ee: x1.0023)
         "electron_trig_weight": get_shifts("e_trig_sf"),
         # muon_Z.json HLT SFs valid down to ~15 GeV

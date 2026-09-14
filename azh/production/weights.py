@@ -7,6 +7,10 @@ Producers related to event weights.
 from columnflow.production import Producer, producer
 from azh.production.normalized_weights import normalized_weight_factory
 from columnflow.columnar_util import set_ak_column, has_ak_column, Route
+
+import law
+
+logger = law.logger.get_logger(__name__)
 from azh.production.btag import split_btag_wp_weights
 from columnflow.production.cms.electron import electron_weights, ElectronSFConfig
 from columnflow.production.cms.mc_weight import mc_weight
@@ -42,7 +46,7 @@ def event_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
                 if has_ak_column(events, column):
                     weight = weight * Route(column).apply(events)
                 else:
-                    self.logger.warning_once(
+                    logger.warning_once(
                         f"missing_dataset_weight_{column}",
                         f"weight '{column}' for dataset {self.dataset_inst.name} not found",
                     )

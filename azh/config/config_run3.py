@@ -1368,7 +1368,6 @@ def add_config(
         # Shift list stays empty: the fork's split_btag_weights hardcodes
         # btag_uncs = {} and produces only 'btag_weight', so no varied columns
         # exist yet (see cfg.x.btag_sf_jec_sources for the intended source list).
-        "btag_weight": [],
         "normalized_pu_weight": get_shifts("minbias_xs"),
     })
 

@@ -26,6 +26,10 @@ Per-era brilcalc procedure (recommended):
 """
 
 from columnflow.columnar_util import set_ak_column
+
+import law
+
+logger = law.logger.get_logger(__name__)
 from columnflow.production import Producer, producer
 from law.util import InsertableDict
 from columnflow.util import maybe_import
@@ -63,7 +67,7 @@ def channel_lumi_weight_setup(
 ) -> None:
     lumis = self.config_inst.x("channel_lumis", None)
     if not lumis:
-        self.logger.warning_once(
+        logger.warning_once(
             "channel_lumis_missing",
             f"cfg.x.channel_lumis is not set for config '{self.config_inst.name}'; "
             "channel_lumi_weight will fall back to SF=1.0 for both channels. "

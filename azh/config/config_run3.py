@@ -1385,7 +1385,7 @@ def add_config(
 
     # v2: selection stats now book per-process sums for the pileup, scale and PDF
     # weight variations, so cf.SelectEvents and everything downstream must rerun.
-    prod_version = "v2"
+    prod_version = "v3"
 
     # Version of required tasks
     # v1: jet_energy now runs jec_full (uncertainty sources) instead of jec_nominal

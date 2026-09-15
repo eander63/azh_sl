@@ -20,12 +20,14 @@ logger = law.logger.get_logger(__name__)
 def normalized_weight_factory(
     producer_name: str,
     weight_producers: Iterable[Producer],
+    weight_names: Iterable[str] | None = None,
     **kwargs,
 ) -> Callable:
 
     @producer(
         uses=set(weight_producers)
         | set().union(*[w.produces for w in weight_producers])
+        | set(weight_names or ())
         | {"process_id"},
         cls_name=producer_name,
         mc_only=True,
@@ -72,22 +74,25 @@ def normalized_weight_factory(
         return events
 
     @normalized_weight.init
-    def normalized_weight_init(
-        self: Producer,
-        **kwargs,
-    ) -> None:
+    def normalized_weight_init(self: Producer, **kwargs) -> None:
         self.weight_producers = weight_producers
 
-        # resolve weight names
-        self.weight_names = set()
-        for col in self.used_columns:
-            col = col.string_nano_column
-            if "weight" in col and "normalized" not in col and "btag" not in col:
-                self.weight_names.add(col)
+        # Prefer explicitly declared names. As of columnflow v0.3.1, murmuf_weights
+        # and pdf_weights build their `produces` inside init (they gained
+        # ScaleWeightOutput / PDFWeightOutput modes), so at class level it is EMPTY
+        # and introspecting used_columns silently finds only murmuf_envelope_weight,
+        # which still declares its column statically. That dropped three of four
+        # theory nuisances with no error.
+        if weight_names:
+            self.weight_names = set(weight_names)
+        else:
+            self.weight_names = set()
+            for col in self.used_columns:
+                col = col.string_nano_column
+                if "weight" in col and "normalized" not in col and "btag" not in col:
+                    self.weight_names.add(col)
 
-        self.produces |= {
-            f"normalized_{weight_name}" for weight_name in self.weight_names
-        }
+        self.produces |= {f"normalized_{w}" for w in self.weight_names}
 
     @normalized_weight.requires
     def normalized_weight_requires(

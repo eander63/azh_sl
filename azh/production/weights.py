@@ -112,6 +112,11 @@ normalized_pu_weight = normalized_weight_factory(
 normalized_scale_weights = normalized_weight_factory(
     producer_name="normalized_scale_weights",
     weight_producers={murmuf_weights, murmuf_envelope_weights, pdf_weights},
+    weight_names={
+        f"{base}_weight{postfix}"
+        for base in ("mur", "muf", "murmuf_envelope", "pdf")
+        for postfix in ("", "_up", "_down")
+    },
 )
 
 muon_iso_weights = muon_weights.derive("muon_iso_weights", cls_dict={

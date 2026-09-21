@@ -88,7 +88,11 @@ def jet_selection(
             | (abs(events.Jet.eta) >= 3.0)
         )
     )
-    loose_jet_sel = ak.num(events.Jet[loose_jet_mask]) >= 2  # floor; >=4 is a category
+    # No jet floor. The 2l DY validation region checks leptons, triggers and
+    # normalization, and needs the full Z sample, which is dominated by 0 and 1
+    # jets. The step is kept (always True) so cutflow configs naming "Jet" still
+    # resolve. The analysis >= 4 tight-jet cut lives in catid_baseline.
+    loose_jet_sel = ak.ones_like(ak.num(events.Jet[loose_jet_mask]), dtype=bool)
     # also store a version that always passes (jet cut moved to categories)
     events = set_ak_column(
         events, "cutflow.n_jet_loose", ak.sum(loose_jet_mask, axis=1)
@@ -134,7 +138,11 @@ def jet_selection(
     loose_jet_sel = ak.fill_none(loose_jet_sel, False)
     jet_mask = ak.fill_none(jet_mask, False)
 
-    # Selection step uses LOOSE jets (≥4 with pT>15, |eta|<4.7)
+    # The selection STEP applies no jet requirement, so the 2l DY validation
+    # region survives reduction at full statistics. The analysis >= 4 jet
+    # requirement uses TIGHT jets and
+    # lives in catid_baseline (azh/production/categories.py), not here.
+    # The OBJECTS kept for downstream are always tight: jet_indices / bjet_indices.
     return events, SelectionResult(
         steps={
             "Jet": loose_jet_sel,

@@ -510,7 +510,7 @@ def add_config(
     # variable groups for conveniently looping over certain variables
     # (used during plotting)
     cfg.x.variable_groups = {
-        "default": ["n_jet", "jet1_pt"],
+        "default": ["cf_n_jet", "jet1_pt"],
     }
 
     # shift groups for conveniently looping over certain shifts
@@ -854,12 +854,19 @@ def add_config(
     # dataset_groups below derive it per process group (see note in the wiring
     # doc). Bins that come out empty raise in the producer with the offending
     # (flavor, pt, abs_eta) values listed.
+    # Plot styling. The data/MC ratio panel defaults to (0.72, 1.28) in columnflow
+    # (plotting/plot_all.py); widen it so larger deviations stay visible.
+    cfg.x.custom_style_config_groups = {
+        "default": {"rax_cfg": {"ylim": (0.5, 1.5), "ylabel": "Data / MC"}},
+    }
+    cfg.x.default_custom_style_config = "default"
+
     cfg.x.btag_wp_count_config = BTagWPCountConfig(
         jet_name="Jet",
         btag_column=cfg.x.btag_default.column,
         btag_wps={"medium": cfg.x.btag_default.wp},
-        pt_edges=(20, 30, 50, 70, 100, 140, 200, 300, 600, 10_000),
-        abs_eta_edges=(0.0, 1.0, 1.5, 2.0, 2.5),
+        pt_edges=(30, 50, 70, 100, 140, 200, 300, 10_000),
+        abs_eta_edges=(0.0, 1.5, 2.5),
     )
 
     # Only the medium WP is corrected: catid_sr_1b / sr_2b / wz_cr all split on
@@ -1404,7 +1411,7 @@ def add_config(
 
     # v2: selection stats now book per-process sums for the pileup, scale and PDF
     # weight variations, so cf.SelectEvents and everything downstream must rerun.
-    prod_version = "v3"
+    prod_version = "v5"
 
     # Version of required tasks
     # v1: jet_energy now runs jec_full (uncertainty sources) instead of jec_nominal

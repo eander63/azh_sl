@@ -30,7 +30,7 @@ ak = maybe_import("awkward")
 Z_MASS = 91.188
 Z_MASS_WINDOW = 25.0  # |m_ll - m_Z| < 25 GeV
 MET_CUT = 40.0  # pT_miss > 40 GeV
-N_JETS_MIN = 4  # >= 4 jets, pT > 15 GeV, |eta| < 4.7
+N_JETS_MIN = 4  # >= 4 jets, pT > 30 GeV, |eta| < 2.5 (tight; see catid_baseline)
 MIN_MLL_CUT = 12.0  # Min(m_ll) > 12 GeV, all pairings
 LEP_PT_1 = 25.0
 LEP_PT_2 = 20.0
@@ -141,7 +141,7 @@ def catid_3l(
 
 
 @categorizer(
-    uses={"m_z", "PuppiMET.pt", "cutflow.n_jet_loose"},
+    uses={"m_z", "PuppiMET.pt", "cutflow.n_jet"},
     call_force=True,
 )
 def catid_baseline(
@@ -153,7 +153,7 @@ def catid_baseline(
 
         |m_ll - m_Z| < 25 GeV
         pT_miss      > 40 GeV
-        n_jet_loose >= 4        (pT > 15 GeV, |eta| < 4.7)
+        n_jet >= 4              (pT > 30 GeV, |eta| < 2.5)
 
     The lepton requirements moved to catid_2l / catid_3l; the b-jet count is
     applied by the region categorizers below.
@@ -163,7 +163,11 @@ def catid_baseline(
     mask = (
         (abs(events.m_z - Z_MASS) < Z_MASS_WINDOW)
         & (events.PuppiMET.pt > MET_CUT)
-        & (events.cutflow.n_jet_loose >= N_JETS_MIN)
+        # Tight jets, not the loose pT > 15 / |eta| < 4.7 collection. AN-2022/158
+        # Table 16 lists the loose definition, but that is the Latinos CleanJet
+        # post-processing cut, not the analysis cut -- corrected during PAS/paper
+        # approval to pT > 30, |eta| < 2.5 for all jets (M., Mattermost).
+        & (events.cutflow.n_jet >= N_JETS_MIN)
     )
     return events, ak.fill_none(mask, False)
 

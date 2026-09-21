@@ -18,8 +18,9 @@ def add_feature_variables(config: od.Config) -> None:
     # Event properties
     config.add_variable(
         name="n_jet",
+        expression="cutflow.n_jet",
         binning=(12, -0.5, 11.5),
-        x_title="Number of jets",
+        x_title=r"Number of jets ($p_{T}$ > 30 GeV, $|\eta| < 2.5$)",
         discrete_x=True,
     )
 
@@ -90,7 +91,6 @@ def add_variables(config: od.Config) -> None:
         name="n_jets",
         expression="n_jets",
         binning=(12, -0.5, 11.5),
-        unit="GeV",
         x_title="Number of jets",
     )
 
@@ -299,13 +299,13 @@ def add_variables(config: od.Config) -> None:
         name="cf_n_jet",
         expression="cutflow.n_jet",
         binning=(11, -0.5, 10.5),
-        x_title=r"Number of jets ($p_{T}$ > 30 GeV, $|\eta| < 2.4$)",
+        x_title=r"Number of jets ($p_{T}$ > 30 GeV, $|\eta| < 2.5$)",
     )
     config.add_variable(
         name="cf_n_bjet",
         expression="cutflow.n_bjet",
         binning=(11, -0.5, 10.5),
-        x_title=r"Number of b-taggeg jets ($p_{T}$ > 30 GeV, $|\eta| < 2.4$)",
+        x_title=r"Number of b-tagged jets ($p_{T}$ > 30 GeV, $|\eta| < 2.5$)",
     )
     config.add_variable(
         name="n_jet_loose",

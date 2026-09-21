@@ -333,9 +333,12 @@ def validate_config(cfg, rep):
         path = file_path(cfg, "btag_sf_corr")
         if path:
             cs, _, names_in_file = load(path)
-            btag = cfg.x("btag_sf", None)
+            # v0.3.1 / f1173d2: the fixed-WP producer replaced cfg.x.btag_sf with
+        # btag_wp_sf_config, which names the heavy and light correction sets
+        # separately and carries the systematic values in `systs`.
+        btag = cfg.x("btag_wp_sf_config", None)
             if btag is not None:
-                for name in btag.correction_set:
+                for name in (btag.correction_set, btag.correction_set_light):
                     (rep.ok if name in names_in_file else rep.error)(
                         f"btag: {name}" if name in names_in_file
                         else f"btag: {name!r} not in file. "

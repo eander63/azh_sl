@@ -3,6 +3,7 @@ Column production methods related to generic event weights.
 """
 
 from collections.abc import Callable, Iterable
+from typing import Optional
 
 import law
 from columnflow.columnar_util import set_ak_column
@@ -20,7 +21,7 @@ logger = law.logger.get_logger(__name__)
 def normalized_weight_factory(
     producer_name: str,
     weight_producers: Iterable[Producer],
-    weight_names: Iterable[str] | None = None,
+    weight_names: Optional[Iterable[str]] = None,
     **kwargs,
 ) -> Callable:
 

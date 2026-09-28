@@ -114,10 +114,10 @@ def ecal_badcrystal_veto(self: Calibrator, events: ak.Array, **kwargs) -> ak.Arr
     lo, hi = ECAL_BADCRYSTAL_RUNS
     jet = events.Jet
     bad_jet = (
-        (jet.pt > 50) &
-        (jet.eta > -0.5) & (jet.eta < -0.1) &
-        (jet.phi > -2.1) & (jet.phi < -1.8) &
-        ((jet.neEmEF > 0.9) | (jet.chEmEF > 0.9))
+        (jet["pt"] > 50) &
+        (jet["eta"] > -0.5) & (jet["eta"] < -0.1) &
+        (jet["phi"] > -2.1) & (jet["phi"] < -1.8) &
+        ((jet["neEmEF"] > 0.9) | (jet["chEmEF"] > 0.9))
     )
     veto = (
         (events.run >= lo) & (events.run <= hi) &
@@ -142,7 +142,7 @@ JET_ID_INPUTS = ["eta", "chHEF", "neHEF", "chEmEF", "neEmEF", "muEF", "chMultipl
 )
 def jet_id_v15(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     jet = events.Jet
-    counts = ak.num(jet.eta)
+    counts = ak.num(jet["eta"])
     flat = {f: ak.to_numpy(ak.flatten(jet[f])) for f in JET_ID_INPUTS}
     flat["multiplicity"] = flat["chMultiplicity"] + flat["neMultiplicity"]
 
@@ -195,7 +195,7 @@ def jet_id_v15_setup(self: Calibrator, task, reqs: dict, inputs: dict, reader_ta
 )
 def met_unclustered_capture(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     met = events.PuppiMET
-    px, py = met.pt * np.cos(met.phi), met.pt * np.sin(met.phi)
+    px, py = met["pt"] * np.cos(met["phi"]), met["pt"] * np.sin(met["phi"])
     for d, D in (("up", "Up"), ("down", "Down")):
         pt_v, phi_v = met[f"ptUnclustered{D}"], met[f"phiUnclustered{D}"]
         events = set_ak_column(events, f"PuppiMET.dx_unclustered_{d}", pt_v * np.cos(phi_v) - px)
@@ -210,7 +210,7 @@ def met_unclustered_capture(self: Calibrator, events: ak.Array, **kwargs) -> ak.
 )
 def met_unclustered_apply(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     met = events.PuppiMET
-    px, py = met.pt * np.cos(met.phi), met.pt * np.sin(met.phi)
+    px, py = met["pt"] * np.cos(met["phi"]), met["pt"] * np.sin(met["phi"])
     for d in ("up", "down"):
         vx = px + met[f"dx_unclustered_{d}"]
         vy = py + met[f"dy_unclustered_{d}"]
@@ -256,10 +256,10 @@ def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     # scale: applied to data AND MC
     pt_corr = pt_scale(
         is_data,
-        events.Muon.pt,
-        events.Muon.eta,
-        events.Muon.phi,
-        events.Muon.charge,
+        events.Muon["pt"],
+        events.Muon["eta"],
+        events.Muon["phi"],
+        events.Muon["charge"],
         self.muon_cset,
         nested=True,
     )
@@ -267,12 +267,12 @@ def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
     # resolution smearing: MC only, on the scale-corrected pt
     if not is_data:
-        pt_scaled = events.Muon.pt
+        pt_scaled = events.Muon["pt"]
         pt_corr = pt_resol(
             pt_scaled,
-            events.Muon.eta,
-            events.Muon.phi,
-            events.Muon.nTrackerLayers,
+            events.Muon["eta"],
+            events.Muon["phi"],
+            events.Muon["nTrackerLayers"],
             events.event,
             events.luminosityBlock,
             self.muon_cset,
@@ -287,10 +287,10 @@ def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
         # (pt < 26 or > 200 GeV) the kit returns the input, i.e. no variation.
         for d in ("up", "down"):
             events = set_ak_column(events, f"Muon.pt_scale_{d}", self.pt_scale_var(
-                pt_corr, events.Muon.eta, events.Muon.phi, events.Muon.charge, d, self.muon_cset, nested=True,
+                pt_corr, events.Muon["eta"], events.Muon["phi"], events.Muon["charge"], d, self.muon_cset, nested=True,
             ))
             events = set_ak_column(events, f"Muon.pt_resol_{d}", self.pt_resol_var(
-                pt_scaled, pt_corr, events.Muon.eta, d, self.muon_cset, nested=True,
+                pt_scaled, pt_corr, events.Muon["eta"], d, self.muon_cset, nested=True,
             ))
 
     return events
@@ -384,6 +384,10 @@ EGM electron scale & smearing, eT-dependent (electronSS_EtDependent.json.gz).
 
 Input values are matched to each correction's declared input names, so signed
 vs absolute ScEta and the run / seedGain inputs are resolved from the file.
+
+Collection fields are read by key (ele["pt"]), not attribute: after jet_energy
+the collections carry vector behaviour, and ele.pt then dispatches to a
+Lorentz-vector property that needs phi, which this calibrator does not load.
 """
 
 
@@ -413,17 +417,17 @@ def _build_args(corr, syst, values):
 )
 def electron_ss(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     ele = events.Electron
-    counts = ak.num(ele.pt, axis=1)
+    counts = ak.num(ele["pt"], axis=1)
 
-    pt = ak.to_numpy(ak.flatten(ele.pt)).astype(np.float64)
-    sceta = ak.to_numpy(ak.flatten(ele.eta + ele.deltaEtaSC)).astype(np.float64)
+    pt = ak.to_numpy(ak.flatten(ele["pt"])).astype(np.float64)
+    sceta = ak.to_numpy(ak.flatten(ele["eta"] + ele["deltaEtaSC"])).astype(np.float64)
     values = {
         "pt": pt,
-        "r9": ak.to_numpy(ak.flatten(ele.r9)).astype(np.float64),
+        "r9": ak.to_numpy(ak.flatten(ele["r9"])).astype(np.float64),
         "ScEta": sceta,
         "AbsScEta": np.abs(sceta),
-        "run": ak.to_numpy(ak.flatten(ak.broadcast_arrays(events.run, ele.pt)[0])).astype(np.int64),
-        "seedGain": ak.to_numpy(ak.flatten(ele.seedGain)).astype(np.int64),
+        "run": ak.to_numpy(ak.flatten(ak.broadcast_arrays(events.run, ele["pt"])[0])).astype(np.int64),
+        "seedGain": ak.to_numpy(ak.flatten(ele["seedGain"])).astype(np.int64),
     }
 
     def store(name, flat):
@@ -438,8 +442,8 @@ def electron_ss(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     unc_smear = self.corr_smear.evaluate(*_build_args(self.corr_smear, "esmear", values))
 
     # reproducible per-electron gaussian, seeded from (event, object index)
-    event_per_ele = ak.to_numpy(ak.flatten(ak.broadcast_arrays(events.event, ele.pt)[0])).astype(np.uint64)
-    obj_idx = ak.to_numpy(ak.flatten(ak.local_index(ele.pt, axis=1))).astype(np.uint64)
+    event_per_ele = ak.to_numpy(ak.flatten(ak.broadcast_arrays(events.event, ele["pt"])[0])).astype(np.uint64)
+    obj_idx = ak.to_numpy(ak.flatten(ak.local_index(ele["pt"], axis=1))).astype(np.uint64)
     seeds = event_per_ele * np.uint64(2654435761) + obj_idx
     gauss = np.array([np.random.default_rng(sd).standard_normal() for sd in seeds], dtype=np.float64)
 

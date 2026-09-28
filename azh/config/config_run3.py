@@ -833,13 +833,14 @@ def add_config(
         correction_set_light=btag_cs_light,
         btag_wps={"medium": cfg.x.btag_default.wp},
         weight_name="btag_weight",
-        # Start with the variations every era supports; widen once these are
-        # confirmed to produce histograms that differ from nominal.
+        # BTV multi-era scheme: b/c and light separately, each split into a
+        # component correlated across eras and one uncorrelated (per era in the
+        # datacard). "bc_"/"light_" prefixes are resolved by SplitBTagWPCorrector.
         systs={
-            "up_correlated": "up_correlated",
-            "down_correlated": "down_correlated",
-            "up_uncorrelated": "up_uncorrelated",
-            "down_uncorrelated": "down_uncorrelated",
+            f"{flav}_{d}_{kind}": f"{flav}_{d}_{kind}"
+            for flav in ("bc", "light")
+            for d in ("up", "down")
+            for kind in ("correlated", "uncorrelated")
         },
         dataset_groups=btag_dataset_groups,
     )
@@ -1002,24 +1003,16 @@ def add_config(
         add_aliases(src, {f"{coll}.pt": f"{coll}.pt_{var}_" + "{direction}"}, selection_dependent=True)
     cfg.x.lepton_shift_sources = ["e_scale", "e_smear", "mu_scale", "mu_resol"]
 
-    # b-tag fixed-WP scale factor uncertainties. BTV splits these into a piece
-    # correlated across years (method/hadronisation) and one that is not (the
-    # per-year measurement statistics), so they are two nuisances rather than one.
-    # Column names come from BTagWPSFConfig.systs: btag_weight_<direction>_<kind>.
-    cfg.add_shift(name="btag_correlated_up", id=61, type="shape")
-    cfg.add_shift(name="btag_correlated_down", id=62, type="shape")
-    add_aliases(
-        "btag_correlated",
-        {"btag_weight": "btag_weight_{direction}_correlated"},
-        selection_dependent=False,
-    )
-    cfg.add_shift(name="btag_uncorrelated_up", id=63, type="shape")
-    cfg.add_shift(name="btag_uncorrelated_down", id=64, type="shape")
-    add_aliases(
-        "btag_uncorrelated",
-        {"btag_weight": "btag_weight_{direction}_uncorrelated"},
-        selection_dependent=False,
-    )
+    # b-tag fixed-WP SF uncertainties (BTV, more than one era): btag_bc_* and
+    # btag_light_*, each correlated (across eras) and uncorrelated (per era).
+    # Columns come from SplitBTagWPSFConfig.systs: btag_weight_<flav>_<dir>_<kind>.
+    for i, (flav, kind) in enumerate((
+        ("bc", "correlated"), ("bc", "uncorrelated"), ("light", "correlated"), ("light", "uncorrelated"),
+    )):
+        src = f"btag_{flav}_{kind}"
+        cfg.add_shift(name=f"{src}_up", id=61 + 2 * i, type="shape")
+        cfg.add_shift(name=f"{src}_down", id=62 + 2 * i, type="shape")
+        add_aliases(src, {"btag_weight": f"btag_weight_{flav}_" + "{direction}" + f"_{kind}"}, selection_dependent=False)
 
     cfg.add_shift(name="mur_up", id=201, type="shape")
     cfg.add_shift(name="mur_down", id=202, type="shape")
@@ -1274,7 +1267,9 @@ def add_config(
     # An empty list therefore means "computed, stored, but never varied".
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
-        "btag_weight": get_shifts("btag_correlated", "btag_uncorrelated"),
+        "btag_weight": get_shifts(
+            "btag_bc_correlated", "btag_bc_uncorrelated", "btag_light_correlated", "btag_light_uncorrelated",
+        ),
         "trigger_weight": get_shifts("e_trig", "mu_trig_stat", "mu_trig_syst"),
         "electron_weight": get_shifts("e_reco"),          # electron reco above 75
         "electron_mid_weight": get_shifts("e_reco"),      # electron reco 20-75
@@ -1282,13 +1277,6 @@ def add_config(
         "electron_id_weight": get_shifts("e_id"),         # electron MVA WP80iso
         "muon_id_weight": get_shifts("mu_id_stat", "mu_id_syst"),     # TightID SF
         "muon_iso_weight": get_shifts("mu_iso_stat", "mu_iso_syst"),  # TightPFIso SF
-        # split_btag_weights is called in weights.py and 'btag_weight*' is kept
-        # through reduction, but the column was never listed here -- so the b-tag
-        # scale factor was computed, stored, and then silently dropped from the
-        # event weight. This is a nominal-yield fix, not a systematics one.
-        # Shift list stays empty: the fork's split_btag_weights hardcodes
-        # btag_uncs = {} and produces only 'btag_weight', so no varied columns
-        # exist yet (see cfg.x.btag_sf_jec_sources for the intended source list).
         "normalized_pu_weight": get_shifts("minbias_xs"),
     })
 

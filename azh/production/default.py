@@ -74,7 +74,13 @@ def default_init(self: Producer, **kwargs) -> None:
     if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
         self.shifts |= {
             shift_inst.name
-            for shift_inst in get_shifts_from_sources(self.config_inst, *self.config_inst.x.production_shift_sources)
+            for shift_inst in get_shifts_from_sources(
+                self.config_inst,
+                *self.config_inst.x.production_shift_sources,
+                # also the selection-dependent lepton shifts, so that
+                # ProduceColumns is shift-local for them as well
+                *self.config_inst.x.lepton_shift_sources,
+            )
         }
 
     # single entry point for the 3-axis scheme (multiplicity x flavor x region);

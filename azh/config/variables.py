@@ -99,12 +99,6 @@ def add_variables(config: od.Config) -> None:
         x_title="Transverse momentum of Z boson",
     )
 
-    # pt_z x del_m product feature (callable expression -> declare its input
-    # columns via aux["inputs"], otherwise the plotting task loads neither).
-    # del_m is sentineled to -1 outside the >=4-jet reco (see higgs_reco.py),
-    # so those events give a negative product and fall in the underflow.
-    # NOTE: binning is a placeholder -- retune once you see the distribution.
-
     config.add_variable(
         name="m_z_fine",
         expression="m_z",

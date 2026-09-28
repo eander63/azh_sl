@@ -475,7 +475,7 @@ def add_config(
     # category groups for conveniently looping over certain categories
     # (used during plotting)
     cfg.x.category_groups = {
-        "default": ["incl"],
+        "default": ["cat_incl"],
     }
 
     # variable groups for conveniently looping over certain variables
@@ -493,7 +493,7 @@ def add_config(
     # selector step groups for conveniently looping over certain steps
     # (used in cutflow tasks)
     cfg.x.selector_step_groups = {
-        "default": ["azh"],
+        "default": ["met_filter", "ecal_bad_calib", "jet_veto_map", "json", "Lepton", "Jet", "trigger"],
     }
 
     cfg.x.selector_step_labels = {
@@ -505,9 +505,6 @@ def add_config(
     # plotting settings groups
     cfg.x.general_settings_groups = {
         "default_norm": {"shape_norm": True, "yscale": "log"},
-    }
-    cfg.x.process_settings_groups = {
-        "Jet": r"$N_{jets}^{AK4} \geq 3$",
     }
 
     cfg.x.variable_settings_groups = {
@@ -659,48 +656,6 @@ def add_config(
     })
 
 
-    # JEC uncertainty sources propagated to btag scale factors
-    # (names derived from contents in BTV correctionlib file)
-    cfg.x.btag_sf_jec_sources = [
-        "",  # total
-        "Absolute",
-        "AbsoluteMPFBias",
-        "AbsoluteScale",
-        "AbsoluteStat",
-        f"Absolute_{year}",
-        "BBEC1",
-        f"BBEC1_{year}",
-        "EC2",
-        f"EC2_{year}",
-        "FlavorQCD",
-        "Fragmentation",
-        "HF",
-        f"HF_{year}",
-        "PileUpDataMC",
-        "PileUpPtBB",
-        "PileUpPtEC1",
-        "PileUpPtEC2",
-        "PileUpPtHF",
-        "PileUpPtRef",
-        "RelativeBal",
-        "RelativeFSR",
-        "RelativeJEREC1",
-        "RelativeJEREC2",
-        "RelativeJERHF",
-        "RelativePtBB",
-        "RelativePtEC1",
-        "RelativePtEC2",
-        "RelativePtHF",
-        "RelativeSample",
-        f"RelativeSample_{year}",
-        "RelativeStatEC",
-        "RelativeStatFSR",
-        "RelativeStatHF",
-        "SinglePionECAL",
-        "SinglePionHCAL",
-        "TimePtEta",
-    ]
-
     # b-tag working points
     # BTV published no ParticleNet / DeepJet working points for 2024; the
     # recommended Run-3 2024 tagger is UParT (btagUParTAK4B). Hence the
@@ -749,7 +704,7 @@ def add_config(
         },
     })
 
-    # Era-appropriate tagger, consumed by jet_selection / higgs_reco / variables
+    # Era-appropriate tagger, consumed by jet_selection / production/jets.py / variables
     # instead of hard-coding a discriminator column. For 2022/23 this resolves to
     # exactly the previous behaviour (ParticleNet medium), so existing stores stay
     # valid and no version bump is needed for those configs.
@@ -1315,15 +1270,13 @@ def add_config(
         if dataset_weights:
             dataset.x.event_weights = dataset_weights
 
-    # v2: selection stats now book per-process sums for the pileup, scale and PDF
-    # weight variations, so cf.SelectEvents and everything downstream must rerun.
-    prod_version = "v5"
-
-    # Version of required tasks
-    # v1: jet_energy now runs jec_full (uncertainty sources) instead of jec_nominal
-    # for MC, so CalibrateEvents writes additional Jet.pt_jec_*/Jet.mass_jec_*
-    # columns and its outputs are no longer compatible with v0.
-    calib_version = "v1"
+    # Versions of the stored task outputs. Bumped for the pre-flight patch set:
+    # calibration (compound EGM scale, lepton momentum variations, v15 jet ID,
+    # MET unclustered, ECAL veto, no lepton subtraction), selection (triggers,
+    # Delta R cleaning, candidate jets, PDF/PS sums) and production all changed,
+    # so nothing from v1 / v5 may be reused.
+    prod_version = "v6"
+    calib_version = "v2"
     cfg.x.versions = {
         "cf.CalibrateEvents": calib_version,
         "cf.SelectEvents": prod_version,
@@ -1341,6 +1294,34 @@ def add_config(
     # same). The former NNLO override here never applied (it looked up
     # "dy_m50toinf", which is not a config process) and was removed: the group
     # will derive its own DY correction from the 2l region.
+
+    # Correlation of every shift source for the datacard (combine correlates
+    # nuisances by NAME, so this decides the naming):
+    #   "all"        same nuisance in every era
+    #   "year"       one per data-taking year (2022pre/post share one)
+    #   "era"        one per config
+    #   "plots_only" not a datacard shape nuisance (lumi is an lnN from
+    #                cfg.x.luminosity)
+    # EGM: uncorrelated -> "era". MUO: syst correlated, stat per era. BTV:
+    # correlated / uncorrelated. JME: JES per the source's year correlation,
+    # JER and unclustered per era. Theory: correlated. tests/preflight_static.py
+    # FAILs on any registered shift source missing here.
+    cfg.x.shift_correlations = {
+        "minbias_xs": "all",
+        "lumi": "plots_only",
+        "e_reco": "era", "e_id": "era", "e_trig": "era", "e_scale": "era", "e_smear": "era",
+        "mu_id_stat": "era", "mu_iso_stat": "era", "mu_trig_stat": "era",
+        "mu_id_syst": "all", "mu_iso_syst": "all", "mu_trig_syst": "all",
+        "mu_scale": "era", "mu_resol": "era",
+        "btag_bc_correlated": "all", "btag_light_correlated": "all",
+        "btag_bc_uncorrelated": "era", "btag_light_uncorrelated": "era",
+        "mur": "all", "muf": "all", "murmuf_envelope": "all", "pdf": "all", "isr": "all", "fsr": "all",
+        "jer": "era", "met_unclustered": "era",
+        **{
+            f"jec_{src}": ("year" if src in cfg.x.jec_per_year_sources else "all")
+            for src in cfg.x.jec.Jet.uncertainty_sources
+        },
+    }
 
     add_variables(cfg)
     add_categories_selection(cfg)
@@ -1377,6 +1358,4 @@ def add_config(
         )
     cfg.x.unverified_settings = cfg_unverified
 
-    # only produce cutflow features when number of dataset_files is limited (used in selection module)
-    cfg.x.do_cutflow_features = bool(limit_dataset_files) and limit_dataset_files <= 10
     return cfg

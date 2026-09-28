@@ -19,7 +19,6 @@ from columnflow.production.normalization import normalization_weights
 from columnflow.production.cms.pdf import pdf_weights
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from azh.production.trigger_weights import trigger_weights
-from azh.production.channel_lumi_weight import channel_lumi_weight
 from azh.production.pileup import pu_weight
 from columnflow.util import maybe_import
 
@@ -143,9 +142,6 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # compute trigger weights
         events = self[trigger_weights](events, **kwargs)
 
-        # apply per-channel luminosity correction
-        events = self[channel_lumi_weight](events, **kwargs)
-
         # compute btag weights
         events = self[split_btag_wp_weights](events, **kwargs)
 
@@ -192,7 +188,7 @@ def weights_init(
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, murmuf_envelope_weights, murmuf_weights,
             pdf_weights, normalized_scale_weights,
             split_btag_wp_weights,
-            trigger_weights, channel_lumi_weight,
+            trigger_weights,
         }
         self.produces |= {
             electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
@@ -200,5 +196,5 @@ def weights_init(
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, murmuf_envelope_weights, murmuf_weights,
             pdf_weights, normalized_scale_weights,
             split_btag_wp_weights,
-            trigger_weights, channel_lumi_weight,
+            trigger_weights,
         }

@@ -23,7 +23,6 @@ from azh.config.variables import add_variables
 from columnflow.config_util import (
     get_root_processes_from_campaign, get_shifts_from_sources
 )
-from azh.config.signals import AZH_SIGNAL_DATASETS, AZH_SIGNAL_PROCESSES
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
 # repository root; the pinned golden JSONs live in <repo>/data/lumi/
@@ -130,7 +129,8 @@ def add_config(
 
     labels = {
         "tt": "$t\\bar{t}$",
-        "ttv": "$t\\bar{t}$ + V",
+        "tzq": "tZq",
+        "vvv": "VVV",
     }
 
     colors = {
@@ -138,10 +138,10 @@ def add_config(
         "dy_lf": "#FBFF36",
         "dy_ee": "#C7FF33",
         "dy_mumu": "#FBFF36",
-        "du_tautau": "#9ACD32",
+        "dy_tautau": "#9ACD32",
         "data": "#000000",  # black
         "tt": "#E04F21",  # red
-        "ttv": "#5E8FFC",  # blue
+        "tzq": "#5E8FFC",  # blue
         "ttz": "#6B375A",
         "ttw": "#346532",  
         "w_lnu": "#82FF28",  # green
@@ -149,34 +149,39 @@ def add_config(
         "higgs": "#984ea3",  # purple
         "st": "#3E00FB",  # dark purple
         "wz": "#FF6B9D",  # hot pink for WZ
-        "vv": "#B900FC",  # pink
+        "zz": "#B900FC",
+        "ww": "#7A00A6",
         "vvv": "#3E6676",
-        "azh_htt_zll_a1000_h600": "#C7FF33",
-        "azh_htt_zll_a1600_h1500": "#2FC917",
-        "azh_htt_zll_a650_h550": "#1752C9",
-        "azh_htt_zll_a2100_h1300": "#C9174D",
-        "azh_htt_zll_a1000_h330" : "#F74CD8",
-        "azh_htt_zll_a430_h330": "#EB973F",
         "other": "#999999",  # grey
     }
 
+    # Top-level plotting processes. No process may contain another one in this
+    # list (the old list had vv > wz and ttv > ttz/ttw, which double counts in
+    # stacked plots); tests/preflight_static.py checks this.
     process_names = [
         "dy_hf", "dy_lf", "tt",
-        "ttz", "ttw",
-        "ttv", "st", "w_lnu", "tth", "wz", "vv", "data",
-        *AZH_SIGNAL_PROCESSES,
+        "ttz", "ttw", "tth", "tzq",
+        "st", "w_lnu", "wz", "zz", "ww", "vvv", "data",
     ]
+    # processes that only exist once the cmsdb fork provides them
+    optional_processes = {"tzq", "vvv"}
 
-    # print(process_names)
     # 2024 has no lepton-inclusive DY sample and no hf/lf children for the
     # flavour-split ones, so register dy_ee / dy_mumu / dy_tautau instead of
     # dy_hf / dy_lf. See the dataset list and the is_dy tagging below.
-    # The 2024 campaign also ships no azh.py, so none of the signal processes
-    # exist there yet -- drop them rather than failing on procs.get().
     if year == 2024:
         process_names = [p for p in process_names if p not in ("dy_hf", "dy_lf")]
-        process_names = [p for p in process_names if not p.startswith("azh_")]
         process_names = ["dy_ee", "dy_mumu", "dy_tautau"] + process_names
+
+    def _has_proc(name):
+        try:
+            procs.get(name)
+            return True
+        except Exception:
+            return False
+
+    missing_processes = [p for p in process_names if p in optional_processes and not _has_proc(p)]
+    process_names = [p for p in process_names if p not in missing_processes]
 
     for process_name in process_names:
         cfg.add_process(procs.get(process_name))
@@ -207,126 +212,91 @@ def add_config(
     def if_not_era(*, values: list[str | None] | None = None, **kwargs) -> list[str]:
         return list(filter(bool, values or [])) if not _match_era(**kwargs) else []
 
-    dataset_names = [
-    # DY
-    # 2022/23: inclusive amcatnlo samples (no stitching needed).
-    # 2024: no lepton-inclusive DY was produced, so the three flavour-split
-    # samples are summed instead. m50toinf is amcatnlo as before; m10to50 only
-    # exists as powheg for 2024, so the low-mass generator differs by era.
-    *if_not_era(year=2024, values=[
-        "dy_m50toinf_amcatnlo",
-        "dy_m10to50_amcatnlo",
-    ]),
-    *if_era(year=2024, values=[
-        "dy_ee_m50toinf_amcatnlo",
-        "dy_mumu_m50toinf_amcatnlo",
-        "dy_tautau_m50toinf_amcatnlo",
-        "dy_ee_m10to50_powheg",
-        "dy_mumu_m10to50_powheg",
-        "dy_tautau_m10to50_powheg",
-    ]),
-
-    # TTbar
-        "tt_sl_powheg",
-        "tt_dl_powheg",
-        "tt_fh_powheg",
-
-    # TTZ
-        "ttz_zll_m4to50_amcatnlo",
-        "ttz_zll_m50toinf_amcatnlo",
-    # TTH
-        "tth_hbb_powheg",
-        "tth_hnonbb_powheg",
-
-    # Single top
-    # 2024 splits t-channel into leptonic / hadronic top decays; only the
-    # leptonic part can contribute to a 2l/3l selection.
-    *if_not_era(year=2024, values=[
-        "st_tchannel_t_4f_powheg",
-        "st_tchannel_tbar_4f_powheg",
-    ]),
-    *if_era(year=2024, values=[
-        "st_tchannel_t_lep_4f_powheg",
-        "st_tchannel_tbar_lep_4f_powheg",
-    ]),
-        "st_twchannel_t_sl_powheg",
-        "st_twchannel_tbar_sl_powheg",
-        "st_twchannel_t_dl_powheg",
-        "st_twchannel_tbar_dl_powheg",
-
-    # Diboson
-        "ww_pythia",
-        "wz_pythia",
-        "zz_pythia",
-
-    # W+jets
-    # 2024 has no inclusive w_lnu sample. The available replacements are
-    # jet-binned madgraph (1j-4j, no 0j bin) or pt-binned amcatnlo, both of
-    # which need stitching weights to be normalised correctly. Rather than ship
-    # a mis-normalised sample, W+jets is left out of 2024 for now -- it is a
-    # small background in the 2l/3l regions. See README "2024 open items".
-    *if_not_era(year=2024, values=[
-        "w_lnu_amcatnlo",
-    ]),
-
-    *if_era(year=2022, tag="preEE", values=[
-        "data_mu_c",
-        "data_mu_d",
-        "data_egamma_c",
-        "data_egamma_d",
-        "data_muoneg_c",
-        "data_muoneg_d",
-        "ttw_amcatnlo",
-        "wwz_amcatnlo",
-    ]),
-    *if_era(year=2022, tag="postEE", values=[
-        "data_mu_e",
-        "data_mu_f",
-        "data_mu_g",
-        "data_egamma_e",
-        "data_egamma_f",
-        "data_egamma_g",
-        "data_muoneg_e",
-        "data_muoneg_f",
-        "data_muoneg_g",
-    ]),
-    *if_era(year=2023, tag="preBPix", values=[
-        "data_mu_c1",
-        "data_mu_c2",
-        "data_mu_c3",
-        "data_mu_c4",
-        "data_egamma_c1",
-        "data_egamma_c2",
-        "data_egamma_c3",
-        "data_egamma_c4",
-        "data_muoneg_c1",
-        "data_muoneg_c2",
-        "data_muoneg_c3",
-        "data_muoneg_c4",
-    ]),
-    *if_era(year=2023, tag="postBPix", values=[
-        "data_mu_d1",
-        "data_mu_d2",
-        "data_egamma_d1",
-        "data_egamma_d2",
-        "data_muoneg_d1",
-        "data_muoneg_d2",
-    ]),
-    # 2024 runs C-I. Note the EGamma primary dataset is called "data_e_*" here,
-    # not "data_egamma_*" as in 2022/23 -- see the tagging block below.
-    *if_era(year=2024, values=[
-        *[f"data_mu_{e}" for e in "cdefghi"],
-        *[f"data_e_{e}" for e in "cdefghi"],
-        *[f"data_muoneg_{e}" for e in "cdefghi"],
-    ]),
-
-    # AZH signal. The 2024 campaign ships no azh.py, so this is guarded the
-    # same way the process list is stripped further down.
-    # DEFERRED: signal samples pending GrASP beyond 2023; the grid also asks for
-    # points absent from the campaigns (e.g. a500_h370). See fixes_round2.md §1.
-    # *if_not_era(year=2024, values=list(AZH_SIGNAL_DATASETS)),
+    # ------------------------------------------------------------------
+    # Datasets
+    # ------------------------------------------------------------------
+    # MC backgrounds follow AN-2022/158 Sec. 3 (Table 20 lists the SR yields):
+    # ttZ, ttW, ttH, tZq, WZ, ZZ, VVV, plus DY/ttbar/single top/W+jets as the
+    # nonprompt proxy (no data-driven fakes in this round).
+    #
+    # Several of these are not yet in the cmsdb fork for every era; the DAS
+    # keys are listed in PREFLIGHT_CHANGES.md. Rather than silently running
+    # without them, every name in `required_mc` is added when the campaign has
+    # it and otherwise recorded in cfg.x.missing_datasets, which
+    # tests/preflight_static.py reports as a FAIL.
+    required_mc = [
+        # DY: 2022/23 inclusive amcatnlo; 2024 only has flavour-split samples
+        # (m10to50 only as powheg there).
+        *if_not_era(year=2024, values=["dy_m50toinf_amcatnlo", "dy_m10to50_amcatnlo"]),
+        *if_era(year=2024, values=[
+            "dy_ee_m50toinf_amcatnlo", "dy_mumu_m50toinf_amcatnlo", "dy_tautau_m50toinf_amcatnlo",
+            "dy_ee_m10to50_powheg", "dy_mumu_m10to50_powheg", "dy_tautau_m10to50_powheg",
+        ]),
+        # ttbar
+        "tt_sl_powheg", "tt_dl_powheg", "tt_fh_powheg",
+        # ttZ (Z->ll); the MLL-50 ext1 samples are extra keys of the same dataset
+        "ttz_zll_m4to50_amcatnlo", "ttz_zll_m50toinf_amcatnlo",
+        # ttW (W->lnu, TTLNu-1Jets mg35x). Deliberately NOT the 2022preEE
+        # "ttw_amcatnlo": that dataset is TTLNu but is assigned the inclusive ttW
+        # cross section (0.690 pb instead of 0.225 pb), i.e. overscaled 3.07x.
+        "ttw_wlnu_amcatnlo",
+        # ttH
+        "tth_hbb_powheg", "tth_hnonbb_powheg",
+        # tZq (TZQB-Zto2L-4FS_MLL-30)
+        "tzq_zll_4f_amcatnlo",
+        # single top (2024 splits t-channel by top decay; only leptonic matters)
+        *if_not_era(year=2024, values=["st_tchannel_t_4f_powheg", "st_tchannel_tbar_4f_powheg"]),
+        *if_era(year=2024, values=["st_tchannel_t_lep_4f_powheg", "st_tchannel_tbar_lep_4f_powheg"]),
+        "st_twchannel_t_sl_powheg", "st_twchannel_tbar_sl_powheg",
+        "st_twchannel_t_dl_powheg", "st_twchannel_tbar_dl_powheg",
+        # dibosons: NLO powheg WZ->3lnu and ZZ->4l (with LHE weights); WW stays
+        # pythia (it only matters for the 2l region)
+        "wz_wlnu_zll_powheg", "zz_zll_zll_powheg", "ww_pythia",
+        # tribosons
+        "www_4f_amcatnlo", "wwz_4f_amcatnlo", "wzz_amcatnlo", "zzz_amcatnlo",
+        # W+jets: no inclusive sample in 2024 (jet/pt-binned ones need stitching)
+        *if_not_era(year=2024, values=["w_lnu_amcatnlo"]),
     ]
-    
+    # LO pythia dibosons, used only if the NLO samples are not in cmsdb yet
+    # (still reported as missing, so the substitution cannot go unnoticed)
+    mc_fallbacks = {"wz_wlnu_zll_powheg": "wz_pythia", "zz_zll_zll_powheg": "zz_pythia"}
+
+    # Data: Muon and EGamma PDs only. MuonEG is not used: with the single-lepton
+    # trigger OR it carries no events the other two do not (cross triggers were
+    # measured to add < 0.1% of the 3l acceptance on ttZ MC).
+    # 2022C: the Muon PD only starts at run 356426; runs 355862-356386 are in
+    # SingleMuon, which is required here (the trigger OR has no dimuon path, so
+    # DoubleMuon is not needed). Muon and SingleMuon cover disjoint runs.
+    required_data = [
+        *if_era(year=2022, tag="preEE", values=[
+            "data_singlemu_c", "data_mu_c", "data_mu_d", "data_egamma_c", "data_egamma_d",
+        ]),
+        *if_era(year=2022, tag="postEE", values=[
+            "data_mu_e", "data_mu_f", "data_mu_g", "data_egamma_e", "data_egamma_f", "data_egamma_g",
+        ]),
+        *if_era(year=2023, tag="preBPix", values=[
+            *[f"data_mu_c{i}" for i in range(1, 5)], *[f"data_egamma_c{i}" for i in range(1, 5)],
+        ]),
+        *if_era(year=2023, tag="postBPix", values=[
+            "data_mu_d1", "data_mu_d2", "data_egamma_d1", "data_egamma_d2",
+        ]),
+        # 2024: the EGamma PD is called data_e_* in cmsdb
+        *if_era(year=2024, values=[
+            *[f"data_mu_{e}" for e in "cdefghi"], *[f"data_e_{e}" for e in "cdefghi"],
+        ]),
+    ]
+
+    dataset_names = []
+    cfg.x.missing_datasets = []
+    for name in required_mc + required_data:
+        if campaign.has_dataset(name):
+            dataset_names.append(name)
+            continue
+        cfg.x.missing_datasets.append(name)
+        fallback = mc_fallbacks.get(name)
+        if fallback and campaign.has_dataset(fallback):
+            dataset_names.append(fallback)
+            cfg_unverified.append(f"{name} missing from cmsdb, using LO fallback {fallback}")
 
     for dataset_name in dataset_names:
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
@@ -342,12 +312,10 @@ def add_config(
                 dataset.add_tag({"is_dy"})
         if dataset.name.startswith("azh"):
             dataset.add_tag({"is_signal"})
-        if dataset.name.startswith("data_mu"):
+        if dataset.name.startswith(("data_mu", "data_singlemu")):
             dataset.add_tag("mu")
         if dataset.name.startswith("data_egamma") or dataset.name.startswith("data_e_"):
             dataset.add_tag("egamma")
-        if dataset.name.startswith("data_muoneg"):
-            dataset.add_tag({"mu", "egamma"})
         # For 2023, data JEC keys have no run-dependent segment in the JSON
         if dataset.name.startswith("data") and year == 2023:
             dataset.set_aux("jec_era", "")
@@ -360,7 +328,7 @@ def add_config(
     # Era-agnostic dataset patches (apply to every era)
     # ------------------------------------------------------------------
     # tag pythia diboson samples that have no LHEScaleWeight
-    for ds_name in ["ww_pythia", "wz_pythia", "zz_pythia"]:
+    for ds_name in ["ww_pythia", "wz_pythia", "zz_pythia"]:  # LO pythia, no LHE weights
         if cfg.has_dataset(ds_name):
             cfg.get_dataset(ds_name).add_tag("no_lhe_weights")
     # remove non-nominal dataset infos (extension, hdamp, tune variations)
@@ -589,25 +557,6 @@ def add_config(
         "2024": 109710.3,
     }
     cfg.x.luminosity = Number(lumi_values[era_key], lumi_uncertainties)
-
-    # Per-channel effective lumi for `channel_lumi_weight` (see
-    # production/channel_lumi_weight.py for derivation procedure).
-    # The 2022preEE numbers were derived with brilcalc against the golden
-    # JSON Cert_Collisions2022_355100_362760_Golden.json. For the other
-    # eras the muon and egamma PDs run end-to-end, so the ratio is ~1.0
-    # by default — re-derive with brilcalc per era to refine, then update
-    # below. Leaving any entry equal to ``nominal`` is a no-op (SF=1).
-    nominal = float(cfg.x.luminosity.nominal)
-    if year == 2022 and campaign.x.EE == "pre":
-        cfg.x.channel_lumis = {"muon": 7448.0, "egamma": 7989.5, "nominal": nominal}
-    elif year == 2022 and campaign.x.EE == "post":
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
-    elif year == 2023 and campaign.x.BPix == "pre":
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
-    elif year == 2023 and campaign.x.BPix == "post":
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
-    elif year == 2024:
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
 
     # MET filters
     cfg.x.met_filters = {
@@ -863,6 +812,20 @@ def add_config(
     # Only the medium WP is corrected: catid_sr_1b / sr_2b / wz_cr all split on
     # medium-WP counts (AN Table 16). Adding working points the analysis never
     # cuts on would only dilute the per-bin statistics of the efficiency map.
+    # Efficiency groups are built from the datasets actually in this config:
+    # columnflow raises on a group member that is not a config dataset
+    # (production/cms/btag.py), which crashed every 2024 single-top dataset.
+    def _group(*prefixes):
+        return [d.name for d in cfg.datasets if d.is_mc and d.name.startswith(prefixes)]
+    btag_dataset_groups = [g for g in (
+        _group("tt_"),
+        _group("ttz_", "ttw_", "tth_", "tzq_"),
+        _group("dy_"),
+        _group("st_"),
+        _group("wz_", "zz_", "ww_", "www_", "wwz_", "wzz_", "zzz_"),
+        _group("w_lnu"),
+    ) if g]
+
     cfg.x.btag_wp_sf_config = SplitBTagWPSFConfig(
         jet_name="Jet",
         btag_column=cfg.x.btag_default.column,
@@ -878,15 +841,7 @@ def add_config(
             "up_uncorrelated": "up_uncorrelated",
             "down_uncorrelated": "down_uncorrelated",
         },
-        dataset_groups=[
-            ["tt_sl_powheg", "tt_dl_powheg", "tt_fh_powheg"],
-            ["dy_m50toinf_amcatnlo", "dy_m10to50_amcatnlo"],
-            ["st_tchannel_t_4f_powheg", "st_tchannel_tbar_4f_powheg",
-             "st_twchannel_t_sl_powheg", "st_twchannel_tbar_sl_powheg",
-             "st_twchannel_t_dl_powheg", "st_twchannel_tbar_dl_powheg"],
-            ["ttz_zll_m4to50_amcatnlo", "ttz_zll_m50toinf_amcatnlo"],
-            ["ww_pythia", "zz_pythia", "wz_pythia"],
-        ],
+        dataset_groups=btag_dataset_groups,
     )
 
     # names of electron correction sets and working points
@@ -1341,7 +1296,6 @@ def add_config(
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
         "btag_weight": get_shifts("btag_correlated", "btag_uncorrelated"),
-        "channel_lumi_weight": [],        # per-channel lumi correction (muon: x0.9344, ee: x1.0023)
         "electron_trig_weight": get_shifts("e_trig_sf"),
         # muon_Z.json HLT SFs valid down to ~15 GeV
         "muon_trig_weight": get_shifts("mu_trig_sf"),
@@ -1400,13 +1354,11 @@ def add_config(
         "cf.ProduceColumns": prod_version,
     }
 
-    # Override NLO DY xsec with NNLO prediction (DYTurbo + NNPDF 3.1)
-    # NLO from amcatnlo: 6275 pb; NNLO: ~6688 pb (k=1.066)
-    # Reference: SMP-22-017 uses NNLO normalization
-    if cfg.has_process("dy_m50toinf"):
-        cfg.get_process("dy_m50toinf").set_xsec(13.6, Number(6688.0, {"tot": 0.02j}))
-    if cfg.has_process("dy_m10to50"):
-        cfg.get_process("dy_m10to50").set_xsec(13.6, Number(21050.0, {"tot": 0.02j}))
+    # DY stays at the NLO cross sections from cmsdb in every era (6282.6 pb for
+    # m50, 19768.5 pb for m10to50; the 2024 flavour-split samples sum to the
+    # same). The former NNLO override here never applied (it looked up
+    # "dy_m50toinf", which is not a config process) and was removed: the group
+    # will derive its own DY correction from the 2l region.
 
     add_variables(cfg)
     add_categories_selection(cfg)

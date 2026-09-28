@@ -606,62 +606,56 @@ def add_config(
     if year == 2023:
         jer_campaign += f"_Run{'Cv1234' if campaign.has_tag('preBPix') else 'D'}"
 
-    # JES uncertainty sources.
-    #
-    # Era suffix used by JME for the era-specific Regrouped_* sources. This is
-    # the JERC postfix, NOT the bare year: the files contain
-    # Regrouped_Absolute_2022EE and Regrouped_Absolute_2023BPix. Verified
-    # against all five campaigns by tests/validate_configs.py.
-    jec_era = f"{year}{jerc_postfix}"
-
-    JEC_SOURCES_TOTAL = ["Total"]
-    JEC_SOURCES_REDUCED = [
-        # correlated across years
-        "Regrouped_Absolute",
-        "Regrouped_BBEC1",
-        "Regrouped_EC2",
-        "Regrouped_FlavorQCD",
-        "Regrouped_HF",
-        "Regrouped_RelativeBal",
-        # era-specific
-        f"Regrouped_Absolute_{jec_era}",
-        f"Regrouped_BBEC1_{jec_era}",
-        f"Regrouped_EC2_{jec_era}",
-        f"Regrouped_HF_{jec_era}",
-        f"Regrouped_RelativeSample_{jec_era}",
+    # JES uncertainty sources: the full set of 27 independent sources (JME:
+    # "using the full set makes foreseeable combinations easier"; the AN
+    # analysis combines with the fully hadronic channel). Checked in every era:
+    # their quadrature sum reproduces "Total"; AbsoluteSample / AbsoluteFlavMap
+    # are identically zero and the SubTotal*/Total*/CorrelationGroup*/Flavor
+    # variants are sums or alternatives, so none of them is added.
+    jec_uncertainty_sources = [
+        "AbsoluteMPFBias", "AbsoluteScale", "AbsoluteStat", "FlavorQCD", "Fragmentation",
+        "PileUpDataMC", "PileUpPtBB", "PileUpPtEC1", "PileUpPtEC2", "PileUpPtHF", "PileUpPtRef",
+        "RelativeBal", "RelativeFSR", "RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF",
+        "RelativePtBB", "RelativePtEC1", "RelativePtEC2", "RelativePtHF", "RelativeSample",
+        "RelativeStatEC", "RelativeStatFSR", "RelativeStatHF", "SinglePionECAL", "SinglePionHCAL",
+        "TimePtEta",
     ]
-    jec_uncertainty_sources = JEC_SOURCES_TOTAL
+    # Year correlation of each source for the datacard. This is the Run 2 UL
+    # scheme (the sources JME puts into the per-year "Regrouped_*_<year>"
+    # groups are uncorrelated across years); confirm against JME's Run 3 table.
+    jec_per_year_sources = {
+        "AbsoluteStat", "RelativeStatFSR", "TimePtEta", "RelativeJEREC1", "RelativeJEREC2",
+        "RelativePtEC1", "RelativePtEC2", "RelativeStatEC", "RelativeStatHF", "RelativeSample",
+    }
 
-    # print(jerc_campaign)
-    if not jerc_postfix == "BPix":
-        cfg.x.jec = DotDict.wrap({
-            "campaign": jerc_campaign,
-            "version": {
-                2016: "V7", 2017: "V5", 2018: "V5", 2022: "V4", 2023: "V4", 2024: "V5",
-            }[year],
-            "jet_type": jet_type,
-            "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
-            "levels_for_type1_met": ["L1FastJet"],
-            "uncertainty_sources": jec_uncertainty_sources,
-        })
-    else:
-        cfg.x.jec = DotDict.wrap({
-            "campaign": jerc_campaign,
-            "version": {
-                2016: "V7", 2017: "V5", 2018: "V5", 2022: "V4", 2023: "V4", 2024: "V5",
-            }[year],
-            "jet_type": jet_type,
-            "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
-            "levels_for_type1_met": ["L1FastJet"],
-            "uncertainty_sources": jec_uncertainty_sources,
-        })
+    cfg.x.jec_per_year_sources = jec_per_year_sources
+
+    # keyed by jet collection, as columnflow expects (the un-keyed form is a
+    # deprecated fallback)
+    cfg.x.jec = DotDict.wrap({"Jet": {
+        "campaign": jerc_campaign,
+        "version": {2022: "V4", 2023: "V4", 2024: "V5"}[year],
+        "jet_type": jet_type,
+        # L3Absolute is identity; order as in the JME compound correction
+        "levels": ["L1FastJet", "L2Relative", "L3Absolute", "L2L3Residual"],
+        # L1FastJet_AK4PFPuppi is identically 1 (checked 2022, 2024), so the
+        # Type-1 propagation is the full correction relative to raw
+        "levels_for_type1_met": ["L1FastJet"],
+        "uncertainty_sources": jec_uncertainty_sources,
+    }})
 
     # JER
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
     cfg.x.jer = DotDict.wrap({
         "campaign": jer_campaign,
-            "version": {2022: "JRV2", 2023: "JRV3", 2024: "JRV2"}[year],
+        "version": {2022: "JRV2", 2023: "JRV3", 2024: "JRV2"}[year],
         "jet_type": jet_type,
+        # SFUncertainty is ABSOLUTE (SF_up = SF + unc): checked against the older
+        # payloads with explicit nom/up/down for Summer22, Summer22EE (JRV2) and
+        # Summer23, Summer23BPix (JRV3); the relative form fails everywhere.
+        # Summer24 has no reference payload -- same format assumed, awaiting JME.
+        # Read by patches/cf031-jer-additive.patch.
+        "sf_unc_mode": "additive",
     })
 
 
@@ -1048,35 +1042,37 @@ def add_config(
             selection_dependent=False,
         )
 
+    # JES / JER / MET unclustered: production-level shifts. jet_selection keeps
+    # every jet that passes the analysis pT cut in any variation, and nothing at
+    # selection cuts on MET, so only ProduceColumns (and histogramming) reruns;
+    # the producer registers these shifts (production/default.py).
     with open(os.path.join(thisdir, "jec_sources.yaml"), "r") as f:
         all_jec_sources = yaml.load(f, yaml.Loader)["names"]
-    for jec_source in cfg.x.jec["uncertainty_sources"]:
+    jet_met_aliases = {
+        "Jet.pt": "Jet.pt_{name}",
+        "Jet.mass": "Jet.mass_{name}",
+        "PuppiMET.pt": "PuppiMET.pt_{name}",
+        "PuppiMET.phi": "PuppiMET.phi_{name}",
+    }
+    for jec_source in cfg.x.jec.Jet.uncertainty_sources:
         idx = all_jec_sources.index(jec_source)
         cfg.add_shift(name=f"jec_{jec_source}_up", id=5000 + 2 * idx, type="shape")
         cfg.add_shift(name=f"jec_{jec_source}_down", id=5001 + 2 * idx, type="shape")
-        add_aliases(
-            f"jec_{jec_source}",
-            {
-                "Jet.pt": "Jet.pt_{name}",
-                "Jet.mass": "Jet.mass_{name}",
-                # Type-1 propagation targets PuppiMET (see calibration/corrections.py)
-                "PuppiMET.pt": "PuppiMET.pt_{name}",
-                "PuppiMET.phi": "PuppiMET.phi_{name}",
-            },
-            selection_dependent=True,
-        )
+        add_aliases(f"jec_{jec_source}", jet_met_aliases, selection_dependent=False)
 
-    cfg.add_shift(name="jer_up", id=6000, type="shape", tags={"selection_dependent"})
-    cfg.add_shift(name="jer_down", id=6001, type="shape", tags={"selection_dependent"})
+    cfg.add_shift(name="jer_up", id=6000, type="shape")
+    cfg.add_shift(name="jer_down", id=6001, type="shape")
+    add_aliases("jer", jet_met_aliases, selection_dependent=False)
+
+    cfg.add_shift(name="met_unclustered_up", id=6002, type="shape")
+    cfg.add_shift(name="met_unclustered_down", id=6003, type="shape")
     add_aliases(
-        "jer",
-        {
-            "Jet.pt": "Jet.pt_{name}",
-            "Jet.mass": "Jet.mass_{name}",
-            "PuppiMET.pt": "PuppiMET.pt_{name}",
-            "PuppiMET.phi": "PuppiMET.phi_{name}",
-        },
-        selection_dependent=True,
+        "met_unclustered",
+        {"PuppiMET.pt": "PuppiMET.pt_unclustered_{direction}", "PuppiMET.phi": "PuppiMET.phi_unclustered_{direction}"},
+        selection_dependent=False,
+    )
+    cfg.x.production_shift_sources = (
+        [f"jec_{src}" for src in cfg.x.jec.Jet.uncertainty_sources] + ["jer", "met_unclustered"]
     )
 
     def make_jme_filename(jme_aux, sample_type, name, era=None):
@@ -1240,17 +1236,18 @@ def add_config(
             "btag_weight*",
             "Pileup.nTrueInt",
             "LHEScaleWeight",
-        } | set(  # Jets
-            f"{jet_obj}.{field}"
-            for jet_obj in ["Jet"]
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", cfg.x.btag_default.column, "hadronFlavour", "rawFactor", "btagDeepFlavQG"]  # noqa
-        ) | set(  # BJets
-            f"{jet_obj}.{field}"
-            for jet_obj in ["BJet"]
-            for field in [
-                "pt", "eta", "phi", "mass", cfg.x.btag_default.column, "hadronFlavour",
-            ]
-        )
+        } | set(  # candidate jets (analysis jets are selected in production)
+            f"Jet.{field}"
+            for field in ["pt", "eta", "phi", "mass", "genJetIdx", cfg.x.btag_default.column, "hadronFlavour", "rawFactor"]
+        ) | {
+            # JES / JER varied jets and MET (production-level shifts); without
+            # them the aliases fall back to nominal SILENTLY
+            "Jet.pt_jec_*", "Jet.mass_jec_*", "Jet.pt_jer_*", "Jet.mass_jer_*",
+            "PuppiMET.pt_*", "PuppiMET.phi_*",
+            # muon impact parameters and the WP90 flag: tight-lepton variants can
+            # be studied in production without reprocessing
+            "Muon.dxy", "Muon.dz", "Electron.dxy", "Electron.dz", "Electron.mvaIso_WP90",
+        }
           | set(  # Muons
             f"{mu_obj}.{field}"
             for mu_obj in ["Muon"]
@@ -1352,16 +1349,22 @@ def add_config(
     # after producer init. @call_once_on_config makes the later producer call a no-op.
     add_categories_production(cfg)
 
-    # unblinded group: all 0b leaf categories. Data is blinded in >=1 b-jet
-    # regions, so plots of data use --categories unblinded. MC/inference may
-    # still use the 1b/2b SR leaves, which remain defined.
+    # SR blinding (production/default.py): data events in 3l + baseline +
+    # >= 1 b-jet are removed from every category. The data/MC-comparable
+    # categories are those that exclude the SR by construction: the 2l region
+    # and the 0-b WZ control region.
+    cfg.x.blind_sr_data = True
+
     def _walk_cats(cats):
         for c in cats:
             yield c
             yield from _walk_cats(c.categories)
-    cfg.x.category_groups["unblinded"] = sorted(
-        {c.name for c in _walk_cats(cfg.categories) if "0bjets" in c.name.split("__")}
-    )
+
+    def _sel(c):
+        return set(c.selection) if isinstance(c.selection, (list, tuple)) else {c.selection}
+    cfg.x.category_groups["unblinded"] = sorted({
+        c.name for c in _walk_cats(cfg.categories) if _sel(c) & {"catid_2l", "catid_wz_cr"}
+    })
     # add_cutflow_variables(cfg)
     from azh.config.triggers import add_triggers
     add_triggers(cfg)

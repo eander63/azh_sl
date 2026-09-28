@@ -292,7 +292,7 @@ def validate_config(cfg, rep):
         if path:
             cs, raw, names_in_file = load(path)
             keys = names_in_file
-            jec = cfg.x.jec
+            jec = cfg.x.jec.get("Jet", cfg.x.jec)  # keyed by jet collection
             for source in jec["uncertainty_sources"]:
                 key = f"{jec['campaign']}_{jec['version']}_MC_{source}_{jec['jet_type']}"
                 (rep.ok if key in keys else rep.error)(

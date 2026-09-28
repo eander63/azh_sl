@@ -46,9 +46,6 @@ ak = maybe_import("awkward")
         increment_stats, trigger_selection, pu_weight,
         fill_btag_wp_count_hists,
         murmuf_weights, murmuf_envelope_weights, pdf_hessian_weights, ps_weights,
-        # Jet.<btag discriminator> comes in via jet_selection's own init,
-        # which resolves the era-dependent column from cfg.x.btag_default
-        "Jet.pt", "Jet.eta",
         "PuppiMET.pt",
         "Flag.ecalBadCalibFilter",
         met_filters, json_filter, jet_veto_map,
@@ -123,8 +120,9 @@ def default(
     events, results_lepton = self[lepton_selection](events, **kwargs)
     results += results_lepton
 
-    # jet selection (≥4 loose jets + tight jets/b-jets defined)
-    events, results_jet = self[jet_selection](events, **kwargs)
+    # candidate jets (Delta R-cleaned against the loose leptons); the analysis
+    # jet pT cut and all jet counts used by categories are in production
+    events, results_jet = self[jet_selection](events, lepton_results=results_lepton, **kwargs)
     results += results_jet
 
     # trigger selection

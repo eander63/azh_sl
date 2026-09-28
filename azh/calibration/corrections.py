@@ -4,20 +4,24 @@ selection/reduction. This module holds the definitions only; the composite
 calibrators that sequence them are in azh/calibration/default.py.
 
 Contents:
-  - jec_nominal, jet_energy       nominal JEC (+ JER for MC)
-  - jet_lepton_cleaner            remove overlapping-lepton energy from jets
-  - muon_scare                    MuonScaRe momentum scale & smearing
-  - electron_ss                   EGM electron scale & smearing
+  - jec_nominal, jec_full, jet_energy   JEC (+ JER for MC)
+  - ecal_badcrystal_veto                JME prompt-reco ECAL crystal veto (data)
+  - jet_id_v15                          Jet.jetId bitmap for NanoAOD v15
+  - met_unclustered_capture / _apply    PuppiMET unclustered-energy variation
+  - muon_scare                          MuonScaRe momentum scale & smearing
+  - electron_ss                         EGM electron scale & smearing
+
+Jet-lepton overlap is handled by Delta R < 0.3 removal in
+selection/jet_selection.py (AN-2022/158 Sec. 4.4); the former lepton-subtraction
+cleaner rewrote the raw jets that Type-1 MET is rebuilt from, which JME calls
+non-standard.
 """
 
 from columnflow.calibration import Calibrator, calibrator
 from columnflow.calibration.cms.jets import jec, jer
 from columnflow.columnar_util import set_ak_column
-from columnflow.production.util import attach_coffea_behavior
 from law.util import InsertableDict
 from columnflow.util import maybe_import
-
-from azh.util import lv_mass, lv_xyzt
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
@@ -37,11 +41,10 @@ _met_names = {"met_name": "PuppiMET", "raw_met_name": "RawPuppiMET"}
 jec_nominal = jec.derive("jec_nominal", cls_dict={"uncertainty_sources": [], **_met_names})
 
 # MC gets JEC *with* uncertainties. Leaving uncertainty_sources unset (None)
-# makes the producer fall back to cfg.x.jec["uncertainty_sources"]
-# (columnflow/calibration/cms/jets.py:388-390), so the source list is controlled
-# in one place: config_run3.py. Start with ["Total"] for commissioning; the
-# AN-2022/158 reduced set of 11 (Sec. 9.1, l. 734-738) is the target for the
-# final fit and costs ~22 full Calibrate -> Select -> Reduce passes per dataset.
+# makes the producer fall back to cfg.x.jec's "uncertainty_sources", so the
+# source list is controlled in one place: config_run3.py (the full set of 27
+# independent sources, which reproduces Total in quadrature in every era).
+# The JES/JER shifts are production-level (see production/default.py).
 jec_full = jec.derive("jec_full", cls_dict=dict(_met_names))
 
 # JER, likewise propagated to PuppiMET.
@@ -125,129 +128,94 @@ def ecal_badcrystal_veto(self: Calibrator, events: ak.Array, **kwargs) -> ak.Arr
 
 
 # ===========================================================================
-# Jet-lepton cleaning
+# Jet ID for NanoAOD v15 (2024)
 # ===========================================================================
+# v15 dropped Jet_jetId. Rebuild the v12 bitmap from the JME jetid.json payload
+# (bit 1 = tight, bit 2 = tight lepton veto), so that columnflow's jet_veto_map
+# (which reads Jet.jetId) and jet_selection use one definition in every era.
+JET_ID_INPUTS = ["eta", "chHEF", "neHEF", "chEmEF", "neEmEF", "muEF", "chMultiplicity", "neMultiplicity"]
+
+
 @calibrator(
-    uses={
-        "Electron.pt",
-        "Electron.eta",
-        "Electron.phi",
-        "Electron.mass",
-        "Muon.pt",
-        "Muon.eta",
-        "Muon.phi",
-        "Muon.mass",
-        "Jet.pt",
-        "Jet.eta",
-        "Jet.phi",
-        "Jet.mass",
-        "Jet.rawFactor",
-        # index of electrons/muons matched to jets
-        "Jet.muonIdx1",
-        "Jet.muonIdx2",
-        "Jet.electronIdx1",
-        "Jet.electronIdx2",
-        # PF energy fractions
-        "Jet.chEmEF",
-        "Jet.muEF",
-        attach_coffea_behavior,
-    },
-    produces={
-        "Jet.pt",
-        "Jet.eta",
-        "Jet.phi",
-        "Jet.mass",
-        "Jet.rawFactor",
-        "Jet.chEmEF",
-        "Jet.muEF",
-    },
+    uses={f"Jet.{f}" for f in JET_ID_INPUTS},
+    produces={"Jet.jetId"},
 )
-def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
-    """
-    Calibrator to clean jet four-vectors from contributions from nearby leptons.
-    """
-    # load coffea behaviors for simplified arithmetic with vectors
-    events["Electron"] = ak.with_name(events.Electron, "PtEtaPhiMLorentzVector")
-    events["Muon"] = ak.with_name(events.Muon, "PtEtaPhiMLorentzVector")
-    events["Jet"] = ak.with_name(events.Jet, "PtEtaPhiMLorentzVector")
+def jet_id_v15(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
+    jet = events.Jet
+    counts = ak.num(jet.eta)
+    flat = {f: ak.to_numpy(ak.flatten(jet[f])) for f in JET_ID_INPUTS}
+    flat["multiplicity"] = flat["chMultiplicity"] + flat["neMultiplicity"]
 
-    # revert JEC for jet pt and jet mass, set correction factor to 0
-    events = set_ak_column(events, "Jet.pt", events.Jet.pt * (1 - events.Jet.rawFactor))
-    events = set_ak_column(
-        events, "Jet.mass", events.Jet.mass * (1 - events.Jet.rawFactor)
+    def evaluate(corr):
+        # match the payload's declared inputs by name rather than by position
+        args = [flat[i.name] for i in corr.inputs]
+        return np.asarray(corr.evaluate(*args)) > 0.5
+
+    tight = evaluate(self.corr_tight)
+    lepveto = tight & evaluate(self.corr_lepveto)
+    jet_id = (2 * tight + 4 * lepveto).astype(np.int32)
+    return set_ak_column(events, "Jet.jetId", ak.unflatten(jet_id, counts))
+
+
+@jet_id_v15.requires
+def jet_id_v15_requires(self: Calibrator, task, reqs: dict, **kwargs) -> None:
+    if "external_files" in reqs:
+        return
+    from columnflow.tasks.external import BundleExternalFiles
+    reqs["external_files"] = BundleExternalFiles.req(task)
+
+
+@jet_id_v15.setup
+def jet_id_v15_setup(self: Calibrator, task, reqs: dict, inputs: dict, reader_targets: InsertableDict, **kwargs) -> None:
+    import correctionlib
+    cset = correctionlib.CorrectionSet.from_string(
+        reqs["external_files"].files.jet_id.load(formatter="gzip").decode("utf-8"),
     )
-    events = set_ak_column(events, "Jet.rawFactor", 0)
+    jid = self.config_inst.x.jet_id
+    self.corr_tight = cset[jid.tight]
+    self.corr_lepveto = cset[jid.tight_lepveto]
+    unknown = {i.name for c in (self.corr_tight, self.corr_lepveto) for i in c.inputs} - set(JET_ID_INPUTS) - {"multiplicity"}
+    if unknown:
+        raise KeyError(f"jet ID payload declares unexpected inputs {sorted(unknown)}")
 
-    # build jet lorentz vectors
-    jet_lv = lv_xyzt(events.Jet)
 
-    # indices of leptons matched to a jet (None if no matched lepton)
-    idx_e1 = ak.mask(events.Jet.electronIdx1, events.Jet.electronIdx1 >= 0)
-    idx_e2 = ak.mask(events.Jet.electronIdx2, events.Jet.electronIdx2 >= 0)
-    idx_m1 = ak.mask(events.Jet.muonIdx1, events.Jet.muonIdx1 >= 0)
-    idx_m2 = ak.mask(events.Jet.muonIdx2, events.Jet.muonIdx2 >= 0)
+# ===========================================================================
+# MET unclustered-energy variation (NanoAOD PuppiMET_*Unclustered*)
+# ===========================================================================
+# NanoAOD provides the unclustered variation relative to its own PuppiMET. The
+# calibrator recomputes PuppiMET with newer JECs, so the variation is carried
+# over as a vector difference: capture (dx, dy) = unclustered - nominal on the
+# NanoAOD values BEFORE jet_energy, add it to the recalibrated MET AFTER.
 
-    # list with matched leptons
-    jet_leptons_types = [
-        (events.Electron[idx_e1], "e"),
-        (events.Electron[idx_e2], "e"),
-        (events.Muon[idx_m1], "mu"),
-        (events.Muon[idx_m2], "mu"),
-    ]
 
-    # total energy from clustered leptonic PF candidates
-    jet_pf_energies = {
-        "mu": jet_lv.energy * events.Jet.muEF,
-        "e": jet_lv.energy * events.Jet.chEmEF,
-    }
-    # subtract lepton contributions from jets
-    tolerance = 0.1
-    for jet_lepton, jet_lepton_type in jet_leptons_types:
-        jet_lepton_lv = lv_xyzt(jet_lepton)
-        jet_lv_cleaned = lv_xyzt(jet_lv - jet_lepton_lv)
-        jet_pf_energy = jet_pf_energies[jet_lepton_type]
-        jet_pf_energy_cleaned = jet_pf_energy - jet_lepton_lv.energy
+@calibrator(
+    uses={"PuppiMET.{pt,phi,ptUnclusteredUp,phiUnclusteredUp,ptUnclusteredDown,phiUnclusteredDown}"},
+    produces={f"PuppiMET.{c}_unclustered_{d}" for c in ("dx", "dy") for d in ("up", "down")},
+    mc_only=True,
+)
+def met_unclustered_capture(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
+    met = events.PuppiMET
+    px, py = met.pt * np.cos(met.phi), met.pt * np.sin(met.phi)
+    for d, D in (("up", "Up"), ("down", "Down")):
+        pt_v, phi_v = met[f"ptUnclustered{D}"], met[f"phiUnclustered{D}"]
+        events = set_ak_column(events, f"PuppiMET.dx_unclustered_{d}", pt_v * np.cos(phi_v) - px)
+        events = set_ak_column(events, f"PuppiMET.dy_unclustered_{d}", pt_v * np.sin(phi_v) - py)
+    return events
 
-        # lepton energy compatible with PF energy fraction (within tolerance)
-        lep_energy_pf_compatible = (
-            jet_lepton_lv.energy < (1 + tolerance) * jet_pf_energy
-        )
 
-        # square of cleaned jet mass; mask values that would give imaginary
-        # masses, but keep abs() if only negative within tolerance (lepton fake)
-        jet_lv_cleaned_mass_sq = jet_lv_cleaned.energy**2 - jet_lv_cleaned.rho**2
-        jet_lv_cleaned_mass = ak.mask(
-            np.sqrt(abs(jet_lv_cleaned_mass_sq)),
-            jet_lv_cleaned_mass_sq >= -tolerance,
-        )
-        # cleaning does not result in a negative/imaginary/undefined mass
-        mass_stays_positive = ~ak.is_none(jet_lv_cleaned_mass, axis=1)
-
-        # angle before/after cleaning is similar, OR cleaned pt is very low
-        # (high probability that this was a pure lepton fake)
-        angle_change_small = (jet_lv.delta_r(jet_lv_cleaned) <= np.pi / 2) | (
-            jet_lv_cleaned.pt < 10
-        )
-
-        # AND of cleaning conditions; `None` (no matched lepton) -> no cleaning
-        do_clean = mass_stays_positive & angle_change_small & lep_energy_pf_compatible
-        do_clean = ak.fill_none(do_clean, False)
-
-        # update jet LV and PF energies where we cleaned
-        jet_lv = ak.where(do_clean, jet_lv_cleaned, jet_lv)
-        jet_pf_energies[jet_lepton_type] = ak.where(
-            do_clean,
-            jet_pf_energy_cleaned,
-            jet_pf_energy,
-        )
-
-    # save updated jet variables
-    jet_lv = lv_mass(jet_lv)
-    for var in ["pt", "eta", "phi", "mass"]:
-        value = ak.fill_none(ak.nan_to_none(getattr(jet_lv, var)), 0.0)
-        value = ak.where(np.isfinite(value), value, 0)
-        events = set_ak_column(events, f"Jet.{var}", value)
-
+@calibrator(
+    uses={"PuppiMET.{pt,phi}", *{f"PuppiMET.{c}_unclustered_{d}" for c in ("dx", "dy") for d in ("up", "down")}},
+    produces={f"PuppiMET.{c}_unclustered_{d}" for c in ("pt", "phi") for d in ("up", "down")},
+    mc_only=True,
+)
+def met_unclustered_apply(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
+    met = events.PuppiMET
+    px, py = met.pt * np.cos(met.phi), met.pt * np.sin(met.phi)
+    for d in ("up", "down"):
+        vx = px + met[f"dx_unclustered_{d}"]
+        vy = py + met[f"dy_unclustered_{d}"]
+        events = set_ak_column(events, f"PuppiMET.pt_unclustered_{d}", np.sqrt(vx ** 2 + vy ** 2))
+        events = set_ak_column(events, f"PuppiMET.phi_unclustered_{d}", np.arctan2(vy, vx))
     return events
 
 

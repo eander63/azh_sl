@@ -141,7 +141,7 @@ def catid_3l(
 
 
 @categorizer(
-    uses={"m_z", "PuppiMET.pt", "cutflow.n_jet"},
+    uses={"m_z", "PuppiMET.pt", "n_jet"},
     call_force=True,
 )
 def catid_baseline(
@@ -158,7 +158,7 @@ def catid_baseline(
     The lepton requirements moved to catid_2l / catid_3l; the b-jet count is
     applied by the region categorizers below.
     """
-    _require(events, "m_z", "PuppiMET", "cutflow")
+    _require(events, "m_z", "PuppiMET", "n_jet")
 
     mask = (
         (abs(events.m_z - Z_MASS) < Z_MASS_WINDOW)
@@ -167,48 +167,52 @@ def catid_baseline(
         # Table 16 lists the loose definition, but that is the Latinos CleanJet
         # post-processing cut, not the analysis cut -- corrected during PAS/paper
         # approval to pT > 30, |eta| < 2.5 for all jets (M., Mattermost).
-        & (events.cutflow.n_jet >= N_JETS_MIN)
+        # n_jet is produced by production/jets.py, so it follows the JES/JER
+        # shifts (the selection-level cutflow.n_jet is nominal only)
+        & (events.n_jet >= N_JETS_MIN)
     )
     return events, ak.fill_none(mask, False)
 
 
 # ---------------------------------------------------------------------
-# Region categorizers, blinded in the b >= 1 SRs.
-# The WZ CR (0 b-jets) is unblinded.
+# Region categorizers. Data in the b >= 1 SRs are zeroed here AND removed from
+# every category by the blinding step in production/default.py (the parents
+# 3l, 3l__2e, ... would otherwise still contain SR data). The WZ CR (0 b-jets)
+# and the 2l region are unblinded.
 # ---------------------------------------------------------------------
 
 
-@categorizer(uses={catid_baseline, "cutflow.n_bjet"}, call_force=True)
+@categorizer(uses={catid_baseline, "n_bjet"}, call_force=True)
 def catid_sr_2b(
     self: Categorizer, events: ak.Array, **kwargs
 ) -> tuple[ak.Array, ak.Array]:
     """>=2 b-jet signal region. BLINDED: MC only."""
     events, base = self[catid_baseline](events, **kwargs)
-    mask = base & (events.cutflow.n_bjet >= 2)
+    mask = base & (events.n_bjet >= 2)
     if self.dataset_inst.is_data:
         mask = ak.zeros_like(mask) > 0  # blind
     return events, mask
 
 
-@categorizer(uses={catid_baseline, "cutflow.n_bjet"}, call_force=True)
+@categorizer(uses={catid_baseline, "n_bjet"}, call_force=True)
 def catid_sr_1b(
     self: Categorizer, events: ak.Array, **kwargs
 ) -> tuple[ak.Array, ak.Array]:
     """Exactly 1 b-jet signal region. BLINDED: MC only."""
     events, base = self[catid_baseline](events, **kwargs)
-    mask = base & (events.cutflow.n_bjet == 1)
+    mask = base & (events.n_bjet == 1)
     if self.dataset_inst.is_data:
         mask = ak.zeros_like(mask) > 0  # blind
     return events, mask
 
 
-@categorizer(uses={catid_baseline, "cutflow.n_bjet"}, call_force=True)
+@categorizer(uses={catid_baseline, "n_bjet"}, call_force=True)
 def catid_wz_cr(
     self: Categorizer, events: ak.Array, **kwargs
 ) -> tuple[ak.Array, ak.Array]:
     """0 b-jet WZ control region. Data + MC (NOT blinded)."""
     events, base = self[catid_baseline](events, **kwargs)
-    return events, base & (events.cutflow.n_bjet == 0)
+    return events, base & (events.n_bjet == 0)
 
 
 # ---------------------------------------------------------------------

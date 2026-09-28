@@ -633,6 +633,7 @@ def check_corrections(cfg, res):
     else:
         available = correction_names(cset)
         jec = cfg.x("jec", None)
+        jec = jec.get("Jet", jec) if jec else jec  # keyed by jet collection
         if jec:
             for source in jec.get("uncertainty_sources", []) or []:
                 # Uncertainty entries are named <campaign>_<version>_<source>_<jettype>

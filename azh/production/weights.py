@@ -12,6 +12,7 @@ import law
 
 logger = law.logger.get_logger(__name__)
 from azh.production.btag import split_btag_wp_weights
+from azh.production.jets import analysis_jet_mask
 from columnflow.production.cms.electron import electron_weights, ElectronSFConfig
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.normalization import normalization_weights
@@ -127,8 +128,9 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # compute trigger weights
         events = self[trigger_weights](events, **kwargs)
 
-        # compute btag weights
-        events = self[split_btag_wp_weights](events, **kwargs)
+        # b-tag weights on the analysis jets (candidates with pT > 30; under a
+        # JES/JER shift the aliased pT decides which jets count)
+        events = self[split_btag_wp_weights](events, jet_mask=analysis_jet_mask(events), **kwargs)
 
         # compute normalization weights
         events = self[normalization_weights](events, **kwargs)

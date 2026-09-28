@@ -198,8 +198,12 @@ def met_unclustered_capture(self: Calibrator, events: ak.Array, **kwargs) -> ak.
     px, py = met["pt"] * np.cos(met["phi"]), met["pt"] * np.sin(met["phi"])
     for d, D in (("up", "Up"), ("down", "Down")):
         pt_v, phi_v = met[f"ptUnclustered{D}"], met[f"phiUnclustered{D}"]
-        events = set_ak_column(events, f"PuppiMET.dx_unclustered_{d}", pt_v * np.cos(phi_v) - px)
-        events = set_ak_column(events, f"PuppiMET.dy_unclustered_{d}", pt_v * np.sin(phi_v) - py)
+        # NanoAOD has non-finite unclustered values in some events; those get
+        # no unclustered variation (delta 0) instead of failing CalibrateEvents
+        dx = np.nan_to_num(pt_v * np.cos(phi_v) - px, nan=0.0, posinf=0.0, neginf=0.0)
+        dy = np.nan_to_num(pt_v * np.sin(phi_v) - py, nan=0.0, posinf=0.0, neginf=0.0)
+        events = set_ak_column(events, f"PuppiMET.dx_unclustered_{d}", dx)
+        events = set_ak_column(events, f"PuppiMET.dy_unclustered_{d}", dy)
     return events
 
 

@@ -643,17 +643,19 @@ def add_config(
 
     # JER
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
-    cfg.x.jer = DotDict.wrap({
+    # keyed by jet collection, as columnflow expects; only JERConfig fields
+    # may appear inside (columnflow builds the dataclass from this dict)
+    cfg.x.jer = DotDict.wrap({"Jet": {
         "campaign": jer_campaign,
         "version": {2022: "JRV2", 2023: "JRV3", 2024: "JRV2"}[year],
         "jet_type": jet_type,
-        # SFUncertainty is ABSOLUTE (SF_up = SF + unc): checked against the older
-        # payloads with explicit nom/up/down for Summer22, Summer22EE (JRV2) and
-        # Summer23, Summer23BPix (JRV3); the relative form fails everywhere.
-        # Summer24 has no reference payload -- same format assumed, awaiting JME.
-        # Read by patches/cf031-jer-additive.patch.
-        "sf_unc_mode": "additive",
-    })
+    }})
+    # SFUncertainty is ABSOLUTE (SF_up = SF + unc): checked against the older
+    # payloads with explicit nom/up/down for Summer22, Summer22EE (JRV2) and
+    # Summer23, Summer23BPix (JRV3); the relative form fails everywhere.
+    # Summer24 has no reference payload -- same format assumed, awaiting JME.
+    # Read by patches/cf031-jer-additive.patch.
+    cfg.x.jer_sf_unc_mode = "additive"
 
 
     # b-tag working points
@@ -891,10 +893,8 @@ def add_config(
     # register shifts
     # TODO: make shifts year-dependent
     cfg.add_shift(name="nominal", id=0)
-    cfg.add_shift(name="tune_up", id=1, type="shape", tags={"disjoint_from_nominal"})
-    cfg.add_shift(name="tune_down", id=2, type="shape", tags={"disjoint_from_nominal"})
-    cfg.add_shift(name="hdamp_up", id=3, type="shape", tags={"disjoint_from_nominal"})
-    cfg.add_shift(name="hdamp_down", id=4, type="shape", tags={"disjoint_from_nominal"})
+    # tune / hdamp variations need dedicated samples, whose infos are removed
+    # above; they are not registered until those samples are wired in
     cfg.add_shift(name="minbias_xs_up", id=7, type="shape")
     cfg.add_shift(name="minbias_xs_down", id=8, type="shape")
     # what enters the event weight is the per-process-normalized column, so the

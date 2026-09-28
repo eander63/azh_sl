@@ -8,19 +8,19 @@ index 477625d..b298091 100644
              sign = 1 if jer_postfix.endswith("_up") else -1
 -            jersf[jer_postfix] = jersf[""] * (1 + sign * sfunc)
 +            # The analysis states per era whether SFUncertainty is absolute
-+            # (SF +- unc) or relative (SF * (1 +- unc)): cfg.x.jer.sf_unc_mode.
++            # (SF +- unc) or relative (SF * (1 +- unc)): cfg.x.jer_sf_unc_mode.
 +            # For Summer22/22EE (JRV2) and Summer23/23BPix (JRV3) the absolute
 +            # form reproduces the older payloads' explicit nom/up/down and the
 +            # relative one does not (tests/preflight_jer_convention.py). A wrong
 +            # choice gives plausible-looking but mis-scaled variations, so the
 +            # mode is required rather than defaulted.
-+            sf_unc_mode = self.config_inst.x.jer["sf_unc_mode"]
++            sf_unc_mode = self.config_inst.x.jer_sf_unc_mode
 +            if sf_unc_mode == "additive":
 +                jersf[jer_postfix] = jersf[""] + sign * sfunc
 +            elif sf_unc_mode == "multiplicative":
 +                jersf[jer_postfix] = jersf[""] * (1 + sign * sfunc)
 +            else:
-+                raise ValueError(f"cfg.x.jer.sf_unc_mode must be 'additive' or 'multiplicative', got {sf_unc_mode!r}")
++                raise ValueError(f"cfg.x.jer_sf_unc_mode must be 'additive' or 'multiplicative', got {sf_unc_mode!r}")
      else:
          for jer_postfix in self.jer_postfixes:
              direction = jer_postfix.rsplit("_", 1)[-1]

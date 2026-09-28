@@ -195,6 +195,8 @@ def check_config(cfg, rep):
             continue
         if s.name in used:
             continue
+        if s.name.rsplit("_", 1)[0] in cfg.x("production_shift_sources", []):
+            continue  # production-level shift (aliases, not a weight): expected
         if s.has_tag("selection_dependent"):
             rep.info(n, "shifts", f"{s.name} (selection dependent): {s.get_aux('column_aliases', {})}")
         else:

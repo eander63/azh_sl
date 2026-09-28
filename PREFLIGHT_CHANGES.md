@@ -25,6 +25,7 @@ validation plan at the end is the real test.
 | 11 | MET filters | JME ECAL bad-crystal veto replaces `Flag_ecalBadCalibFilter` for data in runs 362433–367144 |
 | 12 | jets / MET / blinding | ΔR < 0.3 cleaning replaces the subtraction cleaner; v15 `Jet.jetId` rebuilt; candidate jets at selection, analysis jets (`AnaJet`, `n_jet`, `n_bjet`) in production; JES (27 sources), JER and `met_unclustered` registered on the producer; SR data stripped from every category |
 | 13 | config | `cfg.x.shift_correlations`; fixed groups; versions calib v2 / rest v6 |
+| 16 | fixes | `cfg.x.jer` keyed by jet collection with only JERConfig fields (the extra `sf_unc_mode` key made columnflow's JERConfig raise); mode moved to `cfg.x.jer_sf_unc_mode`; unusable tune/hdamp shifts removed; static check no longer flags production-level shifts as orphans |
 | 14 | tests / inference | `tests/preflight_static.py` and three study scripts; inference nuisances generated from the correlation table |
 
 ## After applying
@@ -116,8 +117,16 @@ thread; the pattern is `/<primary>/<campaign>-<processing>/NANOAODSIM`.
 |---|---|
 | `tzq_zll_4f_amcatnlo` | `/TZQB-Zto2L-4FS_Bin-MLL-30_TuneCP5_13p6TeV_amcatnlo-pythia8/RunIII2024Summer24NanoAODv15-Madgraph_2_6_5_150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM` |
 
-Also check that cmsdb's 2024 `wz_wlnu_zll_powheg` / `zz_zll_zll_powheg` use the
-plain `150X_mcRun3_2024_realistic_v2-v2` keys, not the `JMENanoV15` ones.
+The static check confirmed that cmsdb's 2024 `wz_wlnu_zll_powheg` and
+`zz_zll_zll_powheg` use the plain keys (not `JMENanoV15`).
+
+**Existing cmsdb ttW entries to fix:**
+
+| era | current key | should be |
+|---|---|---|
+| 2023preBPix | `/TTLNu-1Jets_…/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v15-v2/…` (3 files) | `…-mg35x_130X_mcRun3_2023_realistic_v15-v2/NANOAODSIM` |
+| 2023postBPix | `/TTLNu-1Jets_…/Run3Summer23BPixNanoAODv12-130X_…postBPix_v6-v2/…` (1 file) | `…-mg35x_130X_mcRun3_2023_realistic_postBPix_v6-v2/NANOAODSIM` |
+| 2024 | `/TTLNu-EWK_TuneCP5_13p6TeV_amcatnlo-pythia8/…` -- the **electroweak** ttW component, normalized with the QCD ttW cross section | `/TTLNu-1Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-mg35x_150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM` |
 
 Until the fork has them, the config falls back to LO `wz_pythia` / `zz_pythia`
 and runs without tZq, ttW and VVV. The static check reports each missing name.

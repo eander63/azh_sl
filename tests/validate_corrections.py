@@ -304,7 +304,7 @@ def validate_config(cfg, rep):
                 if key not in keys:
                     rep.error(f"JEC level {level}: {key!r} not in file")
 
-            jer = cfg.x.jer
+            jer = cfg.x.jer.get("Jet", cfg.x.jer)  # keyed by jet collection
             res = f"{jer['campaign']}_{jer['version']}_MC_PtResolution_{jer['jet_type']}"
             sf = f"{jer['campaign']}_{jer['version']}_MC_ScaleFactor_{jer['jet_type']}"
             unc = f"{jer['campaign']}_{jer['version']}_MC_SFUncertainty_{jer['jet_type']}"

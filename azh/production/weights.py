@@ -15,7 +15,7 @@ from azh.production.btag import split_btag_wp_weights
 from columnflow.production.cms.electron import electron_weights, ElectronSFConfig
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.normalization import normalization_weights
-from columnflow.production.cms.pdf import pdf_weights
+from azh.production.theory import pdf_hessian_weights, ps_weights, lumi_weight
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from azh.production.trigger_weights import trigger_weights
 from azh.production.muon_sf import muon_sf_weights
@@ -79,13 +79,22 @@ normalized_pu_weight = normalized_weight_factory(
 # Produces normalized_{mur,muf,murmuf_envelope,pdf}_weight{,_up,_down}.
 normalized_scale_weights = normalized_weight_factory(
     producer_name="normalized_scale_weights",
-    weight_producers={murmuf_weights, murmuf_envelope_weights, pdf_weights},
+    weight_producers={murmuf_weights, murmuf_envelope_weights, pdf_hessian_weights},
     weight_names={
         f"{base}_weight{postfix}"
         for base in ("mur", "muf", "murmuf_envelope", "pdf")
         for postfix in ("", "_up", "_down")
     },
 )
+
+# Shape-only parton-shower ISR/FSR variations, normalized per process like the
+# scale weights (the sums are booked in the selector).
+normalized_ps_weights = normalized_weight_factory(
+    producer_name="normalized_ps_weights",
+    weight_producers={ps_weights},
+    weight_names={f"{base}_weight{postfix}" for base in ("isr", "fsr") for postfix in ("", "_up", "_down")},
+)
+
 
 @producer
 def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -145,6 +154,11 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
             # *used* columns are present (normalized_weights.py:44-47), which
             # they are not here, so no fallback is attempted.
             events = self[normalized_scale_weights](events, **kwargs)
+        if not self.dataset_inst.has_tag("no_ps_weights"):
+            events = self[normalized_ps_weights](events, **kwargs)
+
+        # luminosity as a weight shift, for plot uncertainty bands only
+        events = self[lumi_weight](events, **kwargs)
 
     return events
 
@@ -162,7 +176,7 @@ def weights_init(
             electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
             muon_sf_weights,
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, murmuf_envelope_weights, murmuf_weights,
-            pdf_weights, normalized_scale_weights,
+            pdf_hessian_weights, normalized_scale_weights, normalized_ps_weights, lumi_weight,
             split_btag_wp_weights,
             trigger_weights,
         }
@@ -170,7 +184,7 @@ def weights_init(
             electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
             muon_sf_weights,
             normalization_weights, mc_weight, pu_weight, normalized_pu_weight, murmuf_envelope_weights, murmuf_weights,
-            pdf_weights, normalized_scale_weights,
+            pdf_hessian_weights, normalized_scale_weights, normalized_ps_weights, lumi_weight,
             split_btag_wp_weights,
             trigger_weights,
         }

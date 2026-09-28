@@ -1025,7 +1025,21 @@ def add_config(
     cfg.add_shift(name="pdf_up", id=207, type="shape")
     cfg.add_shift(name="pdf_down", id=208, type="shape")
 
-    for unc in ["mur", "muf", "murmuf_envelope", "pdf"]:
+    # parton shower (PSWeight), normalized per process
+    cfg.add_shift(name="isr_up", id=209, type="shape")
+    cfg.add_shift(name="isr_down", id=210, type="shape")
+    cfg.add_shift(name="fsr_up", id=211, type="shape")
+    cfg.add_shift(name="fsr_down", id=212, type="shape")
+    # luminosity as a weight (plots only; the datacard uses cfg.x.luminosity)
+    cfg.add_shift(name="lumi_up", id=213, type="shape")
+    cfg.add_shift(name="lumi_down", id=214, type="shape")
+    add_aliases("lumi", {"lumi_weight": "lumi_weight_{direction}"}, selection_dependent=False)
+
+    # PDF + alpha_s: the NNPDF3.1 pdfas members are alpha_s = 0.116 / 0.120
+    # (+-0.002, LHAPDF member files); rescale to the PDF4LHC +-0.0015
+    cfg.x.pdf_alphas_scale = 0.0015 / 0.002
+
+    for unc in ["mur", "muf", "murmuf_envelope", "pdf", "isr", "fsr"]:
         add_aliases(
             unc,
             {f"normalized_{unc}_weight": f"normalized_{unc}_weight_" + "{direction}"},
@@ -1220,7 +1234,7 @@ def add_config(
             "mc_weight", "PV.npvs", "process_id", "category_ids", "deterministic_seed",
             # weight-related columns
             "pu_weight*", "pdf_weight*",
-            "murmuf_envelope_weight*", "mur_weight*", "muf_weight*",
+            "murmuf_envelope_weight*", "mur_weight*", "muf_weight*", "isr_weight*", "fsr_weight*",
             "btag_weight*",
             "Pileup.nTrueInt",
             "LHEScaleWeight",
@@ -1278,6 +1292,7 @@ def add_config(
         "muon_id_weight": get_shifts("mu_id_stat", "mu_id_syst"),     # TightID SF
         "muon_iso_weight": get_shifts("mu_iso_stat", "mu_iso_syst"),  # TightPFIso SF
         "normalized_pu_weight": get_shifts("minbias_xs"),
+        "lumi_weight": get_shifts("lumi"),
     })
 
     # Dataset-level weights. These live here rather than in cfg.x.event_weights
@@ -1294,6 +1309,9 @@ def add_config(
         # pythia dibosons have no LHEScaleWeight/LHEPdfWeight branch
         if not dataset.has_tag("no_lhe_weights"):
             for unc in ["mur", "muf", "murmuf_envelope", "pdf"]:
+                dataset_weights[f"normalized_{unc}_weight"] = get_shifts(unc)
+        if not dataset.has_tag("no_ps_weights"):
+            for unc in ["isr", "fsr"]:
                 dataset_weights[f"normalized_{unc}_weight"] = get_shifts(unc)
         if dataset_weights:
             dataset.x.event_weights = dataset_weights

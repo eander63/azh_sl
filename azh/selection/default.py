@@ -21,7 +21,7 @@ from columnflow.selection.cms.jets import jet_veto_map
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
-from columnflow.production.cms.pdf import pdf_weights
+from azh.production.theory import pdf_hessian_weights, ps_weights
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from azh.production.pileup import pu_weight
 from columnflow.production.processes import process_ids
@@ -44,7 +44,7 @@ ak = maybe_import("awkward")
         jet_selection, lepton_selection,
         increment_stats, trigger_selection, pu_weight,
         fill_btag_wp_count_hists,
-        murmuf_weights, murmuf_envelope_weights, pdf_weights,
+        murmuf_weights, murmuf_envelope_weights, pdf_hessian_weights, ps_weights,
         # Jet.<btag discriminator> comes in via jet_selection's own init,
         # which resolves the era-dependent column from cfg.x.btag_default
         "Jet.pt", "Jet.eta",
@@ -56,7 +56,7 @@ ak = maybe_import("awkward")
         mc_weight,
         jet_selection, lepton_selection,
         increment_stats, trigger_selection, pu_weight,
-        murmuf_weights, murmuf_envelope_weights, pdf_weights,
+        murmuf_weights, murmuf_envelope_weights, pdf_hessian_weights, ps_weights,
         met_filters, json_filter, jet_veto_map,
     },
     exposed=True,
@@ -83,7 +83,11 @@ def default(
         if not self.dataset_inst.has_tag("no_lhe_weights"):
             events = self[murmuf_weights](events, **kwargs)
             events = self[murmuf_envelope_weights](events, **kwargs)
-            events = self[pdf_weights](events, **kwargs)
+            # Hessian PDF + alpha_s (production/theory.py), not columnflow's
+            # replica-style pdf_weights
+            events = self[pdf_hessian_weights](events, **kwargs)
+        if not self.dataset_inst.has_tag("no_ps_weights"):
+            events = self[ps_weights](events, **kwargs)
 
     # ensure coffea behavior
     events = self[attach_coffea_behavior](events, **kwargs)
@@ -146,6 +150,12 @@ def default(
             norm_weight_columns += [
                 f"{base}_weight{postfix}"
                 for base in ["mur", "muf", "murmuf_envelope", "pdf"]
+                for postfix in ["", "_up", "_down"]
+            ]
+        if not self.dataset_inst.has_tag("no_ps_weights"):
+            norm_weight_columns += [
+                f"{base}_weight{postfix}"
+                for base in ["isr", "fsr"]
                 for postfix in ["", "_up", "_down"]
             ]
         for column in norm_weight_columns:

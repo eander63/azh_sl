@@ -242,6 +242,21 @@ def check_config(cfg, rep):
         if not os.path.exists(path):
             rep.fail(n, "external files", f"{key}: {path} does not exist")
 
+    # --- variables must not read columns that production-level shifts alias ---
+    # CreateHistograms runs producer-registered shifts with local_shift =
+    # nominal, so a variable reading e.g. Jet.pt or PuppiMET.pt from the reduced
+    # events would be identical to nominal under jec_* / jer / met_unclustered.
+    aliased = set()
+    for src in cfg.x("production_shift_sources", []):
+        for d in ("up", "down"):
+            aliased |= set(cfg.get_shift(f"{src}_{d}").get_aux("column_aliases", {}))
+    for var in cfg.variables:
+        expr = var.expression if isinstance(var.expression, str) else ""
+        hits = sorted(a for a in aliased if expr == a or expr.startswith(a + "["))
+        if hits:
+            rep.fail(n, "variables", f"variable {var.name} reads {hits[0]}, which production-level shifts alias; "
+                     "under those shifts CreateHistograms would plot the nominal value (use a produced column)")
+
     # --- datasets that cmsdb does not provide yet ---------------------------
     for name in cfg.x("missing_datasets", []):
         rep.fail(n, "datasets", f"required dataset {name} is not in the cmsdb campaign (see PREFLIGHT_CHANGES.md)")

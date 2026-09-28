@@ -118,7 +118,8 @@ def add_variables(config: od.Config) -> None:
 
     config.add_variable(
         name="PuppiMET",
-        expression="PuppiMET.pt",
+        # produced copy (production/jets.py): follows the JES/JER/unclustered shifts
+        expression="met_pt",
         binning=(20, 0, 400),
         unit="",
         x_title="PuppiMET $p_{T}$",

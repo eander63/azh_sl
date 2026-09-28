@@ -8,6 +8,12 @@ cut is applied to Jet.pt as ProduceColumns sees it -- which, under a jec_* or
 jer_* shift, is the aliased varied pT. Everything that depends on the jet
 selection (n_jet, n_bjet, the AnaJet collection for plotting, and the b-tag SF
 jet mask) is derived from analysis_jet_mask() so the definitions cannot drift.
+
+Why produced copies are needed for plotting: for a producer-registered shift,
+ProduceColumns has local_shift = <shift> (aliases applied) but CreateHistograms
+has local_shift = nominal (checked with --print-status). Variables must
+therefore read AnaJet.* / met_* rather than Jet.* / PuppiMET.* from the
+reduced events, which would silently stay nominal.
 """
 
 from columnflow.columnar_util import set_ak_column
@@ -28,8 +34,8 @@ def analysis_jet_mask(events: ak.Array) -> ak.Array:
 
 
 @producer(
-    uses={f"Jet.{f}" for f in ANA_JET_FIELDS},
-    produces={"n_jet", "n_bjet", *{f"AnaJet.{f}" for f in ANA_JET_FIELDS}, "AnaJet.btag"},
+    uses={f"Jet.{f}" for f in ANA_JET_FIELDS} | {"PuppiMET.pt", "PuppiMET.phi"},
+    produces={"n_jet", "n_bjet", *{f"AnaJet.{f}" for f in ANA_JET_FIELDS}, "AnaJet.btag", "met_pt", "met_phi"},
 )
 def analysis_jets(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     btag = self.config_inst.x.btag_default
@@ -42,6 +48,13 @@ def analysis_jets(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     for f in ANA_JET_FIELDS:
         events = set_ak_column(events, f"AnaJet.{f}", jets[f])
     events = set_ak_column(events, "AnaJet.btag", jets[btag.column])
+
+    # MET as ProduceColumns sees it (aliased under JES/JER/unclustered shifts).
+    # CreateHistograms runs these shifts with local_shift = nominal, so a
+    # variable reading PuppiMET.pt from the reduced events would stay nominal;
+    # plotting variables must use these produced columns instead.
+    events = set_ak_column(events, "met_pt", events.PuppiMET.pt)
+    events = set_ak_column(events, "met_phi", events.PuppiMET.phi)
     return events
 
 

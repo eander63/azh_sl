@@ -533,20 +533,20 @@ def check_corrections(cfg, res):
         # (README 2024 open items). This resolves it definitively.
         _check_keys(res, label, muon_path, corr_name, {"year": era_key})
 
-    # The muon SF pT floor. weights.py hard-codes MUON_SF_PT_MIN = 15.0 and the
-    # comment claims the JSON binning starts there; if a POG update moves it,
-    # sub-threshold muons silently get SF=1 or correctionlib raises.
+    # The muon SF pT floor. weights.py masks muons below cfg.x.muon_sf_pt_min;
+    # it must equal the lower edge of the ID binning, otherwise sub-threshold
+    # muons silently get SF=1 or correctionlib raises.
     cset = load_correction_json(muon_path) if muon_path else None
     id_names = cfg.x("muon_sf_id_names", None)
-    if cset and id_names:
+    pt_min = cfg.x("muon_sf_pt_min", None)
+    if cset and id_names and pt_min is not None:
         corr = get_correction(cset, id_names[0])
         edges = binning_edges(corr, "pt")
         if edges:
             res.check(
-                abs(edges[0] - 15.0) < 1e-6,
-                f"muon ID: pT binning starts at {edges[0]}, matches MUON_SF_PT_MIN",
-                f"muon ID: pT binning starts at {edges[0]}, but weights.py "
-                f"hard-codes MUON_SF_PT_MIN = 15.0",
+                abs(edges[0] - pt_min) < 1e-6,
+                f"muon ID: pT binning starts at {edges[0]}, matches cfg.x.muon_sf_pt_min",
+                f"muon ID: pT binning starts at {edges[0]}, but cfg.x.muon_sf_pt_min = {pt_min}",
             )
 
     # --- EGM: reco / ID / trigger / scale+smearing -----------------------

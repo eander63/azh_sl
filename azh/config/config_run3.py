@@ -332,7 +332,8 @@ def add_config(
             for info in dataset.info.values():
                 if info.n_files > limit_dataset_files:
                     info.n_files = limit_dataset_files
-        if dataset.name.startswith("tt"):
+        # ttbar only -- a plain startswith("tt") also caught ttZ, ttW and ttH
+        if dataset.name.startswith(("tt_sl", "tt_dl", "tt_fh")):
             dataset.add_tag({"is_ttbar"})
         if dataset.name.startswith("dy"):
             if not re.match(r"^dy_(ee|mumu|tautau)_", dataset.name):
@@ -974,10 +975,6 @@ def add_config(
         cfg.x.electron_sf_trig_names = (
             "Electron-HLT-SF", "2024Prompt", "HLT_SF_Ele30_MVAiso80ID",
         )
-    cfg.x.top_pt_reweighting_params = {
-        "a": 0.0615,
-        "b": -0.0005,
-    }
 
     # helper to add column aliases for both shifts of a source
     def add_aliases(shift_source: str, aliases: Set[str], selection_dependent: bool):
@@ -1024,9 +1021,6 @@ def add_config(
         {"normalized_pu_weight": "normalized_pu_weight_{direction}"},
         selection_dependent=False,
     )
-    cfg.add_shift(name="top_pt_up", id=9, type="shape")
-    cfg.add_shift(name="top_pt_down", id=10, type="shape")
-    add_aliases("top_pt", {"top_pt_weight": "top_pt_weight_{direction}"}, selection_dependent=False)
 
     cfg.add_shift(name="e_sf_up", id=40, type="shape")
     cfg.add_shift(name="e_sf_down", id=41, type="shape")
@@ -1313,7 +1307,6 @@ def add_config(
             "btag_weight*",
             "Pileup.nTrueInt",
             "LHEScaleWeight",
-            "GenPart.*",
         } | set(  # Jets
             f"{jet_obj}.{field}"
             for jet_obj in ["Jet"]
@@ -1386,22 +1379,9 @@ def add_config(
         if not dataset.is_mc:
             continue
         dataset_weights = {}
-        # NOTE: previously guarded on dataset.x("is_ttbar", False), but is_ttbar is
-        # set as a *tag*, so that expression was False for every dataset and the top
-        # pT weight was computed but never applied.
-        if dataset.has_tag("is_ttbar"):
-            # The weight itself IS applied (it is a correction, not an option).
-            # The *nuisance* is parked at [] pending a decision on the prescription:
-            # gen_top.py currently builds the variations as w*1.5 / w*0.5, a flat
-            # multiplicative factor. That is a pure +-50% rate change on ttbar with
-            # zero shape content (measured total-yield ratio: exactly 1.500000),
-            # whereas AN-2022/158 Sec. 9.1 l. 709 and Table 25 specify 'topPtRew' as
-            # a SHAPE nuisance whose magnitude is the full weight, i.e. the variation
-            # spans "reweighting applied" vs "not applied" (w -> 1 and w -> w^2).
-            # Enabling this before the prescription is settled would put a large,
-            # shapeless rate nuisance on the dominant background.
-            # TODO: restore get_shifts("top_pt") once the method is agreed.
-            dataset_weights["top_pt_weight"] = []
+        # Top pT reweighting is OFF: no Run 3 prescription has been agreed yet.
+        # When it comes back, apply it to tt_* only (the is_ttbar tag), never to
+        # ttZ / ttW / ttH, and normalize it so the inclusive ttbar yield is kept.
         # pythia dibosons have no LHEScaleWeight/LHEPdfWeight branch
         if not dataset.has_tag("no_lhe_weights"):
             for unc in ["mur", "muf", "murmuf_envelope", "pdf"]:

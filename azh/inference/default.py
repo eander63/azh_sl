@@ -368,12 +368,8 @@ def default(self):
     # ONLY sources that are both registered AND actually varied appear here.
     # Three registered sources are deliberately absent:
     #
-    #   top_pt  -- the shift exists, but `dataset.x.event_weights["top_pt_weight"]`
-    #              is `[]`, so all_weights never declares it and the "up"
-    #              histogram comes back bit-identical to nominal. The
-    #              prescription is also unsettled (AN Sec. 9.1 l. 709 specifies
-    #              a full-weight shape variation; gen_top.py currently does a
-    #              flat x1.5 / x0.5, which is a pure rate effect).
+    #   top_pt  -- top pT reweighting is switched off (no agreed Run 3
+    #              prescription); the shift and gen_top.py were removed.
     #   btag_*  -- the loop that registers these iterates over an empty
     #              `btag_uncs` list, so no such shift exists yet.
     #   tune, hdamp -- registered but tagged `disjoint_from_nominal`; they need

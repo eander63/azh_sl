@@ -920,6 +920,9 @@ def add_config(
         cfg.x.electron_sf_trig_names = (
             "Electron-HLT-SF", "2024Prompt", "HLT_SF_Ele30_MVAiso80ID",
         )
+    # HLT efficiency eta input: supercluster eta (as for the other EGM SFs)
+    # until EGM confirms what "electron eta" in electronHlt.json means
+    cfg.x.electron_hlt_use_sc_eta = True
 
     # helper to add column aliases for both shifts of a source
     def add_aliases(shift_source: str, aliases: Set[str], selection_dependent: bool):
@@ -969,12 +972,12 @@ def add_config(
 
     cfg.add_shift(name="e_sf_up", id=40, type="shape")
     cfg.add_shift(name="e_sf_down", id=41, type="shape")
-    cfg.add_shift(name="e_trig_sf_up", id=42, type="shape")
-    cfg.add_shift(name="e_trig_sf_down", id=43, type="shape")
-    add_aliases("e_trig_sf", {"electron_trig_weight": "electron_trig_weight_{direction}"}, selection_dependent=False)
-    cfg.add_shift(name="mu_trig_sf_up", id=53, type="shape")
-    cfg.add_shift(name="mu_trig_sf_down", id=54, type="shape")
-    add_aliases("mu_trig_sf", {"muon_trig_weight": "muon_trig_weight_{direction}"}, selection_dependent=False)
+    # trigger SF (production/trigger_weights.py): one event-level weight, three
+    # independent variations
+    for i, src in enumerate(("e_trig", "mu_trig_stat", "mu_trig_syst")):
+        cfg.add_shift(name=f"{src}_up", id=42 + 2 * i, type="shape")
+        cfg.add_shift(name=f"{src}_down", id=43 + 2 * i, type="shape")
+        add_aliases(src, {"trigger_weight": f"trigger_weight_{src}_" + "{direction}"}, selection_dependent=False)
 
     # AN-2022/158 Table 22 uses a single shape nuisance per lepton flavour
     # (CMS_eff_e, CMS_eff_m), correlated across years, covering reco + ID (+ iso).
@@ -1296,9 +1299,7 @@ def add_config(
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
         "btag_weight": get_shifts("btag_correlated", "btag_uncorrelated"),
-        "electron_trig_weight": get_shifts("e_trig_sf"),
-        # muon_Z.json HLT SFs valid down to ~15 GeV
-        "muon_trig_weight": get_shifts("mu_trig_sf"),
+        "trigger_weight": get_shifts("e_trig", "mu_trig_stat", "mu_trig_syst"),
         "electron_weight": get_shifts("e_sf"),            # electron reco above 75
         "electron_mid_weight": get_shifts("e_sf"),        # electron reco 20-75
         "electron_loreco_weight": get_shifts("e_sf"),     # electron reco 10-20

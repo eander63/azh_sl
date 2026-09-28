@@ -26,6 +26,8 @@ from columnflow.config_util import (
 from azh.config.signals import AZH_SIGNAL_DATASETS, AZH_SIGNAL_PROCESSES
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
+# repository root; the pinned golden JSONs live in <repo>/data/lumi/
+repo_dir = os.path.dirname(os.path.dirname(thisdir))
 
 logger = logging.getLogger(__name__)
 
@@ -544,61 +546,49 @@ def add_config(
 
     }
 
-    # lumi values in inverse pb
-    # 2022preEE, 2022postEE, 2023preBPix, 2023postBPix all brilcalc verified (jun 29 2026)
+    # ------------------------------------------------------------------
+    # Luminosity (inverse pb)
+    # ------------------------------------------------------------------
+    # Recorded luminosity of exactly the runs this config processes, from
+    #   brilcalc lumi -c web --normtag normtag_PHYSICS.json -u /pb
+    #            -i <current golden JSON> --begin <first> --end <last>
+    # with the golden JSON pinned below (the post-TrkML2026-review version;
+    # the local files are md5-identical to the DQM certification server).
+    # First/last runs are the union of this config's Muon and EGamma datasets.
+    # Era B of each year is in the golden JSON but not processed, which is why
+    # the eras sum to less than LUM's year totals (34.75 / 28.40 / 110.11 /fb).
     #
-    # Uncertainties follow the LUM POG Run 3 covariance matrix (golden JSON):
-    #   L = 34.75 +- 0.48 (1.4%) [2022], 28.40 +- 0.36 (1.3%) [2023],
-    #       110.11 +- 1.77 (1.6%) [2024]; combined 173.26 +- 2.07 (1.2%).
-    # The per-year total is NOT a single nuisance: part of it comes from the vdM
-    # methodology and is common to all years, the rest is year-specific. Filing
-    # the whole thing under one 'correlated' key (as before) asserts 100%
-    # correlation and inflates the combined uncertainty.
+    #   config      runs            recorded /pb
+    #   2022pre     355862-357900     7989.5
+    #   2022post    359356-362760    26674.9
+    #   2023pre     367094-369694    17964.2   (was 18605: matched neither JSON)
+    #   2023post    369844-370790     9676.7   (was 9693: old JSON)
+    #   2024        379415-386951   109815.6 - 105.3 = 109710.3
     #
-    # Decomposing the POG covariance as R_ij = c_i c_j (correlated, one shared
-    # nuisance with year-dependent size) + delta_ij u_i^2 (uncorrelated) gives:
-    #                    2022       2023       2024
-    #   correlated      0.2676%    0.8746%    1.0244%
-    #   uncorrelated    1.3530%    0.9356%    1.2368%
-    #   quad. sum       1.3792%    1.2807%    1.6060%   (POG: 1.4 / 1.3 / 1.6%)
-    # This reproduces every element of the POG matrix, and hence the 1.2%
-    # combined figure, to machine precision. NOTE: with three years the rank-1
-    # off-diagonal solution is exact by construction (3 equations, 3 unknowns),
-    # so re-derive this if a fourth year is added.
+    # 2024: golden runs 386615-386617 (105.3 /pb) exist only in prompt-reco
+    # datasets, not in the MINIv6NANOv15 reprocessing used here, so no data
+    # event can come from them; they are subtracted.
     #
-    # Both eras of a given year share that year's nuisances -- the luminosity
-    # calibration is per-year, not per-era.
-    if year == 2022:
-        if campaign.x.EE == "pre":
-            cfg.x.luminosity = Number(7990, {
-                "lumi_13p6TeV_correlated": 0.002676j,
-                "lumi_13p6TeV_uncorrelated_2022": 0.013530j,
-            })
-        elif campaign.x.EE == "post":
-            cfg.x.luminosity = Number(26675, {
-                "lumi_13p6TeV_correlated": 0.002676j,
-                "lumi_13p6TeV_uncorrelated_2022": 0.013530j,
-            })
-    elif year == 2023:
-        if campaign.x.BPix == "pre":
-            cfg.x.luminosity = Number(18605, {
-                "lumi_13p6TeV_correlated": 0.008746j,
-                "lumi_13p6TeV_uncorrelated_2023": 0.009356j,
-            })
-        elif campaign.x.BPix == "post":
-            cfg.x.luminosity = Number(9693, {
-                "lumi_13p6TeV_correlated": 0.008746j,
-                "lumi_13p6TeV_uncorrelated_2023": 0.009356j,
-            })
-    elif year == 2024:
-        # 2024 golden-JSON integrated luminosity, runs 378981-386951.
-        # Not brilcalc-verified locally -- taken from the CMS 2024 recommendation.
-        cfg.x.luminosity = Number(109948, {
-            "lumi_13p6TeV_correlated": 0.010244j,
-            "lumi_13p6TeV_uncorrelated_2024": 0.012368j,
-        })
-    else:
-        raise NotImplementedError(f"Luminosity for year {year} is not defined.")
+    # Uncertainties: the LUM POG nuisances for a 2022+2023+2024 combination,
+    # verbatim (lnN, relative):
+    #   lumi_1: 2022 1.38%, 2023 0.17%, 2024 0.20%
+    #   lumi_2:             2023 1.27%, 2024 0.68%
+    #   lumi_3:                         2024 1.44%
+    # These reproduce the LUM covariance matrix. Both eras of a year share the
+    # year's values (the calibration is per year).
+    lumi_uncertainties = {
+        2022: {"lumi_1": 0.0138j},
+        2023: {"lumi_1": 0.0017j, "lumi_2": 0.0127j},
+        2024: {"lumi_1": 0.0020j, "lumi_2": 0.0068j, "lumi_3": 0.0144j},
+    }[year]
+    lumi_values = {
+        "2022preEE": 7989.5,
+        "2022postEE": 26674.9,
+        "2023preBPix": 17964.2,
+        "2023postBPix": 9676.7,
+        "2024": 109710.3,
+    }
+    cfg.x.luminosity = Number(lumi_values[era_key], lumi_uncertainties)
 
     # Per-channel effective lumi for `channel_lumi_weight` (see
     # production/channel_lumi_weight.py for derivation procedure).
@@ -1239,8 +1229,8 @@ def add_config(
     if year == 2022 and campaign.x.EE == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
-                "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
+                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2022_355100_362760_Golden.json"), "v2"),  # noqa
+                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileup_JSON.txt", "v1"),
@@ -1249,8 +1239,8 @@ def add_config(
     elif year == 2022 and campaign.x.EE == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
-                "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
+                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2022_355100_362760_Golden.json"), "v2"),  # noqa
+                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),
@@ -1259,7 +1249,7 @@ def add_config(
     elif year == 2023 and campaign.x.BPix == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2023_366442_370790_Golden.json"), "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1269,7 +1259,7 @@ def add_config(
     elif year == 2023 and campaign.x.BPix == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2023_366442_370790_Golden.json"), "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1279,7 +1269,7 @@ def add_config(
     elif year == 2024:
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json", "v1"),  # noqa
+                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2024_378981_386951_Golden.json"), "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {

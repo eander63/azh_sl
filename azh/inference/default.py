@@ -331,9 +331,8 @@ def default(self):
     #
     # This loop is taken from the columnflow template and works unmodified
     # because config_run3.py already builds `cfg.x.luminosity` as an
-    # order.Number carrying named uncertainties -- `lumi_13p6TeV_correlated`
-    # and `lumi_13p6TeV_uncorrelated_<year>` -- decomposed from the LUM POG
-    # Run 3 covariance matrix.
+    # order.Number carrying the LUM POG nuisances `lumi_1`, `lumi_2`, `lumi_3`
+    # with their per-year values.
     #
     # That decomposition is why this must stay a loop rather than a single
     # hard-coded lnN: the shared (vdM methodology) component and the year-local

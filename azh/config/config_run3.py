@@ -906,8 +906,8 @@ def add_config(
     # 2024 extends to 10. Masking above the true floor silently assigns SF = 1
     # to muons that do have a measured scale factor.
     cfg.x.muon_sf_pt_min = 10.0 if year == 2024 else 15.0
-    # era-branched HLT electron SF. VERIFY the period string AND the HLT category
-    # ("HLT_SF_Ele30_MVAiso80ID") against electronHlt.json per era (introspection cmd).
+    # era-branched HLT electron SF / efficiency keys (verified against
+    # electronHlt.json: Path HLT_SF_Ele30_MVAiso80ID exists in every era)
     if f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2022Re-recoBCD", "HLT_SF_Ele30_MVAiso80ID")
     elif f"{year}{corr_postfix}" == "2022postEE":
@@ -1378,12 +1378,8 @@ def add_config(
         {c.name for c in _walk_cats(cfg.categories) if "0bjets" in c.name.split("__")}
     )
     # add_cutflow_variables(cfg)
-    if year == 2022:
-        from azh.config.triggers import add_triggers_2022
-        add_triggers_2022(cfg)
-    if year == 2024:
-        from azh.config.triggers import add_triggers_2024
-        add_triggers_2024(cfg)
+    from azh.config.triggers import add_triggers
+    add_triggers(cfg)
 
     # surface everything that still needs checking against the real files
     if cfg_unverified:

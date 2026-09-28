@@ -1,5 +1,8 @@
 # AZH → semileptonic (Run 3)
 
+> **Pre-flight patch series (2022–2024):** triggers, samples, luminosity, corrections, uncertainties and the jet handling changed substantially. Where this README disagrees with `PREFLIGHT_CHANGES.md` or the code, the latter are current.
+
+
 Search for a heavy pseudoscalar **A → ZH**, with H → tt̄ and Z → ℓℓ, in CMS Run 3
 data. Built on
 [columnflow](https://github.com/columnflow/columnflow). Directions are for use on DESY.

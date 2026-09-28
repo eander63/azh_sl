@@ -970,8 +970,6 @@ def add_config(
         selection_dependent=False,
     )
 
-    cfg.add_shift(name="e_sf_up", id=40, type="shape")
-    cfg.add_shift(name="e_sf_down", id=41, type="shape")
     # trigger SF (production/trigger_weights.py): one event-level weight, three
     # independent variations
     for i, src in enumerate(("e_trig", "mu_trig_stat", "mu_trig_syst")):
@@ -979,52 +977,32 @@ def add_config(
         cfg.add_shift(name=f"{src}_down", id=43 + 2 * i, type="shape")
         add_aliases(src, {"trigger_weight": f"trigger_weight_{src}_" + "{direction}"}, selection_dependent=False)
 
-    # AN-2022/158 Table 22 uses a single shape nuisance per lepton flavour
-    # (CMS_eff_e, CMS_eff_m), correlated across years, covering reco + ID (+ iso).
-    # We follow that grouping here: every electron SF column moves coherently
-    # under 'e_sf', every muon SF column under 'muon'. Coherent motion is the
-    # conservative choice (reco and ID are independent measurements, so a proper
-    # treatment would add them in quadrature). To split them later, register a
-    # new shift source and move the relevant entries out of these dicts.
-    #
-    # Column names follow azh/production/weights.py: the base electron_weights /
-    # muon_weights producers are derived once per SF, and each derivative emits
-    # <weight_name>{,_up,_down} unconditionally.
+    # Lepton efficiency SFs. Reco and ID are separate measurements and hence
+    # separate nuisances (EGM: uncorrelated; decorrelated per era in the
+    # datacard, see cfg.x.shift_correlations). The three reco pT bins are one
+    # measurement and move together.
+    cfg.add_shift(name="e_reco_up", id=40, type="shape")
+    cfg.add_shift(name="e_reco_down", id=41, type="shape")
     add_aliases(
-        "e_sf",
-        {
-            w: f"{w}_{{direction}}"
-            for w in [
-                "electron_weight",         # reco, pT >= 75
-                "electron_mid_weight",     # reco, 20 <= pT < 75
-                "electron_loreco_weight",  # reco, 10 <= pT < 20
-                "electron_id_weight",      # MVA WP80iso ID
-            ]
-        },
+        "e_reco",
+        {w: f"{w}_{{direction}}" for w in ["electron_weight", "electron_mid_weight", "electron_loreco_weight"]},
         selection_dependent=False,
     )
+    cfg.add_shift(name="e_id_up", id=48, type="shape")
+    cfg.add_shift(name="e_id_down", id=49, type="shape")
+    add_aliases("e_id", {"electron_id_weight": "electron_id_weight_{direction}"}, selection_dependent=False)
 
-    cfg.add_shift(name="muon_up", id=51, type="shape")
-    cfg.add_shift(name="muon_down", id=52, type="shape")
-    # NOTE: the previous alias targeted 'muon_weight', which this analysis never
-    # produces -- weights.py derives split TightID / TightPFIso producers instead,
-    # so the alias silently did nothing.
-    add_aliases(
-        "muon",
-        {
-            w: f"{w}_{{direction}}"
-            for w in [
-                "muon_id_weight",   # TightID SF
-                "muon_iso_weight",  # TightPFIso SF
-            ]
-        },
-        selection_dependent=False,
-    )
-
-    btag_uncs = []
-    for i, unc in enumerate(btag_uncs):
-        cfg.add_shift(name=f"btag_{unc}_up", id=100 + 2 * i, type="shape")
-        cfg.add_shift(name=f"btag_{unc}_down", id=101 + 2 * i, type="shape")
+    # Muon ID / iso: MUO wants stat (per era) and syst (correlated) separately
+    # (production/muon_sf.py writes <w>_{stat,syst}_{up,down})
+    for i, (src, col, kind) in enumerate((
+        ("mu_id_stat", "muon_id_weight", "stat"),
+        ("mu_id_syst", "muon_id_weight", "syst"),
+        ("mu_iso_stat", "muon_iso_weight", "stat"),
+        ("mu_iso_syst", "muon_iso_weight", "syst"),
+    )):
+        cfg.add_shift(name=f"{src}_up", id=50 + 2 * i, type="shape")
+        cfg.add_shift(name=f"{src}_down", id=51 + 2 * i, type="shape")
+        add_aliases(src, {col: f"{col}_{kind}_" + "{direction}"}, selection_dependent=False)
 
     # b-tag fixed-WP scale factor uncertainties. BTV splits these into a piece
     # correlated across years (method/hadronisation) and one that is not (the
@@ -1300,12 +1278,12 @@ def add_config(
         "normalization_weight": [],
         "btag_weight": get_shifts("btag_correlated", "btag_uncorrelated"),
         "trigger_weight": get_shifts("e_trig", "mu_trig_stat", "mu_trig_syst"),
-        "electron_weight": get_shifts("e_sf"),            # electron reco above 75
-        "electron_mid_weight": get_shifts("e_sf"),        # electron reco 20-75
-        "electron_loreco_weight": get_shifts("e_sf"),     # electron reco 10-20
-        "electron_id_weight": get_shifts("e_sf"),         # electron MVA WP80iso
-        "muon_id_weight": get_shifts("muon"),             # TightID SF
-        "muon_iso_weight": get_shifts("muon"),            # TightPFIso SF
+        "electron_weight": get_shifts("e_reco"),          # electron reco above 75
+        "electron_mid_weight": get_shifts("e_reco"),      # electron reco 20-75
+        "electron_loreco_weight": get_shifts("e_reco"),   # electron reco 10-20
+        "electron_id_weight": get_shifts("e_id"),         # electron MVA WP80iso
+        "muon_id_weight": get_shifts("mu_id_stat", "mu_id_syst"),     # TightID SF
+        "muon_iso_weight": get_shifts("mu_iso_stat", "mu_iso_syst"),  # TightPFIso SF
         # split_btag_weights is called in weights.py and 'btag_weight*' is kept
         # through reduction, but the column was never listed here -- so the b-tag
         # scale factor was computed, stored, and then silently dropped from the

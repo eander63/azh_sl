@@ -27,6 +27,7 @@ from azh.production.pileup import pu_weight
 from columnflow.production.processes import process_ids
 
 from azh.selection.jet_selection import jet_selection
+from azh.calibration.corrections import ECAL_BADCRYSTAL_RUNS
 from azh.selection.lepton_selection import lepton_selection
 from azh.selection.trigger import trigger_selection
     # met categories included via add_categories_met
@@ -49,6 +50,7 @@ ak = maybe_import("awkward")
         # which resolves the era-dependent column from cfg.x.btag_default
         "Jet.pt", "Jet.eta",
         "PuppiMET.pt",
+        "Flag.ecalBadCalibFilter",
         met_filters, json_filter, jet_veto_map,
     },
     produces={
@@ -98,6 +100,16 @@ def default(
     # MET filters
     events, met_filters_results = self[met_filters](events, **kwargs)
     results += met_filters_results
+
+    # ECAL bad calibration filter. Data in runs 362433-367144 are prompt reco
+    # and use the JME bad-crystal veto (calibration/corrections.py) instead of
+    # the stored flag; everything else uses the flag.
+    ecal_ok = events.Flag.ecalBadCalibFilter
+    if self.dataset_inst.is_data:
+        lo, hi = ECAL_BADCRYSTAL_RUNS
+        in_window = (events.run >= lo) & (events.run <= hi)
+        ecal_ok = ak.where(in_window, ~events.ecal_badcrystal_veto, ecal_ok)
+    results.steps["ecal_bad_calib"] = ak.fill_none(ecal_ok, False)
 
     events, jet_veto_results = self[jet_veto_map](events, **kwargs)
     results += jet_veto_results
@@ -221,7 +233,10 @@ def default_init(
     every jet that passes pT > 30 in ANY variation), so they only need
     ProduceColumns to rerun.
     """
-    if not getattr(self, "dataset_inst", None) or self.dataset_inst.is_data:
+    if not getattr(self, "dataset_inst", None):
+        return
+    if self.dataset_inst.is_data:
+        self.uses |= {"run", "ecal_badcrystal_veto"}
         return
 
     self.shifts |= {

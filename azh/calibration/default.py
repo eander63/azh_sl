@@ -12,6 +12,7 @@ from columnflow.util import maybe_import
 ak = maybe_import("awkward")
 
 from azh.calibration.corrections import (
+    ecal_badcrystal_veto,
     electron_ss,
     jet_energy,
     jet_lepton_cleaner,
@@ -23,6 +24,7 @@ from azh.calibration.corrections import (
     uses={
         mc_weight,
         deterministic_seeds,
+        ecal_badcrystal_veto,
         jet_lepton_cleaner,
         jet_energy,
         muon_scare,
@@ -31,6 +33,7 @@ from azh.calibration.corrections import (
     produces={
         mc_weight,
         deterministic_seeds,
+        ecal_badcrystal_veto,
         jet_lepton_cleaner,
         jet_energy,
         muon_scare,
@@ -42,6 +45,9 @@ def skip_jecunc(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
         events = self[deterministic_seeds](events, **kwargs)
+    else:
+        # must see the untouched NanoAOD jets and MET, so before jet_energy
+        events = self[ecal_badcrystal_veto](events, **kwargs)
     events = self[jet_lepton_cleaner](events, **kwargs)
     events = self[jet_energy](events, **kwargs)
     events = self[muon_scare](events, **kwargs)

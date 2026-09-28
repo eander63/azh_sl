@@ -567,8 +567,10 @@ def add_config(
     "Flag.BadPFMuonDzFilter",
     "Flag.hfNoisyHitsFilter",
     "Flag.eeBadScFilter",
-    "Flag.ecalBadCalibFilter",
-    # HBHENoiseFilter / HBHENoiseIsoFilter: removed, "no longer needed" in Run 3
+    # HBHENoiseFilter / HBHENoiseIsoFilter: not required in Run 3 (JME)
+    # Flag.ecalBadCalibFilter: applied as its own selection step
+    # ("ecal_bad_calib", selection/default.py) because for prompt-reco data in
+    # runs 362433-367144 it is replaced by the ECAL bad-crystal veto
     }
 
     # minimum bias cross section in mb (milli) for creating PU weights, values from

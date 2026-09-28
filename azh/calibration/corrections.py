@@ -88,6 +88,43 @@ def jet_energy_init(
 
 
 # ===========================================================================
+# 2022-2023 prompt-reco ECAL bad crystal (JME MET-filter recommendation)
+# ===========================================================================
+# The 22Sep2023 2022G / 2023C datasets used here are re-NANOs of prompt reco
+# (DAS parentage: ...-PromptReco-v1/AOD), so the recipe applies. For data in
+# runs 362433-367144 the stored Flag_ecalBadCalibFilter must not be used;
+# instead reject the event if PuppiMET_pt > 100 GeV and at least one AK4 jet
+# (no jet ID) has pt > 50, -0.5 < eta < -0.1, -2.1 < phi < -1.8 and
+# (neEmEF > 0.9 or chEmEF > 0.9). Data only; JME quotes < 0.2% loss.
+#
+# The recipe is defined on the NanoAOD values, which jet_energy overwrites, so
+# this calibrator runs FIRST and stores only the decision.
+ECAL_BADCRYSTAL_RUNS = (362433, 367144)
+
+
+@calibrator(
+    uses={"run", "PuppiMET.pt", "Jet.{pt,eta,phi,neEmEF,chEmEF}"},
+    produces={"ecal_badcrystal_veto"},
+)
+def ecal_badcrystal_veto(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
+    """True for data events to reject; False everywhere else."""
+    lo, hi = ECAL_BADCRYSTAL_RUNS
+    jet = events.Jet
+    bad_jet = (
+        (jet.pt > 50) &
+        (jet.eta > -0.5) & (jet.eta < -0.1) &
+        (jet.phi > -2.1) & (jet.phi < -1.8) &
+        ((jet.neEmEF > 0.9) | (jet.chEmEF > 0.9))
+    )
+    veto = (
+        (events.run >= lo) & (events.run <= hi) &
+        (events.PuppiMET.pt > 100) &
+        ak.any(bad_jet, axis=1)
+    )
+    return set_ak_column(events, "ecal_badcrystal_veto", ak.fill_none(veto, False))
+
+
+# ===========================================================================
 # Jet-lepton cleaning
 # ===========================================================================
 @calibrator(

@@ -851,48 +851,31 @@ def add_config(
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "wp80iso")
-        # TODO: UNVERIFIED -- the 2022preEE file names its scale correction
-        # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
-        # too. List the keys in this era's electronSS_EtDependent.json.gz before
-        # processing it; electron_ss_setup now reports them on failure.
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022postEE", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
-        # VERIFIED against Run3-22CDSep23-Summer22-NanoAODv12/2025-12-15/
-        # electronSS_EtDependent.json.gz: the scale correction carries an era
-        # suffix, 'SmearAndSyst' is a generic alias for EGMSmearAndSyst_ElePT_2022
-        # and needs none. The previous value here was the 2024 name, which does
-        # not exist in this file (correctionlib raised a bare "IndexError: map::at").
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022preEE", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2023postBPix":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptD", "wp80iso")
-        # TODO: UNVERIFIED -- the 2022preEE file names its scale correction
-        # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
-        # too. List the keys in this era's electronSS_EtDependent.json.gz before
-        # processing it; electron_ss_setup now reports them on failure.
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023postBPIX", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2023preBPix":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptC", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
-        # TODO: UNVERIFIED -- the 2022preEE file names its scale correction
-        # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
-        # too. List the keys in this era's electronSS_EtDependent.json.gz before
-        # processing it; electron_ss_setup now reports them on failure.
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023preBPIX", "SmearAndSyst")
     elif era_key == "2024":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2024Prompt", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2024Prompt", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2024Prompt", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2024Prompt", "wp80iso")
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
+
+    # electron scale & smearing (electronSS_EtDependent.json.gz, every era):
+    # data use the compound "Scale" (all six stages), MC the plain
+    # "SmearAndSyst" (smearing + escale/esmear uncertainties)
+    cfg.x.electron_ss_names = ("Scale", "SmearAndSyst")
 
     # names of muon correction sets and working points
     # (used in the muon producer)
@@ -1003,6 +986,21 @@ def add_config(
         cfg.add_shift(name=f"{src}_up", id=50 + 2 * i, type="shape")
         cfg.add_shift(name=f"{src}_down", id=51 + 2 * i, type="shape")
         add_aliases(src, {col: f"{col}_{kind}_" + "{direction}"}, selection_dependent=False)
+
+    # Lepton momentum scale / resolution (calibration/corrections.py writes the
+    # varied pt columns for MC). These change which leptons pass the pT floor,
+    # so they are selection dependent: the selector registers them and
+    # Calibrate -> Select -> Reduce reruns per shift (8 passes in total).
+    for i, (src, coll, var) in enumerate((
+        ("e_scale", "Electron", "scale"),
+        ("e_smear", "Electron", "smear"),
+        ("mu_scale", "Muon", "scale"),
+        ("mu_resol", "Muon", "resol"),
+    )):
+        cfg.add_shift(name=f"{src}_up", id=300 + 2 * i, type="shape")
+        cfg.add_shift(name=f"{src}_down", id=301 + 2 * i, type="shape")
+        add_aliases(src, {f"{coll}.pt": f"{coll}.pt_{var}_" + "{direction}"}, selection_dependent=True)
+    cfg.x.lepton_shift_sources = ["e_scale", "e_smear", "mu_scale", "mu_resol"]
 
     # b-tag fixed-WP scale factor uncertainties. BTV splits these into a piece
     # correlated across years (method/hadronisation) and one that is not (the

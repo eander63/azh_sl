@@ -197,31 +197,24 @@ def default_init(
     **kwargs,
 ) -> None:
     """
-    Declare the JEC/JER shifts this selector implements.
+    Declare the shifts that change the event selection.
 
-    This has to live on the *selector*, not the calibrator: SelectEvents and
-    ReduceEvents set register_selector_shifts = True (columnflow
-    tasks/selection.py:57, tasks/reduction.py:54), while register_calibrators_shifts
-    is False everywhere. Only a task that implements a shift gets
-    local_shift = <shift>, and the column aliases are read from local_shift_inst
-    (tasks/selection.py:150, tasks/reduction.py:110).
+    This has to live on the *selector*: SelectEvents and ReduceEvents set
+    register_selector_shifts = True (columnflow tasks/selection.py,
+    tasks/reduction.py), so only then do their local shift -- and hence the
+    column aliases -- respond. The calibrators write every varied column in the
+    nominal pass, so CalibrateEvents does not rerun per shift.
 
-    Declaring these on the calibrator instead makes the shift resolve globally
-    (shift=jec_Total_up) but leaves local_shift=nominal at SelectEvents, so the
-    nominal Jet.pt is read and the shifted histogram comes out bit-identical to
-    nominal -- with no warning, because missing_column_alias_strategy is
-    "original".
-
-    Note the jec calibrator never inspects shift_inst: it writes every
-    Jet.pt_jec_<source>_<dir> column in one pass. So CalibrateEvents does not
-    need to rerun per shift, and should stay at nominal.
+    Only the lepton momentum shifts are selection dependent. The JES/JER shifts
+    are registered on the producer instead (production/default.py): no event or
+    object cut at selection depends on the jet pT variation (jet_selection keeps
+    every jet that passes pT > 30 in ANY variation), so they only need
+    ProduceColumns to rerun.
     """
     if not getattr(self, "dataset_inst", None) or self.dataset_inst.is_data:
         return
 
-    sources = self.config_inst.x.jec.get("uncertainty_sources") or []
-    shift_sources = [f"jec_{source}" for source in sources] + ["jer"]
     self.shifts |= {
         shift_inst.name
-        for shift_inst in get_shifts_from_sources(self.config_inst, *shift_sources)
+        for shift_inst in get_shifts_from_sources(self.config_inst, *self.config_inst.x.lepton_shift_sources)
     }

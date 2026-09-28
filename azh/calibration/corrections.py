@@ -220,10 +220,11 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
 # Thin wrapper around the OFFICIAL Muon POG kit
 # (modules/muonscarekit/scripts/MuonScaRe.py). The kit reads the same
 # muon_scalesmearing.json.gz we already load -- it evaluates a_/m_ (scale),
-# poly_params + cb_params + k_ (resolution), and pulls the reproducible
-# smearing random number from the file's own RandomSmearing correction. So the
-# entire hand-rolled Crystal Ball inverse-CDF and the splitmix64 hash are gone;
-# reproducibility and the CB tails are now handled by validated POG code.
+# poly_params + cb_params + k_ (resolution) -- and generates the reproducible
+# smearing random number itself, seeded from (event, lumi, phi) with numpy
+# (rnd_gen="np"); it does not use the file's RandomSmearing correction.
+# Muons below 26 GeV (and above 200) are left uncorrected by the kit, which is
+# the intended choice for this analysis.
 #
 # The kit is awkward-native (nested=True): pass jagged Muon.* arrays directly,
 # no flatten/unflatten. filter_boundaries() (low_pt_threshold=26) and the
@@ -261,8 +262,9 @@ def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
     # resolution smearing: MC only, on the scale-corrected pt
     if not is_data:
+        pt_scaled = events.Muon.pt
         pt_corr = pt_resol(
-            events.Muon.pt,
+            pt_scaled,
             events.Muon.eta,
             events.Muon.phi,
             events.Muon.nTrackerLayers,
@@ -274,7 +276,25 @@ def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
         )
         events = set_ak_column(events, "Muon.pt", pt_corr)
 
+        # MUO scale / resolution variations, as in the MuonScaRe kit README:
+        # scale variation on the fully corrected pt, resolution variation from
+        # the (scale-only, scale+resol) pair. Outside the kit's validity range
+        # (pt < 26 or > 200 GeV) the kit returns the input, i.e. no variation.
+        for d in ("up", "down"):
+            events = set_ak_column(events, f"Muon.pt_scale_{d}", self.pt_scale_var(
+                pt_corr, events.Muon.eta, events.Muon.phi, events.Muon.charge, d, self.muon_cset, nested=True,
+            ))
+            events = set_ak_column(events, f"Muon.pt_resol_{d}", self.pt_resol_var(
+                pt_scaled, pt_corr, events.Muon.eta, d, self.muon_cset, nested=True,
+            ))
+
     return events
+
+
+@muon_scare.init
+def muon_scare_init(self: Calibrator, **kwargs) -> None:
+    if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
+        self.produces |= {f"Muon.pt_{v}_{d}" for v in ("scale", "resol") for d in ("up", "down")}
 
 
 @muon_scare.requires
@@ -310,9 +330,25 @@ def muon_scare_setup(
     _kit = os.path.join(_repo, "modules", "muonscarekit", "scripts")
     if _kit not in sys.path:
         sys.path.insert(0, _kit)
-    from MuonScaRe import pt_resol, pt_scale
+    import inspect
+    from MuonScaRe import pt_resol, pt_resol_var, pt_scale, pt_scale_var
 
     self.pt_scale, self.pt_resol = pt_scale, pt_resol
+    self.pt_scale_var, self.pt_resol_var = pt_scale_var, pt_resol_var
+
+    # the variation calls above are positional; fail loudly if the pinned kit
+    # changes their signatures
+    expected = {
+        pt_scale_var: ["pt", "eta", "phi", "charge", "updn", "cset", "nested"],
+        pt_resol_var: ["pt_woresol", "pt_wresol", "eta", "updn", "cset", "nested"],
+    }
+    for func, names in expected.items():
+        got = list(inspect.signature(func).parameters)[:len(names)]
+        if got != names:
+            raise RuntimeError(
+                f"MuonScaRe.{func.__name__} has parameters {got}, expected {names}; "
+                "update the call in azh/calibration/corrections.py:muon_scare",
+            )
 
     import correctionlib
 
@@ -323,62 +359,50 @@ def muon_scare_setup(
 
 
 """
-EGM electron scale & smearing -- eT-dependent flavour (POG-recommended).
+EGM electron scale & smearing, eT-dependent (electronSS_EtDependent.json.gz).
 
-Replaces the standard-flavour electron_ss. Applies:
-  * data: energy SCALE   -> Electron.pt *= scale
-  * MC:   energy SMEARING -> Electron.pt *= (1 + sigma * gaussian)
+  * data: pt *= compound "Scale"(syst="scale", run, ScEta, r9, pt, seedGain).
+    The compound chains EGMScaleVsRun -> EleEtaR9 -> EleFineEtaR9 -> ElePT ->
+    EleGain -> ElePTsplit. The previous code applied only the last step, a
+    ~1e-4 residual; the run-dependent step alone moves 2023D electrons by
+    +2.3% on average (Z->ee core peak 88.8 -> 90.8 GeV in data).
+  * MC: pt *= 1 + sigma * N(0,1), sigma = SmearAndSyst("smear", pt, r9, ScEta).
+    No scale on MC, no smearing on data (EGM).
+  * MC variations, on top of the smeared (unscaled) pt, as EGM prescribes:
+        pt_scale_{up,down} = pt_smeared * (1 +- escale)
+        pt_smear_{up,down} = pt * (1 + (sigma +- esmear) * N)   (same N)
+    escale / esmear are the relative uncertainties from SmearAndSyst.
+  * Corrections are applied at all pT: every pT-binned correction in the file
+    starts at 0 GeV (the former 15 GeV floor is removed).
+  * Reproducible smearing: the Gaussian is seeded per electron from
+    (event, object index).
 
-Key correctness points (all learned from introspecting the real JSONs):
-
-  * Supercluster eta. The corrections are binned in ScEta (or AbsScEta,
-    depending on the file version). We compute ScEta = eta + deltaEtaSC and let
-    the setup decide, per correction, whether to pass the signed or absolute
-    value -- read from the correction's declared inputs, NOT hardcoded, because
-    CVMFS and older mirrors disagree on this.
-
-  * eT-dependent entry point. The file ships many EGMScale_*/EGMSmearAndSyst_*
-    components; the two that return the final applied numbers are the
-    'ElePTsplit' ones, selected via the syst string ("scale" / "smear").
-
-  * Reproducible smearing. The Gaussian is seeded per-electron from
-    (event, object index), so re-running -- at any chunk size -- reproduces the
-    same smeared pt. (The old code seeded once per chunk, which was not
-    reproducible.)
-
-  * <15 GeV guard. The POG states S&S is untuned below ~15 GeV; electrons below
-    that (our loose floor is 10) are passed through uncorrected.
+Input values are matched to each correction's declared input names, so signed
+vs absolute ScEta and the run / seedGain inputs are resolved from the file.
 """
 
-# S&S not tuned below this pt (EGM recommendation)
-SS_PT_MIN = 15.0
 
-
-def _build_args(corr, syst, pt, r9, sceta):
-    """
-    Build the evaluate() argument tuple by reading the correction's declared
-    inputs, so we pass signed ScEta or AbsScEta as required and tolerate file
-    version differences. First input is always the syst string.
-    """
-    values = {"pt": pt, "r9": r9, "ScEta": sceta, "AbsScEta": np.abs(sceta)}
-    args = [syst]
-    for inp in corr.inputs[1:]:
-        if inp.name not in values:
+def _build_args(corr, syst, values):
+    """evaluate() arguments for *corr*, matched by the declared input names."""
+    args = []
+    for inp in corr.inputs:
+        if inp.name == "syst":
+            args.append(syst)
+        elif inp.name in values:
+            args.append(values[inp.name])
+        else:
             raise KeyError(
-                f"electron_ss: correction '{corr.name}' declares unexpected "
-                f"input '{inp.name}' (known: {sorted(values)})",
+                f"electron_ss: correction '{corr.name}' declares unexpected input "
+                f"'{inp.name}' (known: syst, {sorted(values)})",
             )
-        args.append(values[inp.name])
     return tuple(args)
 
 
 @calibrator(
     uses={
-        "Electron.pt",
-        "Electron.eta",
-        "Electron.deltaEtaSC",
-        "Electron.r9",
+        "run",
         "event",
+        "Electron.{pt,eta,deltaEtaSC,r9,seedGain}",
     },
     produces={"Electron.pt"},
 )
@@ -386,54 +410,46 @@ def electron_ss(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     ele = events.Electron
     counts = ak.num(ele.pt, axis=1)
 
-    flat_pt = ak.to_numpy(ak.flatten(ele.pt)).astype(np.float64)
-    flat_r9 = ak.to_numpy(ak.flatten(ele.r9)).astype(np.float64)
-    flat_sceta = ak.to_numpy(ak.flatten(ele.eta + ele.deltaEtaSC)).astype(np.float64)
+    pt = ak.to_numpy(ak.flatten(ele.pt)).astype(np.float64)
+    sceta = ak.to_numpy(ak.flatten(ele.eta + ele.deltaEtaSC)).astype(np.float64)
+    values = {
+        "pt": pt,
+        "r9": ak.to_numpy(ak.flatten(ele.r9)).astype(np.float64),
+        "ScEta": sceta,
+        "AbsScEta": np.abs(sceta),
+        "run": ak.to_numpy(ak.flatten(ak.broadcast_arrays(events.run, ele.pt)[0])).astype(np.int64),
+        "seedGain": ak.to_numpy(ak.flatten(ele.seedGain)).astype(np.int64),
+    }
 
-    # only correct electrons above the S&S validity floor
-    do_corr = flat_pt >= SS_PT_MIN
-    corrected = flat_pt.copy()
+    def store(name, flat):
+        return set_ak_column(events, name, ak.unflatten(np.maximum(flat, 0.0).astype(np.float32), counts))
 
     if self.dataset_inst.is_data:
-        args = _build_args(
-            self.corr_scale,
-            "scale",
-            flat_pt[do_corr],
-            flat_r9[do_corr],
-            flat_sceta[do_corr],
-        )
-        scale = self.corr_scale.evaluate(*args)
-        corrected[do_corr] = flat_pt[do_corr] * scale
-    else:
-        args = _build_args(
-            self.corr_smear,
-            "smear",
-            flat_pt[do_corr],
-            flat_r9[do_corr],
-            flat_sceta[do_corr],
-        )
-        sigma = self.corr_smear.evaluate(*args)
+        scale = self.corr_scale.evaluate(*_build_args(self.corr_scale, "scale", values))
+        return store("Electron.pt", pt * scale)
 
-        # reproducible per-electron gaussian, seeded from (event, object index)
-        event_per_ele = ak.to_numpy(
-            ak.flatten(
-                ak.broadcast_arrays(events.event, ele.pt)[0],
-            )
-        ).astype(np.uint64)
-        obj_idx = ak.to_numpy(ak.flatten(ak.local_index(ele.pt, axis=1))).astype(
-            np.uint64
-        )
-        seeds = (event_per_ele * np.uint64(2654435761) + obj_idx)[do_corr]
+    sigma = self.corr_smear.evaluate(*_build_args(self.corr_smear, "smear", values))
+    unc_scale = self.corr_smear.evaluate(*_build_args(self.corr_smear, "escale", values))
+    unc_smear = self.corr_smear.evaluate(*_build_args(self.corr_smear, "esmear", values))
 
-        gauss = np.empty(do_corr.sum(), dtype=np.float64)
-        for i, sd in enumerate(seeds):
-            gauss[i] = np.random.default_rng(sd).standard_normal()
+    # reproducible per-electron gaussian, seeded from (event, object index)
+    event_per_ele = ak.to_numpy(ak.flatten(ak.broadcast_arrays(events.event, ele.pt)[0])).astype(np.uint64)
+    obj_idx = ak.to_numpy(ak.flatten(ak.local_index(ele.pt, axis=1))).astype(np.uint64)
+    seeds = event_per_ele * np.uint64(2654435761) + obj_idx
+    gauss = np.array([np.random.default_rng(sd).standard_normal() for sd in seeds], dtype=np.float64)
 
-        corrected[do_corr] = flat_pt[do_corr] * (1.0 + sigma * gauss)
+    pt_smeared = pt * (1.0 + sigma * gauss)
+    events = store("Electron.pt_scale_up", pt_smeared * (1.0 + unc_scale))
+    events = store("Electron.pt_scale_down", pt_smeared * (1.0 - unc_scale))
+    events = store("Electron.pt_smear_up", pt * (1.0 + (sigma + unc_smear) * gauss))
+    events = store("Electron.pt_smear_down", pt * (1.0 + np.maximum(sigma - unc_smear, 0.0) * gauss))
+    return store("Electron.pt", pt_smeared)
 
-    corrected = np.maximum(corrected, 0.0).astype(np.float32)
-    events = set_ak_column(events, "Electron.pt", ak.unflatten(corrected, counts))
-    return events
+
+@electron_ss.init
+def electron_ss_init(self: Calibrator, **kwargs) -> None:
+    if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
+        self.produces |= {f"Electron.pt_{v}_{d}" for v in ("scale", "smear") for d in ("up", "down")}
 
 
 @electron_ss.requires
@@ -467,18 +483,15 @@ def electron_ss_setup(
     )
     scale_name, smear_name = self.config_inst.x.electron_ss_names
 
-    # correctionlib raises a bare "IndexError: map::at" for an unknown key, which
-    # says nothing about which name failed or what was available. The EGM scale
-    # corrections carry era suffixes (EGMScale_ElePTsplit_2022preEE etc.), so a
-    # name copied between eras fails here -- report it usefully.
-    available = list(cset.keys())
-    missing = [n for n in (scale_name, smear_name) if n not in available]
+    # correctionlib raises a bare "IndexError: map::at" for an unknown key;
+    # report which name failed and what the file provides instead
+    plain, compound = list(cset.keys()), list(cset.compound.keys())
+    missing = [n for n in (scale_name, smear_name) if n not in plain + compound]
     if missing:
         raise KeyError(
             f"electron S&S correction(s) {missing} not found for config "
-            f"'{self.config_inst.name}'. Check cfg.x.electron_ss_names against the "
-            f"era's electronSS_EtDependent.json.gz, which provides: {available}",
+            f"'{self.config_inst.name}'. The era's electronSS_EtDependent.json.gz "
+            f"provides plain {plain} and compound {compound}",
         )
-
-    self.corr_scale = cset[scale_name]
-    self.corr_smear = cset[smear_name]
+    self.corr_scale = cset.compound[scale_name] if scale_name in compound else cset[scale_name]
+    self.corr_smear = cset.compound[smear_name] if smear_name in compound else cset[smear_name]

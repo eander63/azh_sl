@@ -121,7 +121,7 @@ def ecal_badcrystal_veto(self: Calibrator, events: ak.Array, **kwargs) -> ak.Arr
     )
     veto = (
         (events.run >= lo) & (events.run <= hi) &
-        (events.PuppiMET.pt > 100) &
+        (events.PuppiMET["pt"] > 100) &
         ak.any(bad_jet, axis=1)
     )
     return set_ak_column(events, "ecal_badcrystal_veto", ak.fill_none(veto, False))

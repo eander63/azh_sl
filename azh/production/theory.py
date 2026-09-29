@@ -108,7 +108,8 @@ def ps_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     for var in ("isr", "fsr"):
         events = set_ak_column(events, f"{var}_weight", ones)
         for d in ("up", "down"):
-            events = set_ak_column(events, f"{var}_weight_{d}", arr[:, PS_INDEX[(var, d)]])
+            # a column of the 2D array is a strided view; parquet needs contiguous buffers
+            events = set_ak_column(events, f"{var}_weight_{d}", np.ascontiguousarray(arr[:, PS_INDEX[(var, d)]]))
     return events
 
 

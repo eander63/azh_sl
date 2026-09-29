@@ -291,13 +291,17 @@ def muon_scare(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
         # (pt < 26 or > 200 GeV) the kit returns the input, i.e. no variation.
         for d in ("up", "down"):
             events = set_ak_column(events, f"Muon.pt_scale_{d}", self.pt_scale_var(
-                pt_corr, events.Muon["eta"], events.Muon["phi"], events.Muon["charge"], d, self.muon_cset, nested=True,
+                pt_corr, events.Muon["eta"], events.Muon["phi"], events.Muon["charge"], KIT_DIRECTION[d], self.muon_cset, nested=True,
             ))
             events = set_ak_column(events, f"Muon.pt_resol_{d}", self.pt_resol_var(
-                pt_scaled, pt_corr, events.Muon["eta"], d, self.muon_cset, nested=True,
+                pt_scaled, pt_corr, events.Muon["eta"], KIT_DIRECTION[d], self.muon_cset, nested=True,
             ))
 
     return events
+
+
+# the kit spells the down variation "dn"; anything else only prints an error
+KIT_DIRECTION = {"up": "up", "down": "dn"}
 
 
 @muon_scare.init

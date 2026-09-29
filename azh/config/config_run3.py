@@ -783,8 +783,9 @@ def add_config(
         jet_name="Jet",
         # efficiency-map binning (must be a subset of btag_wp_count_config's
         # edges): c jets above 200 GeV are too rare for two bins there, and the
-        # limited configs (few files) need a much coarser map to have no empty bin
-        pt_edges=(30, 70, 140, 10_000) if limit_dataset_files else (30, 50, 70, 100, 140, 200, 10_000),
+        # limited configs (one file per dataset) use one bin per flavour: with
+        # 1 file, even light-jet mistags at high pT can have zero tagged jets
+        pt_edges=(30, 10_000) if limit_dataset_files else (30, 50, 70, 100, 140, 200, 10_000),
         abs_eta_edges=(0.0, 2.5) if limit_dataset_files else None,
         btag_column=cfg.x.btag_default.column,
         correction_set=btag_cs_heavy,

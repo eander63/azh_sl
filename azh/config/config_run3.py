@@ -609,23 +609,17 @@ def add_config(
     # their quadrature sum reproduces "Total"; AbsoluteSample / AbsoluteFlavMap
     # are identically zero and the SubTotal*/Total*/CorrelationGroup*/Flavor
     # variants are sums or alternatives, so none of them is added.
+    # JES uncertainty sources: JME's 11 regrouped sources, as in AN-2022/158
+    # Table 22 -- six correlated across years and five per year. The per-year
+    # sources carry the era in their name (e.g. Regrouped_Absolute_2022EE), so
+    # they are uncorrelated between eras by construction.
+    jec_era = f"{year}{jerc_postfix}"
     jec_uncertainty_sources = [
-        "AbsoluteMPFBias", "AbsoluteScale", "AbsoluteStat", "FlavorQCD", "Fragmentation",
-        "PileUpDataMC", "PileUpPtBB", "PileUpPtEC1", "PileUpPtEC2", "PileUpPtHF", "PileUpPtRef",
-        "RelativeBal", "RelativeFSR", "RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF",
-        "RelativePtBB", "RelativePtEC1", "RelativePtEC2", "RelativePtHF", "RelativeSample",
-        "RelativeStatEC", "RelativeStatFSR", "RelativeStatHF", "SinglePionECAL", "SinglePionHCAL",
-        "TimePtEta",
+        *[f"Regrouped_{src}" for src in ("Absolute", "BBEC1", "EC2", "FlavorQCD", "HF", "RelativeBal")],
+        *[f"Regrouped_{src}_{jec_era}" for src in ("Absolute", "BBEC1", "EC2", "HF", "RelativeSample")],
     ]
-    # Year correlation of each source for the datacard. This is the Run 2 UL
-    # scheme (the sources JME puts into the per-year "Regrouped_*_<year>"
-    # groups are uncorrelated across years); confirm against JME's Run 3 table.
-    jec_per_year_sources = {
-        "AbsoluteStat", "RelativeStatFSR", "TimePtEta", "RelativeJEREC1", "RelativeJEREC2",
-        "RelativePtEC1", "RelativePtEC2", "RelativeStatEC", "RelativeStatHF", "RelativeSample",
-    }
-
-    cfg.x.jec_per_year_sources = jec_per_year_sources
+    # nothing to suffix in the datacard: the per-year names are already per era
+    cfg.x.jec_per_year_sources = set()
 
     # keyed by jet collection, as columnflow expects (the un-keyed form is a
     # deprecated fallback)

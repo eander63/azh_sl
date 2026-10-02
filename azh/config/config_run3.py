@@ -131,7 +131,6 @@ def add_config(
         "tt": "$t\\bar{t}$",
         "tzq": "tZq",
         "vvv": "VVV",
-        "zg": "Z$\\gamma$",
     }
 
     colors = {
@@ -153,7 +152,6 @@ def add_config(
         "zz": "#B900FC",
         "ww": "#7A00A6",
         "vvv": "#3E6676",
-        "zg": "#E8A33D",
         "other": "#999999",  # grey
     }
 
@@ -163,10 +161,10 @@ def add_config(
     process_names = [
         "dy_hf", "dy_lf", "tt",
         "ttz", "ttw", "tth", "tzq",
-        "st", "w_lnu", "wz", "zz", "ww", "vvv", "zg", "data",
+        "st", "w_lnu", "wz", "zz", "ww", "vvv", "data",
     ]
     # processes that only exist once the cmsdb fork provides them
-    optional_processes = {"tzq", "vvv", "zg"}
+    optional_processes = {"tzq", "vvv"}
 
     # 2024 has no lepton-inclusive DY sample and no hf/lf children for the
     # flavour-split ones, so register dy_ee / dy_mumu / dy_tautau instead of
@@ -256,9 +254,6 @@ def add_config(
         "wz_wlnu_zll_powheg", "zz_zll_zll_powheg", "ww_pythia",
         # tribosons
         "www_4f_amcatnlo", "wwz_4f_amcatnlo", "wzz_amcatnlo", "zzz_amcatnlo",
-        # Z(->ll)+gamma: conversions faking the third lepton (nonprompt from MC
-        # this round); ZGto2LG-1Jets_ntgc_5f madgraphMLM (AN-2022/158 uses Zg)
-        "zg_zll_madgraph",
         # W+jets: no inclusive sample in 2024 (jet/pt-binned ones need stitching)
         *if_not_era(year=2024, values=["w_lnu_amcatnlo"]),
     ]
@@ -774,7 +769,7 @@ def add_config(
         _group("ttz_", "ttw_", "tth_", "tzq_"),
         _group("dy_"),
         _group("st_"),
-        _group("wz_", "zz_", "ww_", "www_", "wwz_", "wzz_", "zzz_", "zg_"),
+        _group("wz_", "zz_", "ww_", "www_", "wwz_", "wzz_", "zzz_"),
         _group("w_lnu"),
     ) if g]
 

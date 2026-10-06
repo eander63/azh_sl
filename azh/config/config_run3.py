@@ -749,7 +749,7 @@ def add_config(
     cfg.x.default_custom_style_config = "default"
 
     cfg.x.btag_wp_count_config = BTagWPCountConfig(
-        jet_name="Jet",
+        jet_name="CandJet",
         btag_column=cfg.x.btag_default.column,
         btag_wps={"medium": cfg.x.btag_default.wp},
         pt_edges=(30, 50, 70, 100, 140, 200, 300, 10_000),
@@ -774,7 +774,7 @@ def add_config(
     ) if g]
 
     cfg.x.btag_wp_sf_config = SplitBTagWPSFConfig(
-        jet_name="Jet",
+        jet_name="CandJet",
         # efficiency-map binning (must be a subset of btag_wp_count_config's
         # edges): c jets above 200 GeV are too rare for two bins there, and the
         # limited configs (one file per dataset) use one bin per flavour: with
@@ -1003,9 +1003,9 @@ def add_config(
     # the producer registers these shifts (production/default.py).
     with open(os.path.join(thisdir, "jec_sources.yaml"), "r") as f:
         all_jec_sources = yaml.load(f, yaml.Loader)["names"]
+    # the varied jet mass is rebuilt in production from the varied pT
     jet_met_aliases = {
-        "Jet.pt": "Jet.pt_{name}",
-        "Jet.mass": "Jet.mass_{name}",
+        "CandJet.pt": "CandJet.pt_{name}",
         "PuppiMET.pt": "PuppiMET.pt_{name}",
         "PuppiMET.phi": "PuppiMET.phi_{name}",
     }
@@ -1191,13 +1191,11 @@ def add_config(
             "btag_weight*",
             "Pileup.nTrueInt",
             "LHEScaleWeight",
-        } | set(  # candidate jets (analysis jets are selected in production)
-            f"Jet.{field}"
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", cfg.x.btag_default.column, "hadronFlavour", "rawFactor"]
-        ) | {
-            # JES / JER varied jets and MET (production-level shifts); without
-            # them the aliases fall back to nominal SILENTLY
-            "Jet.pt_jec_*", "Jet.mass_jec_*", "Jet.pt_jer_*", "Jet.mass_jer_*",
+        } | {
+            # candidate jets with their JES / JER varied pT, and the varied MET
+            # (production-level shifts); without them the aliases fall back to
+            # nominal SILENTLY. The full Jet collection is not kept.
+            "CandJet.*",
             "PuppiMET.pt_*", "PuppiMET.phi_*",
             # muon impact parameters and the WP90 flag: tight-lepton variants can
             # be studied in production without reprocessing

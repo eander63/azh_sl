@@ -1,23 +1,19 @@
 """
 Jet selection.
 
-Keeps the CANDIDATE jets that ReduceEvents stores; the analysis jet definition
-(pT > 30 GeV) is applied in production (production/jets.py), so that the JES
-and JER variations only need ProduceColumns to rerun.
-
-Candidate jets:
-  * |eta| < 2.5 and jet ID TightLepVeto (Jet.jetId bit 2, which is AND-ed with
-    tight; for NanoAOD v15 the bitmap is rebuilt in calibration/corrections.py)
-  * Delta R >= 0.3 to every loose lepton (pT > 10), AN-2022/158 Sec. 4.4
-  * pT > 30 GeV in AT LEAST ONE of: nominal, any JES source up/down, JER up/down.
-    That is exactly the set of jets any shifted analysis selection can use, so
-    keeping them loses nothing and makes the jet shifts production-level.
+Works on CandJet (calibration/corrections.py): jets with |eta| < 2.5, TightLepVeto
+and pT > 30 GeV in the nominal or any JES/JER variation, in events that can pass
+the preselection. Here only the Delta R >= 0.3 cleaning against the loose
+leptons (AN-2022/158 Sec. 4.4) is applied; the analysis jet definition
+(pT > 30 GeV on the possibly shifted pT) is applied in production
+(production/jets.py), so the JES and JER variations only need ProduceColumns to
+rerun.
 
 No event requirement is placed on jets (the step is always True), so the 2l
 Drell-Yan region keeps its full statistics.
 
-The nominal analysis-jet mask (candidates with nominal pT > 30) is returned as
-aux["jet_mask"] for the b-tagging efficiency counts, and the nominal
+The nominal analysis-jet mask (cleaned candidates with nominal pT > 30) is
+returned as aux["jet_mask"] for the b-tagging efficiency counts, and the nominal
 multiplicities as cutflow.n_jet / cutflow.n_bjet (cutflow only; categories use
 the production-level n_jet / n_bjet).
 """
@@ -32,7 +28,6 @@ ak = maybe_import("awkward")
 np = maybe_import("numpy")
 
 JET_PT_MIN = 30.0
-JET_ETA_MAX = 2.5
 LEPTON_DR_MIN = 0.3
 
 
@@ -46,7 +41,7 @@ def delta_r_clean(jets: ak.Array, leptons: ak.Array, dr_min: float) -> ak.Array:
 
 
 @selector(
-    uses={"Jet.{pt,eta,phi,jetId}", "Electron.{eta,phi}", "Muon.{eta,phi}"},
+    uses={"CandJet.{pt,eta,phi}", "Electron.{eta,phi}", "Muon.{eta,phi}"},
     produces={"cutflow.n_jet", "cutflow.n_bjet"},
     exposed=True,
 )
@@ -56,12 +51,8 @@ def jet_selection(
     lepton_results: SelectionResult = None,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
-    jet = events.Jet
+    jet = events.CandJet
 
-    # ID and acceptance (v12 bitmap: bit 1 tight, bit 2 tight lepton veto)
-    base = (abs(jet.eta) < JET_ETA_MAX) & ((jet.jetId & 0b110) == 0b110)
-
-    # Delta R cleaning against the loose leptons of lepton_selection
     if lepton_results is None:
         raise ValueError("jet_selection needs lepton_results (from lepton_selection) for the Delta R cleaning")
     ele = events.Electron[lepton_results.aux["ele_loose_mask"]]
@@ -70,36 +61,22 @@ def jet_selection(
         ak.zip({"eta": ele.eta, "phi": ele.phi}),
         ak.zip({"eta": mu.eta, "phi": mu.phi}),
     ], axis=1)
-    base = base & delta_r_clean(jet, leptons, LEPTON_DR_MIN)
-
-    # largest pT over nominal and every variation the calibrator wrote
-    pt_max = jet.pt
-    for col in self.variation_columns:
-        pt_max = np.maximum(pt_max, jet[col])
-    candidate = ak.fill_none(base & (pt_max > JET_PT_MIN), False)
+    candidate = ak.fill_none(delta_r_clean(jet, leptons, LEPTON_DR_MIN), False)
 
     # nominal analysis jets (b-tag efficiency counts and cutflow only)
-    jet_mask = ak.fill_none(base & (jet.pt > JET_PT_MIN), False)
+    jet_mask = ak.fill_none(candidate & (jet["pt"] > JET_PT_MIN), False)
     btag = self.config_inst.x.btag_default
     bjet_mask = jet_mask & (jet[btag.column] >= btag.wp)
     events = set_ak_column(events, "cutflow.n_jet", ak.sum(jet_mask, axis=1))
     events = set_ak_column(events, "cutflow.n_bjet", ak.sum(bjet_mask, axis=1))
 
     return events, SelectionResult(
-        steps={"Jet": ak.ones_like(ak.num(jet.pt), dtype=bool)},
-        objects={"Jet": {"Jet": masked_sorted_indices(candidate, jet.pt)}},
+        steps={"Jet": ak.ones_like(ak.num(jet["pt"]), dtype=bool)},
+        objects={"CandJet": {"CandJet": masked_sorted_indices(candidate, jet["pt"])}},
         aux={"jet_mask": jet_mask},
     )
 
 
 @jet_selection.init
 def jet_selection_init(self: Selector, **kwargs) -> None:
-    self.uses.add(f"Jet.{self.config_inst.x.btag_default.column}")
-    # varied pT columns written by the calibrator (MC only)
-    self.variation_columns = []
-    if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
-        sources = self.config_inst.x.jec.Jet.uncertainty_sources
-        self.variation_columns = [
-            f"pt_jec_{src}_{d}" for src in sources for d in ("up", "down")
-        ] + ["pt_jer_up", "pt_jer_down"]
-        self.uses |= {f"Jet.{c}" for c in self.variation_columns}
+    self.uses.add(f"CandJet.{self.config_inst.x.btag_default.column}")

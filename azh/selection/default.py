@@ -47,6 +47,7 @@ ak = maybe_import("awkward")
         fill_btag_wp_count_hists,
         murmuf_weights, murmuf_envelope_weights, pdf_hessian_weights, ps_weights,
         "PuppiMET.pt",
+        "jet_presel",
         "Flag.ecalBadCalibFilter",
         met_filters, json_filter, jet_veto_map,
     },
@@ -119,6 +120,17 @@ def default(
     # lepton selection (2 OSSF leptons for Z candidate)
     events, results_lepton = self[lepton_selection](events, **kwargs)
     results += results_lepton
+
+    # every event passing the lepton selection must have candidate-jet
+    # information (calibration keeps JES/JER variations only for events with
+    # >= 2 leptons above 8 GeV, a superset of this selection)
+    no_jets = ak.fill_none(results_lepton.steps["Lepton"] & ~events.jet_presel, False)
+    if ak.any(no_jets):
+        raise RuntimeError(
+            f"{int(ak.sum(no_jets))} event(s) pass the lepton selection but were not flagged by the "
+            "calibration preselection (jet_presel); PRESEL_LEPTON_PT in calibration/corrections.py "
+            "must define a superset of the lepton selection",
+        )
 
     # candidate jets (Delta R-cleaned against the loose leptons); the analysis
     # jet pT cut and all jet counts used by categories are in production

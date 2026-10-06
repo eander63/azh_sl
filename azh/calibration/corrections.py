@@ -4,7 +4,7 @@ selection/reduction. This module holds the definitions only; the composite
 calibrators that sequence them are in azh/calibration/default.py.
 
 Contents:
-  - jec_nominal, jec_full, jet_energy   JEC (+ JER for MC)
+  - jec_nominal, jec_full, jet_energy   JEC (+ JER for MC), CandJet collection
   - ecal_badcrystal_veto                JME prompt-reco ECAL crystal veto (data)
   - jet_id_v15                          Jet.jetId bitmap for NanoAOD v15
   - met_unclustered_capture / _apply    PuppiMET unclustered-energy variation
@@ -51,12 +51,45 @@ jec_full = jec.derive("jec_full", cls_dict=dict(_met_names))
 jer_puppi = jer.derive("jer_puppi", cls_dict={"met_name": "PuppiMET"})
 
 
+# ---------------------------------------------------------------------------
+# Candidate jets (CandJet) carrying the JES / JER variations
+# ---------------------------------------------------------------------------
+# columnflow's jec/jer write every JES/JER variation for every jet of every
+# event; for MC that made the calibration output larger than the NanoAOD input
+# (1-3 GB per file) and needed 7-11 GB of memory. Here the variations are
+# computed exactly as before (vary, then smear), but only kept for
+#   * events that can pass the preselection: >= 2 electrons + muons with
+#     NanoAOD pt > 8 GeV (any ID; a strict superset of the 10 GeV lepton floor
+#     including the scale/smearing corrections and their variations; the
+#     selector raises if a selected event was not flagged), and
+#   * jets that can be analysis jets: |eta| < 2.5, TightLepVeto, pT > 30 GeV in
+#     the nominal or ANY variation.
+# They are stored in a separate CandJet collection (index into Jet, nominal and
+# varied pT, eta, phi, mass, b-tag score, hadron flavour). The varied mass is not
+# stored: a JES/JER shift scales pT and mass by the same factor, so production
+# rebuilds it as mass * pt / pt_nominal. The full Jet collection keeps only its
+# nominal calibrated values (used e.g. by the jet veto map); the MET variations
+# stay event-level and are computed from all jets, as before.
+CANDJET_ETA_MAX = 2.5
+CANDJET_PT_MIN = 30.0
+PRESEL_LEPTON_PT = 8.0
+# nominal Jet columns written by columnflow's jec/jer that are kept for the full
+# Jet collection (check against columnflow's jec produces if it changes)
+JET_NOMINAL_COLUMNS = ("pt", "mass", "rawFactor")
+
+
+def jes_jer_postfixes(config_inst) -> list:
+    """Column postfixes of the JES/JER variations, e.g. jec_Regrouped_Absolute_up."""
+    return [
+        f"jec_{src}_{d}" for src in config_inst.x.jec.Jet.uncertainty_sources for d in ("up", "down")
+    ] + ["jer_up", "jer_down"]
+
+
 @calibrator
 def jet_energy(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     """
-    Common calibrator for Jet energy corrections, applying nominal JEC for data, and JEC with
-    uncertainties plus JER for MC. Information about used and produced columns and dependent
-    calibrators is added in a custom init function below.
+    JEC (nominal for data; with the configured uncertainty sources for MC), JER
+    for MC, then the CandJet collection (see above).
     """
     if self.dataset_inst.is_mc:
         events = self[jec_full](events, **kwargs)
@@ -64,6 +97,32 @@ def jet_energy(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     else:
         events = self[jec_nominal](events, **kwargs)
 
+    jet = events.Jet
+    n_lep = (
+        ak.sum(events.Electron["pt"] > PRESEL_LEPTON_PT, axis=1) +
+        ak.sum(events.Muon["pt"] > PRESEL_LEPTON_PT, axis=1)
+    )
+    presel = n_lep >= 2
+
+    var_cols = [f"pt_{p}" for p in self.variation_postfixes]
+    pt_max = jet["pt"]
+    for col in var_cols:
+        pt_max = np.maximum(pt_max, jet[col])
+    cand = (
+        (abs(jet["eta"]) < CANDJET_ETA_MAX) &
+        ((jet["jetId"] & 0b110) == 0b110) &
+        (pt_max > CANDJET_PT_MIN) &
+        presel
+    )
+    cand = ak.fill_none(cand, False)
+
+    events = set_ak_column(events, "CandJet.index", ak.local_index(jet["pt"], axis=1)[cand])
+    for f in self.cand_fields:
+        events = set_ak_column(events, f"CandJet.{f}", jet[f][cand])
+    events = set_ak_column(events, "CandJet.pt_nominal", jet["pt"][cand])
+    for col in var_cols:
+        events = set_ak_column(events, f"CandJet.{col}", jet[col][cand])
+    events = set_ak_column(events, "jet_presel", ak.fill_none(presel, False))
     return events
 
 
@@ -72,22 +131,31 @@ def jet_energy_init(
     self: Calibrator,
     **kwargs,
 ) -> None:
-    # full jec (with uncertainty sources) + jer for mc, nominal-only jec for data
-    #
-    # NOTE: the JEC/JER shifts are deliberately NOT declared here. They are
-    # declared on the selector (azh/selection/default.py), because SelectEvents
-    # and ReduceEvents are the tasks that set register_selector_shifts = True and
-    # therefore the tasks whose local_shift -- and hence column aliases -- respond
-    # to the shift. Declaring them here instead makes CalibrateEvents rerun once
-    # per shift for byte-identical output (jec never inspects shift_inst; it
-    # writes every Jet.pt_jec_<source>_<dir> column in a single nominal pass)
-    # while SelectEvents still reads the unshifted Jet.pt.
-    if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
-        self.uses |= {jec_full, jer_puppi}
-        self.produces |= {jec_full, jer_puppi}
+    # The JES/JER shifts are declared on the producer (production/default.py);
+    # this calibrator only computes the varied columns in the nominal pass.
+    cfg = self.config_inst
+    btag_col = cfg.x.btag_default.column
+    is_mc = bool(getattr(self, "dataset_inst", None)) and self.dataset_inst.is_mc
+
+    self.cand_fields = ["pt", "eta", "phi", "mass", btag_col] + (["hadronFlavour"] if is_mc else [])
+    self.variation_postfixes = jes_jer_postfixes(cfg) if is_mc else []
+
+    self.uses |= {"Jet.{eta,phi,jetId}", f"Jet.{btag_col}", "Electron.pt", "Muon.pt"}
+    if is_mc:
+        self.uses |= {"Jet.hadronFlavour", jec_full, jer_puppi}
+        # write only the nominal Jet columns and the event-level MET variations;
+        # jec_full / jer_puppi are deliberately NOT in produces, otherwise all
+        # their per-jet variation columns would be written as well
+        self.produces |= {f"Jet.{c}" for c in JET_NOMINAL_COLUMNS}
+        self.produces |= {"PuppiMET.pt", "PuppiMET.phi"}
+        self.produces |= {f"PuppiMET.{v}_{p}" for v in ("pt", "phi") for p in self.variation_postfixes}
     else:
         self.uses |= {jec_nominal}
         self.produces |= {jec_nominal}
+
+    self.produces |= {f"CandJet.{f}" for f in self.cand_fields + ["index", "pt_nominal"]}
+    self.produces |= {f"CandJet.pt_{p}" for p in self.variation_postfixes}
+    self.produces.add("jet_presel")
 
 
 # ===========================================================================

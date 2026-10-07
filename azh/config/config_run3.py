@@ -37,13 +37,16 @@ def modify_cmsdb_processes():
     decay_map = {
         "lf": {
             "name": "lf",
-            "id": 50,
+            # ids are ADDED to the parent's id; with 50/60 the children of
+            # neighbouring parents collided (dy_m50toinf_0j_lf == dy_m50toinf_hf
+            # == 51160), so use offsets far outside the cmsdb DY id range
+            "id": 500000,
             "label": "(lf)",
             "br": -1,
         },
         "hf": {
             "name": "hf",
-            "id": 60,
+            "id": 600000,
             "label": "(hf)",
             "br": -1,
         },
@@ -1221,7 +1224,10 @@ def add_config(
             f"{gen_jet_obj}.{field}"
             for gen_jet_obj in ["GenJet"]
             for field in ["pt", "eta", "phi", "mass", "hadronFlavour"]
-        )
+        ) | {
+            # dressed generator leptons: dy_producer removes them from the gen jets
+            "GenDressedLepton.pt", "GenDressedLepton.eta", "GenDressedLepton.phi",
+        }
     )
 
     # event weight columns as keys in an ordered dict, mapped to shift instances they depend on

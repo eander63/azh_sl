@@ -1287,6 +1287,16 @@ def add_config(
         "cf.ProduceColumns": prod_version,
     }
 
+    # Every process a dataset belongs to must be known to the config: columnflow's
+    # normalization looks up the process ids booked in the selection stats. The
+    # inclusive DY processes (dy_m50toinf, dy_m10to50) are only parents of the
+    # hf/lf plotting processes, so they are registered here (not for plotting;
+    # dy_producer moves DY events to the hf/lf leaves in production).
+    for dataset in cfg.datasets:
+        for proc in dataset.processes:
+            if not cfg.has_process(proc.name):
+                cfg.add_process(proc)
+
     # DY stays at the NLO cross sections from cmsdb in every era (6282.6 pb for
     # m50, 19768.5 pb for m10to50; the 2024 flavour-split samples sum to the
     # same). The former NNLO override here never applied (it looked up

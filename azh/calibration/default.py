@@ -25,6 +25,10 @@ from azh.calibration.corrections import (
 @calibrator(
     uses={mc_weight, deterministic_seeds, ecal_badcrystal_veto, jet_energy, muon_scare, electron_ss},
     produces={mc_weight, deterministic_seeds, ecal_badcrystal_veto, jet_energy, muon_scare, electron_ss},
+    # MC calibration memory: ~3 GB fixed + ~0.37 GB per 1000 events per chunk
+    # (JES variations for all jets); 5000 keeps a job below ~5 GB. Selection,
+    # reduction and production keep the law.cfg chunk size.
+    max_chunk_size=5000,
 )
 def skip_jecunc(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     """

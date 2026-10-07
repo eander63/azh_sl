@@ -77,9 +77,9 @@ def default_init(self: Producer, **kwargs) -> None:
             for shift_inst in get_shifts_from_sources(
                 self.config_inst,
                 *self.config_inst.x.production_shift_sources,
-                # also the selection-dependent lepton shifts, so that
-                # ProduceColumns is shift-local for them as well
-                *self.config_inst.x.lepton_shift_sources,
+                # NOT the selection-dependent lepton shifts: their reduced events
+                # already carry the shifted lepton pT, and aliasing it again here
+                # read a column that no longer matched the selected leptons
             )
         }
 

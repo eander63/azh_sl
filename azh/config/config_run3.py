@@ -25,7 +25,8 @@ from columnflow.config_util import (
 )
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
-# repository root; the pinned golden JSONs live in <repo>/data/lumi/
+# repository root (the pinned golden JSONs live in $CF_DATA/lumi/: the repo
+# path differs in batch jobs, and it enters the external-files bundle hash)
 repo_dir = os.path.dirname(os.path.dirname(thisdir))
 
 logger = logging.getLogger(__name__)
@@ -1126,7 +1127,7 @@ def add_config(
     if year == 2022 and campaign.x.EE == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2022_355100_362760_Golden.json"), "v2"),  # noqa
+                "golden": (os.path.join(os.environ["CF_DATA"], "lumi", "Cert_Collisions2022_355100_362760_Golden.json"), "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1136,7 +1137,7 @@ def add_config(
     elif year == 2022 and campaign.x.EE == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2022_355100_362760_Golden.json"), "v2"),  # noqa
+                "golden": (os.path.join(os.environ["CF_DATA"], "lumi", "Cert_Collisions2022_355100_362760_Golden.json"), "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1146,7 +1147,7 @@ def add_config(
     elif year == 2023 and campaign.x.BPix == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2023_366442_370790_Golden.json"), "v2"),  # noqa
+                "golden": (os.path.join(os.environ["CF_DATA"], "lumi", "Cert_Collisions2023_366442_370790_Golden.json"), "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1156,7 +1157,7 @@ def add_config(
     elif year == 2023 and campaign.x.BPix == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2023_366442_370790_Golden.json"), "v2"),  # noqa
+                "golden": (os.path.join(os.environ["CF_DATA"], "lumi", "Cert_Collisions2023_366442_370790_Golden.json"), "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1166,7 +1167,7 @@ def add_config(
     elif year == 2024:
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": (os.path.join(repo_dir, "data", "lumi", "Cert_Collisions2024_378981_386951_Golden.json"), "v2"),  # noqa
+                "golden": (os.path.join(os.environ["CF_DATA"], "lumi", "Cert_Collisions2024_378981_386951_Golden.json"), "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {

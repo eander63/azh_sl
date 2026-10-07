@@ -1129,7 +1129,7 @@ def add_config(
     if year == 2022 and campaign.x.EE == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("$CF_DATA/lumi/Cert_Collisions2022_355100_362760_Golden.json", "v2"),  # noqa
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2022_355100_362760_Golden.json", "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1139,7 +1139,7 @@ def add_config(
     elif year == 2022 and campaign.x.EE == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("$CF_DATA/lumi/Cert_Collisions2022_355100_362760_Golden.json", "v2"),  # noqa
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2022_355100_362760_Golden.json", "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1149,7 +1149,7 @@ def add_config(
     elif year == 2023 and campaign.x.BPix == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("$CF_DATA/lumi/Cert_Collisions2023_366442_370790_Golden.json", "v2"),  # noqa
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2023_366442_370790_Golden.json", "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1159,7 +1159,7 @@ def add_config(
     elif year == 2023 and campaign.x.BPix == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("$CF_DATA/lumi/Cert_Collisions2023_366442_370790_Golden.json", "v2"),  # noqa
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2023_366442_370790_Golden.json", "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1169,7 +1169,7 @@ def add_config(
     elif year == 2024:
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("$CF_DATA/lumi/Cert_Collisions2024_378981_386951_Golden.json", "v2"),  # noqa
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2024_378981_386951_Golden.json", "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {

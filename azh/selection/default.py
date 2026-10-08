@@ -29,6 +29,7 @@ from columnflow.production.processes import process_ids
 from azh.selection.jet_selection import jet_selection
 from azh.calibration.corrections import ECAL_BADCRYSTAL_RUNS
 from azh.selection.lepton_selection import lepton_selection
+from azh.selection.lepton_shift import lepton_momentum_shift
 from azh.selection.trigger import trigger_selection
     # met categories included via add_categories_met
 from columnflow.selection.cms.btag import fill_btag_wp_count_hists
@@ -118,6 +119,10 @@ def default(
         results += json_filter_results
 
     # lepton selection (2 OSSF leptons for Z candidate)
+    # selection-level lepton momentum shifts (MC; no-op at nominal)
+    if self.dataset_inst.is_mc:
+        events = self[lepton_momentum_shift](events, **kwargs)
+
     events, results_lepton = self[lepton_selection](events, **kwargs)
     results += results_lepton
 
@@ -248,6 +253,10 @@ def default_init(
     if self.dataset_inst.is_data:
         self.uses |= {"run", "ecal_badcrystal_veto"}
         return
+
+    # selection-level lepton momentum shifts (selection/lepton_shift.py)
+    self.uses.add(lepton_momentum_shift)
+    self.produces.add(lepton_momentum_shift)
 
     self.shifts |= {
         shift_inst.name

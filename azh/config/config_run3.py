@@ -957,7 +957,10 @@ def add_config(
     )):
         cfg.add_shift(name=f"{src}_up", id=300 + 2 * i, type="shape")
         cfg.add_shift(name=f"{src}_down", id=301 + 2 * i, type="shape")
-        add_aliases(src, {f"{coll}.pt": f"{coll}.pt_{var}_" + "{direction}"}, selection_dependent=True)
+        # no column aliases: the selector applies these shifts itself
+        # (selection/lepton_shift.py); aliasing a collection column made
+        # ReduceEvents write the full, unfiltered collection for the shift
+        add_aliases(src, {}, selection_dependent=True)
     cfg.x.lepton_shift_sources = ["e_scale", "e_smear", "mu_scale", "mu_resol"]
 
     # b-tag fixed-WP SF uncertainties (BTV, more than one era): btag_bc_* and

@@ -16,6 +16,7 @@ from azh.calibration.corrections import (
     electron_ss,
     jet_energy,
     jet_id_v15,
+    met_finite_guard,
     met_unclustered_apply,
     met_unclustered_capture,
     muon_scare,
@@ -23,8 +24,8 @@ from azh.calibration.corrections import (
 
 
 @calibrator(
-    uses={mc_weight, deterministic_seeds, ecal_badcrystal_veto, jet_energy, muon_scare, electron_ss},
-    produces={mc_weight, deterministic_seeds, ecal_badcrystal_veto, jet_energy, muon_scare, electron_ss},
+    uses={mc_weight, deterministic_seeds, ecal_badcrystal_veto, jet_energy, muon_scare, electron_ss, met_finite_guard},
+    produces={mc_weight, deterministic_seeds, ecal_badcrystal_veto, jet_energy, muon_scare, electron_ss, met_finite_guard},
     # MC calibration memory: ~3 GB fixed + ~0.37 GB per 1000 events per chunk
     # (JES variations for all jets); 5000 keeps a job below ~5 GB. Selection,
     # reduction and production keep the law.cfg chunk size.
@@ -50,6 +51,8 @@ def skip_jecunc(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
         events = self[met_unclustered_apply](events, **kwargs)
     events = self[muon_scare](events, **kwargs)
     events = self[electron_ss](events, **kwargs)
+    # last: every PuppiMET column is final here (see corrections.py)
+    events = self[met_finite_guard](events, **kwargs)
     return events
 
 

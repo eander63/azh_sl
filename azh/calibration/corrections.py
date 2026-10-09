@@ -580,3 +580,45 @@ def electron_ss_setup(
         )
     self.corr_scale = cset.compound[scale_name] if scale_name in compound else cset[scale_name]
     self.corr_smear = cset.compound[smear_name] if smear_name in compound else cset[smear_name]
+
+
+# ===========================================================================
+# Non-finite MET guard
+# ===========================================================================
+# Some NanoAOD data events carry a non-finite RawPuppiMET (e.g. run 360927,
+# lumi 1083, event 2217841979 in Run2022F Muon). Re-applying the JEC Type-1
+# propagation then gives a non-finite PuppiMET, and CalibrateEvents refuses to
+# write it. Calibration cannot drop events, so every PuppiMET column (nominal
+# and all variations) of such an event is set to -1, an impossible value; the
+# selector rejects events with PuppiMET.pt < 0 (step "met_finite"). The number
+# of such events is printed per chunk: it should be a handful per file at most.
+MET_INVALID = -1.0
+
+
+@calibrator
+def met_finite_guard(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
+    met = events.PuppiMET
+    bad = np.zeros(len(events), dtype=bool)
+    for col in self.met_columns:
+        bad |= ~np.isfinite(ak.to_numpy(met[col]))
+    n_bad = int(bad.sum())
+    if n_bad:
+        print(f"met_finite_guard: {n_bad} event(s) with non-finite PuppiMET set to {MET_INVALID} "
+              "(rejected in selection, step met_finite)")
+        for col in self.met_columns:
+            vals = np.where(bad, MET_INVALID, ak.to_numpy(met[col])).astype(np.float32)
+            events = set_ak_column(events, f"PuppiMET.{col}", vals)
+    return events
+
+
+@met_finite_guard.init
+def met_finite_guard_init(self: Calibrator, **kwargs) -> None:
+    cols = ["pt", "phi"]
+    if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
+        postfixes = [
+            f"jec_{src}_{d}" for src in self.config_inst.x.jec.Jet.uncertainty_sources for d in ("up", "down")
+        ] + ["jer_up", "jer_down", "unclustered_up", "unclustered_down"]
+        cols += [f"{v}_{p}" for v in ("pt", "phi") for p in postfixes]
+    self.met_columns = cols
+    self.uses |= {f"PuppiMET.{c}" for c in cols}
+    self.produces |= {f"PuppiMET.{c}" for c in cols}

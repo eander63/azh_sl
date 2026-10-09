@@ -110,6 +110,10 @@ def default(
         ecal_ok = ak.where(in_window, ~events.ecal_badcrystal_veto, ecal_ok)
     results.steps["ecal_bad_calib"] = ak.fill_none(ecal_ok, False)
 
+    # events whose MET was non-finite after calibration (NanoAOD pathology,
+    # e.g. RawPuppiMET = inf) carry PuppiMET.pt = -1 (calibration/corrections.py)
+    results.steps["met_finite"] = ak.fill_none(events.PuppiMET.pt >= 0, False)
+
     events, jet_veto_results = self[jet_veto_map](events, **kwargs)
     results += jet_veto_results
 

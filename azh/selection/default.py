@@ -112,7 +112,7 @@ def default(
 
     # events whose MET was non-finite after calibration (NanoAOD pathology,
     # e.g. RawPuppiMET = inf) carry PuppiMET.pt = -1 (calibration/corrections.py)
-    results.steps["met_finite"] = ak.fill_none(events.PuppiMET.pt >= 0, False)
+    results.steps["met_finite"] = ak.fill_none(events.PuppiMET["pt"] >= 0, False)
 
     events, jet_veto_results = self[jet_veto_map](events, **kwargs)
     results += jet_veto_results

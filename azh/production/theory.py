@@ -14,7 +14,8 @@ pdf_hessian_weights
         pdf_weight_{up,down} = 1 +- sqrt(d_pdf^2 + d_as^2)
     cfg.x.pdf_alphas_scale = 0.0015 / 0.002 rescales the +-0.002 members to the
     PDF4LHC +-0.0015. Events without exactly 103 weights get weight 1; a dataset
-    in which no event has 103 weights raises (it uses a different PDF set).
+    with an unknown layout raises. 4-flavour samples (LHA 325500, 101 members)
+    have no alpha_s members and get the PDF-only uncertainty.
 
 ps_weights
     Parton-shower ISR/FSR variations from PSWeight (documented layout:
@@ -38,7 +39,13 @@ ak = maybe_import("awkward")
 
 logger = law.logger.get_logger(__name__)
 
-N_PDF_MEMBERS = 103
+# PDF sets found in the samples (survey of one file per MC dataset, all eras):
+#   103 members: NNPDF31_nnlo_as_0118_mc_hessian_pdfas (LHA 325300, 5 flavours):
+#                [0] nominal, [1-100] Hessian eigenvectors, [101, 102] alpha_s
+#   101 members: NNPDF31_nnlo_as_0118_nf_4_mc_hessian (LHA 325500, 4 flavours;
+#                single-top t-channel, 2024 WWW/WWZ): [0] nominal, [1-100]
+#                Hessian eigenvectors, no alpha_s members -> PDF-only uncertainty
+PDF_LAYOUTS = (103, 101)
 
 
 @producer(
@@ -48,28 +55,32 @@ N_PDF_MEMBERS = 103
 )
 def pdf_hessian_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     lhe = events.LHEPdfWeight
-    valid = ak.to_numpy(ak.num(lhe, axis=1) == N_PDF_MEMBERS)
-    if not valid.any():
+    n = ak.to_numpy(ak.num(lhe, axis=1))
+    n_members = next((m for m in PDF_LAYOUTS if (n == m).any()), None)
+    if n_members is None:
         raise ValueError(
-            f"dataset {self.dataset_inst.name}: no event has {N_PDF_MEMBERS} LHEPdfWeights; "
-            "it uses a PDF set other than NNPDF31_nnlo_as_0118_mc_hessian_pdfas (325300) "
-            "and needs its own treatment",
+            f"dataset {self.dataset_inst.name}: no event has {' or '.join(map(str, PDF_LAYOUTS))} "
+            f"LHEPdfWeights (found {sorted(set(n.tolist()))[:5]}); unknown PDF set, needs its own treatment",
         )
+    valid = n == n_members
     if not valid.all():
         logger.warning(
             f"dataset {self.dataset_inst.name}: {100 * (1 - valid.mean()):.2f}% of events do not have "
-            f"{N_PDF_MEMBERS} LHEPdfWeights; their pdf weights are set to 1",
+            f"{n_members} LHEPdfWeights; their pdf weights are set to 1",
         )
 
-    w = np.ones((len(events), N_PDF_MEMBERS), dtype=np.float64)
-    if valid.any():
-        w[valid] = ak.to_numpy(lhe[valid]).astype(np.float64)
+    w = np.ones((len(events), n_members), dtype=np.float64)
+    w[valid] = ak.to_numpy(lhe[valid]).astype(np.float64)
     nominal = w[:, 0:1]
     bad_nominal = nominal[:, 0] == 0
     w = np.where(nominal != 0, w / np.where(nominal != 0, nominal, 1.0), 1.0)
 
+    # symmetric Hessian: sum in quadrature over the 100 eigenvector members
     d_pdf = np.sqrt(np.sum((w[:, 1:101] - 1.0) ** 2, axis=1))
-    d_as = self.config_inst.x.pdf_alphas_scale * 0.5 * (w[:, 102] - w[:, 101])
+    if n_members == 103:
+        d_as = self.config_inst.x.pdf_alphas_scale * 0.5 * (w[:, 102] - w[:, 101])
+    else:
+        d_as = np.zeros(len(events))
     delta = np.sqrt(d_pdf ** 2 + d_as ** 2)
     delta[~valid | bad_nominal] = 0.0
 

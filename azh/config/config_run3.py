@@ -785,12 +785,12 @@ def add_config(
     def _group(*prefixes):
         return [d.name for d in cfg.datasets if d.is_mc and d.name.startswith(prefixes)]
     btag_dataset_groups = [g for g in (
-        _group("tt_"),
+        # small samples are merged with kinematically similar ones so that no
+        # efficiency bin is empty: single top with ttbar, W+jets with dibosons
+        _group("tt_", "st_"),
         _group("ttz_", "ttw_", "tth_", "tzq_"),
         _group("dy_"),
-        _group("st_"),
-        _group("wz_", "zz_", "ww_", "www_", "wwz_", "wzz_", "zzz_"),
-        _group("w_lnu"),
+        _group("wz_", "zz_", "ww_", "www_", "wwz_", "wzz_", "zzz_", "w_lnu"),
     ) if g]
 
     cfg.x.btag_wp_sf_config = SplitBTagWPSFConfig(
@@ -800,7 +800,9 @@ def add_config(
         # limited configs (one file per dataset) use one bin per flavour: with
         # 1 file, even light-jet mistags at high pT can have zero tagged jets
         pt_edges=(30, 10_000) if limit_dataset_files else (30, 50, 70, 100, 140, 200, 10_000),
-        abs_eta_edges=(0.0, 2.5) if limit_dataset_files else None,
+        # one |eta| bin everywhere: with a barrel/endcap split, light jets above
+        # 200 GeV in the endcap had zero tagged jets even in the ttbar group
+        abs_eta_edges=(0.0, 2.5),
         btag_column=cfg.x.btag_default.column,
         correction_set=btag_cs_heavy,
         correction_set_light=btag_cs_light,

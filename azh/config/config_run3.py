@@ -81,18 +81,32 @@ def get_dataset_lfns(
     Custom LFN retrieval using a global DAS query.
     Filters out broken files registered in cmsdb.
     """
-    import subprocess
+    import subprocess, time
     broken_files = dataset_inst[shift_inst.name].get_aux("broken_files", [])
     query = f"file dataset={dataset_key}"
-    result = subprocess.run(
-        ["/cvmfs/cms.cern.ch/common/dasgoclient", f"--query={query}"],
-        capture_output=True,
-        text=True,
-    )
-    lfns = [
-        line.strip() for line in result.stdout.strip().split("\n")
-        if line.strip() and line.strip() not in broken_files
-    ]
+    # DAS errors are printed to stdout; never store them as file names. Retry,
+    # accept only real LFNs, and refuse a list shorter than cmsdb expects.
+    err = ""
+    for attempt in range(4):
+        result = subprocess.run(
+            ["/cvmfs/cms.cern.ch/common/dasgoclient", f"--query={query}"],
+            capture_output=True,
+            text=True,
+        )
+        lines = [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+        bad = [line for line in lines if not line.startswith("/store/")]
+        if result.returncode == 0 and lines and not bad:
+            break
+        err = (bad[:1] or [result.stderr.strip()[:200] or f"exit code {result.returncode}"])[0]
+        time.sleep(10 * (attempt + 1))
+    else:
+        raise RuntimeError(f"DAS lookup failed for {dataset_key}: {err}")
+    lfns = [line for line in lines if line not in broken_files]
+    n_expected = dataset_inst[shift_inst.name].n_files
+    if len(lfns) < n_expected:
+        raise RuntimeError(f"DAS returned {len(lfns)} files for {dataset_key}, cmsdb expects {n_expected}")
+    if len(lfns) > n_expected:
+        print(f"WARNING: DAS has {len(lfns)} files for {dataset_key}, cmsdb lists {n_expected} (cmsdb outdated?)")
     return lfns
 
 def add_config(

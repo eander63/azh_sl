@@ -622,3 +622,42 @@ def met_finite_guard_init(self: Calibrator, **kwargs) -> None:
     self.met_columns = cols
     self.uses |= {f"PuppiMET.{c}" for c in cols}
     self.produces |= {f"PuppiMET.{c}" for c in cols}
+
+
+# ===========================================================================
+# Non-finite lepton momentum variations
+# ===========================================================================
+# The MuScaRe kit falls back to the uncorrected pT where its nominal correction
+# is undefined, but its variation functions return NaN for such muons (seen in
+# 2024 ttbar). A lepton with a non-finite varied pT gets no variation: the
+# varied value is set to its nominal pT. The count is printed per chunk and
+# should be a handful of leptons at most.
+LEPTON_VARIATIONS = {
+    "Muon": [f"pt_{v}_{d}" for v in ("scale", "resol") for d in ("up", "down")],
+    "Electron": [f"pt_{v}_{d}" for v in ("scale", "smear") for d in ("up", "down")],
+}
+
+
+@calibrator
+def lepton_variation_guard(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
+    if not self.dataset_inst.is_mc:
+        return events
+    for coll, cols in LEPTON_VARIATIONS.items():
+        nominal = events[coll]["pt"]
+        for col in cols:
+            vals = events[coll][col]
+            bad = ~np.isfinite(vals)
+            n_bad = int(ak.sum(bad))
+            if n_bad:
+                print(f"lepton_variation_guard: {n_bad} non-finite {coll}.{col} value(s) set to the nominal pt")
+                events = set_ak_column(events, f"{coll}.{col}", ak.where(bad, nominal, vals))
+    return events
+
+
+@lepton_variation_guard.init
+def lepton_variation_guard_init(self: Calibrator, **kwargs) -> None:
+    if not (getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc):
+        return
+    for coll, cols in LEPTON_VARIATIONS.items():
+        self.uses |= {f"{coll}.pt"} | {f"{coll}.{c}" for c in cols}
+        self.produces |= {f"{coll}.{c}" for c in cols}

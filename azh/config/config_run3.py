@@ -365,6 +365,19 @@ def add_config(
             if info_name != "nominal":
                 del ds.info[info_name]
 
+    # 2022preEE DY: cmsdb file/event counts are outdated (DAS, Nov 2026: the
+    # nominal keys have 525 and 448 files); the cmsdb "extension" keys of these
+    # samples do not exist in DAS. Full config only (test configs keep their limit).
+    if cfg.name == "config_2022pre":
+        for ds_name, (n_files, n_events) in {
+            "dy_m50toinf_amcatnlo": (525, 93826598),
+            "dy_m10to50_amcatnlo": (448, 97571898),
+        }.items():
+            if cfg.has_dataset(ds_name):
+                info = cfg.get_dataset(ds_name).get_info("nominal")
+                info.n_files = n_files
+                info.n_events = n_events
+
     # ------------------------------------------------------------------
     # Era-specific dataset overrides
     # ------------------------------------------------------------------

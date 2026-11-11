@@ -12,18 +12,17 @@ import law
 
 logger = law.logger.get_logger(__name__)
 from azh.production.btag import split_btag_wp_weights
+from azh.production.jets import analysis_jet_mask
 from columnflow.production.cms.electron import electron_weights, ElectronSFConfig
 from columnflow.production.cms.mc_weight import mc_weight
-from columnflow.production.cms.muon import muon_weights, MuonSFConfig
 from columnflow.production.normalization import normalization_weights
-from columnflow.production.cms.pdf import pdf_weights
+from azh.production.theory import pdf_hessian_weights, ps_weights, lumi_weight
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from azh.production.trigger_weights import trigger_weights
-from azh.production.channel_lumi_weight import channel_lumi_weight
+from azh.production.muon_sf import muon_sf_weights
 from azh.production.pileup import pu_weight
 from columnflow.util import maybe_import
 
-from azh.production.gen_top import top_pt_weight
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
 
@@ -39,43 +38,18 @@ def event_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     weight = ak.Array(np.ones(len(events)))
     if self.dataset_inst.is_mc:
         for column in self.config_inst.x.event_weights:
-            if (self.dataset_inst.has_tag("is_ttbar") or (column != "top_pt_weight")):
-                weight = weight * Route(column).apply(events)
+            weight = weight * Route(column).apply(events)
         for column in self.dataset_inst.x("event_weights", []):
-            if ((self.dataset_inst.has_tag("is_ttbar")) or (column != "top_pt_weight")):
-                if has_ak_column(events, column):
-                    weight = weight * Route(column).apply(events)
-                else:
-                    logger.warning_once(
-                        f"missing_dataset_weight_{column}",
-                        f"weight '{column}' for dataset {self.dataset_inst.name} not found",
-                    )
+            if has_ak_column(events, column):
+                weight = weight * Route(column).apply(events)
+            else:
+                logger.warning_once(
+                    f"missing_dataset_weight_{column}",
+                    f"weight '{column}' for dataset {self.dataset_inst.name} not found",
+                )
 
     events = set_ak_column(events, "event_weight", weight)
 
-    return events
-
-
-@producer(
-    uses={"pt_z"},
-    produces={"zpt_weight"},
-    mc_only=True,
-)
-def zpt_reweight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    """
-    Z pT reweighting to correct NLO DY modeling deficiency at 5-15 GeV.
-    PLACEHOLDER: derive bin weights from v3 data/MC ratio in pt_z.
-    Set all weights to 1.0 until you have the real values.
-    """
-    # Derived from v3 data/MC ratio in pt_z_fine (inclusive, all 22 datasets)
-    pt_bins = np.array([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 23, 26, 30, 35, 40, 50, 60, 100], dtype=np.float32)
-    wt_vals = np.array([1.0122, 0.9431, 0.9144, 0.9531, 1.0157, 1.0734, 1.1036, 1.1138, 1.1090, 1.0926, 1.0779, 1.0472, 1.0073, 0.9771, 0.9625, 0.9677, 0.9835, 1.0], dtype=np.float32)
-
-    pt = ak.to_numpy(events.pt_z)
-    idx = np.clip(np.searchsorted(pt_bins, pt) - 1, 0, len(wt_vals) - 1)
-    w = ak.Array(wt_vals[idx])
-
-    events = set_ak_column(events, "zpt_weight", ak.values_astype(w, np.float32))
     return events
 
 
@@ -94,11 +68,6 @@ electron_loreco_weights = electron_weights.derive("electron_loreco_weights", cls
     "get_electron_config": (lambda self: ElectronSFConfig.new(self.config_inst.x.electron_sf_loreco_names)),
 })
 
-muon_id_weights = muon_weights.derive("muon_id_weights", cls_dict={
-    "weight_name": "muon_id_weight",
-    "get_muon_config": (lambda self: MuonSFConfig.new(self.config_inst.x.muon_sf_id_names)),
-})
-
 normalized_pu_weight = normalized_weight_factory(
     producer_name="normalized_pu_weight",
     weight_producers={pu_weight},
@@ -111,7 +80,7 @@ normalized_pu_weight = normalized_weight_factory(
 # Produces normalized_{mur,muf,murmuf_envelope,pdf}_weight{,_up,_down}.
 normalized_scale_weights = normalized_weight_factory(
     producer_name="normalized_scale_weights",
-    weight_producers={murmuf_weights, murmuf_envelope_weights, pdf_weights},
+    weight_producers={murmuf_weights, murmuf_envelope_weights, pdf_hessian_weights},
     weight_names={
         f"{base}_weight{postfix}"
         for base in ("mur", "muf", "murmuf_envelope", "pdf")
@@ -119,15 +88,14 @@ normalized_scale_weights = normalized_weight_factory(
     },
 )
 
-muon_iso_weights = muon_weights.derive("muon_iso_weights", cls_dict={
-    "weight_name": "muon_iso_weight",
-    "get_muon_config": (lambda self: MuonSFConfig.new(self.config_inst.x.muon_sf_iso_names)),
-})
+# Shape-only parton-shower ISR/FSR variations, normalized per process like the
+# scale weights (the sums are booked in the selector).
+normalized_ps_weights = normalized_weight_factory(
+    producer_name="normalized_ps_weights",
+    weight_producers={ps_weights},
+    weight_names={f"{base}_weight{postfix}" for base in ("isr", "fsr") for postfix in ("", "_up", "_down")},
+)
 
-muon_reco_weights = muon_weights.derive("muon_reco_weights", cls_dict={
-    "weight_name": "muon_reco_weight",
-    "get_muon_config": (lambda self: MuonSFConfig.new(self.config_inst.x.muon_sf_reco_names)),
-})
 
 @producer
 def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -143,7 +111,6 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # veto by design, so extra loose-not-tight leptons would otherwise
         # contribute spurious weight factors to the DY validation region.
         ele_tight = events.Electron.mvaIso_WP80
-        mu_tight = events.Muon.tightId & (events.Muon.pfRelIso04_all < 0.15)
 
         electron_mask = ele_tight & (events.Electron.pt >= 75)
         electron_mask_mid = ele_tight & (events.Electron.pt >= 20) & (events.Electron.pt < 75)
@@ -154,35 +121,16 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[electron_loreco_weights](events, electron_mask=electron_mask_lo, **kwargs)
         events = self[electron_id_weights](events, electron_mask=ele_tight, **kwargs)
 
-        # compute muon weights
-        # Lower edge of the muon_Z.json ID/iso pT binning, per era: 2022/23
-        # start at 15, 2024 extends to 10. Muons below the edge get no ID/iso
-        # scale factor (weight 1) rather than an out-of-range corrector call.
-        #
-        # Restricting rather than clamping is the physics-correct choice: the
-        # analysis pT thresholds (25/20/15) are applied downstream as categories,
-        # so no *selected* lepton is ever below the threshold. A sub-threshold
-        # tight muon is always an extra lepton, and giving it an efficiency
-        # correction adds a spurious factor -- precisely what the tight-subset
-        # masking above exists to avoid in the 2l regions, which have no loose
-        # veto.
-        muon_sf_pt_min = self.config_inst.x.muon_sf_pt_min
-        muon_mask_sf = mu_tight & (events.Muon.pt >= muon_sf_pt_min)
-        events = self[muon_id_weights](events, muon_mask=muon_mask_sf, **kwargs)
-        events = self[muon_iso_weights](events, muon_mask=muon_mask_sf, **kwargs)
-        
+        # muon ID / iso SFs with separate stat and syst variations
+        # (production/muon_sf.py); tight muons above the SF binning floor
+        events = self[muon_sf_weights](events, **kwargs)
+
         # compute trigger weights
         events = self[trigger_weights](events, **kwargs)
 
-        # apply per-channel luminosity correction
-        events = self[channel_lumi_weight](events, **kwargs)
-
-        # compute btag weights
-        events = self[split_btag_wp_weights](events, **kwargs)
-
-        # # compute top pT weights (disabled for now)
-        if self.dataset_inst.has_tag("is_ttbar"):
-            events = self[top_pt_weight](events, **kwargs)
+        # b-tag weights on the analysis jets (candidates with pT > 30; under a
+        # JES/JER shift the aliased pT decides which jets count)
+        events = self[split_btag_wp_weights](events, jet_mask=analysis_jet_mask(events), **kwargs)
 
         # compute normalization weights
         events = self[normalization_weights](events, **kwargs)
@@ -193,8 +141,6 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # normalize pu weight per process (produces 'normalized_pu_weight')
         events = self[normalized_pu_weight](events, **kwargs)
 
-        # Z pT reweighting (NLO DY modeling correction) — DISABLED
-        # events = self[zpt_reweight](events, **kwargs)
         if not self.dataset_inst.has_tag("no_lhe_weights"):
             # NOTE: mur/muf/envelope/pdf weights are computed in the *selector*
             # (they have to be, so increment_stats can book their per-process
@@ -210,6 +156,11 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
             # *used* columns are present (normalized_weights.py:44-47), which
             # they are not here, so no fallback is attempted.
             events = self[normalized_scale_weights](events, **kwargs)
+        if not self.dataset_inst.has_tag("no_ps_weights"):
+            events = self[normalized_ps_weights](events, **kwargs)
+
+        # luminosity as a weight shift, for plot uncertainty bands only
+        events = self[lumi_weight](events, **kwargs)
 
     return events
 
@@ -225,19 +176,17 @@ def weights_init(
             # tight-ID columns, used to mask which leptons receive scale factors
             "Electron.mvaIso_WP80", "Muon.tightId", "Muon.pfRelIso04_all",
             electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
-            muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
-            pdf_weights, normalized_scale_weights,
-            # zpt_reweight,  # DISABLED
+            muon_sf_weights,
+            normalization_weights, mc_weight, pu_weight, normalized_pu_weight, murmuf_envelope_weights, murmuf_weights,
+            pdf_hessian_weights, normalized_scale_weights, normalized_ps_weights, lumi_weight,
             split_btag_wp_weights,
-            trigger_weights, channel_lumi_weight,
+            trigger_weights,
         }
         self.produces |= {
             electron_weights, electron_id_weights, electron_mid_weights, electron_loreco_weights,
-            muon_id_weights, muon_iso_weights,
-            normalization_weights, mc_weight, pu_weight, normalized_pu_weight, top_pt_weight, murmuf_envelope_weights, murmuf_weights,
-            pdf_weights, normalized_scale_weights,
-            # zpt_reweight,  # DISABLED
+            muon_sf_weights,
+            normalization_weights, mc_weight, pu_weight, normalized_pu_weight, murmuf_envelope_weights, murmuf_weights,
+            pdf_hessian_weights, normalized_scale_weights, normalized_ps_weights, lumi_weight,
             split_btag_wp_weights,
-            trigger_weights, channel_lumi_weight,
+            trigger_weights,
         }

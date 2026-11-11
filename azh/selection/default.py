@@ -21,13 +21,15 @@ from columnflow.selection.cms.jets import jet_veto_map
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.cms.mc_weight import mc_weight
-from columnflow.production.cms.pdf import pdf_weights
+from azh.production.theory import pdf_hessian_weights, ps_weights
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from azh.production.pileup import pu_weight
 from columnflow.production.processes import process_ids
 
 from azh.selection.jet_selection import jet_selection
+from azh.calibration.corrections import ECAL_BADCRYSTAL_RUNS
 from azh.selection.lepton_selection import lepton_selection
+from azh.selection.lepton_shift import lepton_momentum_shift
 from azh.selection.trigger import trigger_selection
     # met categories included via add_categories_met
 from columnflow.selection.cms.btag import fill_btag_wp_count_hists
@@ -44,11 +46,10 @@ ak = maybe_import("awkward")
         jet_selection, lepton_selection,
         increment_stats, trigger_selection, pu_weight,
         fill_btag_wp_count_hists,
-        murmuf_weights, murmuf_envelope_weights, pdf_weights,
-        # Jet.<btag discriminator> comes in via jet_selection's own init,
-        # which resolves the era-dependent column from cfg.x.btag_default
-        "Jet.pt", "Jet.eta",
+        murmuf_weights, murmuf_envelope_weights, pdf_hessian_weights, ps_weights,
         "PuppiMET.pt",
+        "jet_presel",
+        "Flag.ecalBadCalibFilter",
         met_filters, json_filter, jet_veto_map,
     },
     produces={
@@ -56,7 +57,7 @@ ak = maybe_import("awkward")
         mc_weight,
         jet_selection, lepton_selection,
         increment_stats, trigger_selection, pu_weight,
-        murmuf_weights, murmuf_envelope_weights, pdf_weights,
+        murmuf_weights, murmuf_envelope_weights, pdf_hessian_weights, ps_weights,
         met_filters, json_filter, jet_veto_map,
     },
     exposed=True,
@@ -83,7 +84,11 @@ def default(
         if not self.dataset_inst.has_tag("no_lhe_weights"):
             events = self[murmuf_weights](events, **kwargs)
             events = self[murmuf_envelope_weights](events, **kwargs)
-            events = self[pdf_weights](events, **kwargs)
+            # Hessian PDF + alpha_s (production/theory.py), not columnflow's
+            # replica-style pdf_weights
+            events = self[pdf_hessian_weights](events, **kwargs)
+        if not self.dataset_inst.has_tag("no_ps_weights"):
+            events = self[ps_weights](events, **kwargs)
 
     # ensure coffea behavior
     events = self[attach_coffea_behavior](events, **kwargs)
@@ -95,6 +100,20 @@ def default(
     events, met_filters_results = self[met_filters](events, **kwargs)
     results += met_filters_results
 
+    # ECAL bad calibration filter. Data in runs 362433-367144 are prompt reco
+    # and use the JME bad-crystal veto (calibration/corrections.py) instead of
+    # the stored flag; everything else uses the flag.
+    ecal_ok = events.Flag.ecalBadCalibFilter
+    if self.dataset_inst.is_data:
+        lo, hi = ECAL_BADCRYSTAL_RUNS
+        in_window = (events.run >= lo) & (events.run <= hi)
+        ecal_ok = ak.where(in_window, ~events.ecal_badcrystal_veto, ecal_ok)
+    results.steps["ecal_bad_calib"] = ak.fill_none(ecal_ok, False)
+
+    # events whose MET was non-finite after calibration (NanoAOD pathology,
+    # e.g. RawPuppiMET = inf) carry PuppiMET.pt = -1 (calibration/corrections.py)
+    results.steps["met_finite"] = ak.fill_none(events.PuppiMET["pt"] >= 0, False)
+
     events, jet_veto_results = self[jet_veto_map](events, **kwargs)
     results += jet_veto_results
 
@@ -104,11 +123,27 @@ def default(
         results += json_filter_results
 
     # lepton selection (2 OSSF leptons for Z candidate)
+    # selection-level lepton momentum shifts (MC; no-op at nominal)
+    if self.dataset_inst.is_mc:
+        events = self[lepton_momentum_shift](events, **kwargs)
+
     events, results_lepton = self[lepton_selection](events, **kwargs)
     results += results_lepton
 
-    # jet selection (≥4 loose jets + tight jets/b-jets defined)
-    events, results_jet = self[jet_selection](events, **kwargs)
+    # every event passing the lepton selection must have candidate-jet
+    # information (calibration keeps JES/JER variations only for events with
+    # >= 2 leptons above 8 GeV, a superset of this selection)
+    no_jets = ak.fill_none(results_lepton.steps["Lepton"] & ~events.jet_presel, False)
+    if ak.any(no_jets):
+        raise RuntimeError(
+            f"{int(ak.sum(no_jets))} event(s) pass the lepton selection but were not flagged by the "
+            "calibration preselection (jet_presel); PRESEL_LEPTON_PT in calibration/corrections.py "
+            "must define a superset of the lepton selection",
+        )
+
+    # candidate jets (Delta R-cleaned against the loose leptons); the analysis
+    # jet pT cut and all jet counts used by categories are in production
+    events, results_jet = self[jet_selection](events, lepton_results=results_lepton, **kwargs)
     results += results_jet
 
     # trigger selection
@@ -146,6 +181,12 @@ def default(
             norm_weight_columns += [
                 f"{base}_weight{postfix}"
                 for base in ["mur", "muf", "murmuf_envelope", "pdf"]
+                for postfix in ["", "_up", "_down"]
+            ]
+        if not self.dataset_inst.has_tag("no_ps_weights"):
+            norm_weight_columns += [
+                f"{base}_weight{postfix}"
+                for base in ["isr", "fsr"]
                 for postfix in ["", "_up", "_down"]
             ]
         for column in norm_weight_columns:
@@ -197,31 +238,31 @@ def default_init(
     **kwargs,
 ) -> None:
     """
-    Declare the JEC/JER shifts this selector implements.
+    Declare the shifts that change the event selection.
 
-    This has to live on the *selector*, not the calibrator: SelectEvents and
-    ReduceEvents set register_selector_shifts = True (columnflow
-    tasks/selection.py:57, tasks/reduction.py:54), while register_calibrators_shifts
-    is False everywhere. Only a task that implements a shift gets
-    local_shift = <shift>, and the column aliases are read from local_shift_inst
-    (tasks/selection.py:150, tasks/reduction.py:110).
+    This has to live on the *selector*: SelectEvents and ReduceEvents set
+    register_selector_shifts = True (columnflow tasks/selection.py,
+    tasks/reduction.py), so only then do their local shift -- and hence the
+    column aliases -- respond. The calibrators write every varied column in the
+    nominal pass, so CalibrateEvents does not rerun per shift.
 
-    Declaring these on the calibrator instead makes the shift resolve globally
-    (shift=jec_Total_up) but leaves local_shift=nominal at SelectEvents, so the
-    nominal Jet.pt is read and the shifted histogram comes out bit-identical to
-    nominal -- with no warning, because missing_column_alias_strategy is
-    "original".
-
-    Note the jec calibrator never inspects shift_inst: it writes every
-    Jet.pt_jec_<source>_<dir> column in one pass. So CalibrateEvents does not
-    need to rerun per shift, and should stay at nominal.
+    Only the lepton momentum shifts are selection dependent. The JES/JER shifts
+    are registered on the producer instead (production/default.py): no event or
+    object cut at selection depends on the jet pT variation (jet_selection keeps
+    every jet that passes pT > 30 in ANY variation), so they only need
+    ProduceColumns to rerun.
     """
-    if not getattr(self, "dataset_inst", None) or self.dataset_inst.is_data:
+    if not getattr(self, "dataset_inst", None):
+        return
+    if self.dataset_inst.is_data:
+        self.uses |= {"run", "ecal_badcrystal_veto"}
         return
 
-    sources = self.config_inst.x.jec.get("uncertainty_sources") or []
-    shift_sources = [f"jec_{source}" for source in sources] + ["jer"]
+    # selection-level lepton momentum shifts (selection/lepton_shift.py)
+    self.uses.add(lepton_momentum_shift)
+    self.produces.add(lepton_momentum_shift)
+
     self.shifts |= {
         shift_inst.name
-        for shift_inst in get_shifts_from_sources(self.config_inst, *shift_sources)
+        for shift_inst in get_shifts_from_sources(self.config_inst, *self.config_inst.x.lepton_shift_sources)
     }

@@ -142,29 +142,34 @@ class SplitBTagWPCorrector(object):
         # udsg is hadronFlavour 0; b and c are 5 and 4.
         light_mask = flavor == 0
 
+        # BTV multi-era scheme: b/c and light uncertainties are separate
+        # nuisances. A systematic prefixed "bc_" varies only b/c jets (light jets
+        # stay at central), "light_" varies only udsg jets. Unprefixed
+        # systematics (e.g. "central") apply to both.
+        if systematic.startswith("bc_"):
+            heavy_syst, light_syst = systematic[len("bc_"):], "central"
+        elif systematic.startswith("light_"):
+            heavy_syst, light_syst = "central", systematic[len("light_"):]
+        else:
+            heavy_syst = light_syst = systematic
+
         # Evaluate BOTH correctors over the FULL array and select afterwards,
-        # rather than masking the inputs and stitching results back together.
-        # The arrays here are jagged (upstream does ak.prod(..., axis=1) on the
-        # result), so subset-and-reassemble would have to rebuild the layout by
-        # hand -- easy to get subtly wrong, and the old producer did exactly
-        # that. Evaluating twice costs a little CPU and no correctness.
-        #
-        # Each corrector only accepts its own flavour categories, so the flavor
-        # argument is substituted before the call: heavy jets are presented to
-        # the light corrector as flavour 0 and vice versa. Those values are then
-        # discarded by the ak.where below.
+        # rather than masking the inputs and stitching results back together
+        # (the arrays are jagged; upstream does ak.prod(..., axis=1) on the
+        # result). Each corrector only accepts its own flavour categories, so the
+        # flavour argument is substituted before the call and the values for the
+        # other flavour are discarded by the ak.where below.
         light_args = list(args)
         light_args[self.flavor_index] = ak.zeros_like(flavor)
-
-        # The light sets carry only correlated/uncorrelated variations. For a
-        # heavy-flavour systematic (jes, hdamp, topmass, ...) the physically
-        # correct behaviour is for udsg jets not to move at all, so fall back to
-        # the central value rather than raising.
-        if systematic not in self.light_systematics:
-            light_args[self.systematic_index] = "central"
+        # the light sets only know correlated/uncorrelated; anything else leaves
+        # udsg jets at the central value
+        light_args[self.systematic_index] = light_syst if light_syst in self.light_systematics else "central"
 
         heavy_args = list(args)
-        heavy_args[self.flavor_index] = ak.full_like(flavor, 5)
+        # c jets must be evaluated as flavour 4: the comb sets carry separate
+        # (and ~3x larger) c-jet uncertainties. Light jets get a dummy 5.
+        heavy_args[self.flavor_index] = ak.where(light_mask, 5, flavor)
+        heavy_args[self.systematic_index] = heavy_syst
 
         sf_light = self.corrector_light(*light_args)
         sf_heavy = self.corrector_heavy(*heavy_args)

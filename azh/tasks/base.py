@@ -21,8 +21,10 @@ def _htcondor_output_directory_afs(self):
     since standard CERN bigbird schedds reject EOS paths in initialdir.
     """
     job_base = os.environ.get("CF_JOB_BASE", "/afs/cern.ch/user/e/eranders/azh_jobs")
-    # use the task's law-generated job file directory which is already unique
-    return law.LocalDirectoryTarget(os.path.join(job_base, "htcondor_out"))
+    # one directory PER TASK: job records (htcondor_jobs_<range>.json) and job
+    # logs are named only by branch range, so a shared directory made workflows
+    # with equal branch counts overwrite each other's records and logs
+    return law.LocalDirectoryTarget(os.path.join(job_base, "htcondor_out", self.task_family, self.live_task_id))
 
 
 # patch columnflow's HTCondorWorkflow so all cf.* tasks use AFS for initialdir

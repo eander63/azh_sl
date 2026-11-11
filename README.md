@@ -1,13 +1,26 @@
 # AZH → semileptonic (Run 3)
 
 Search for a heavy pseudoscalar **A → ZH**, with H → tt̄ and Z → ℓℓ, in CMS Run 3
-data. Built on
-[columnflow](https://github.com/columnflow/columnflow). Directions are for use on DESY.
+data (2022–2024). Built on [columnflow](https://github.com/columnflow/columnflow).
+Directions are for the DESY NAF.
 
-**Status: work in progress.** The full chain runs end to end on real events
-(through `cf.ProduceColumns`) with the 3-lepton selection and all six POG
-corrections in place. Next step is the batched reprocess into a fresh version,
-then histograms/limits. Systematics are deferred (nominal only).
+**Status (Nov 2026):** the full 2022–2024 production is complete at store version
+**`v9`** (code: tag `production-v9`, if not yet created: `git tag -a production-v9`): all data, and all MC in the configs with the
+nominal pass plus all 8 lepton-scale passes. Validated (completeness, Z peaks,
+blinding, data yields per fb⁻¹, shift sanity). Next: the jet/MET shift passes,
+then the full data/MC plots with uncertainty bands, then datacards.
+See [Open items](#open-items).
+
+---
+
+## Contents
+
+- [Setup](#setup) · [Credentials](#credentials)
+- [What runs](#what-runs) · [Configs](#configs) · [Physics choices](#physics-choices)
+- [Corrections and systematics](#corrections-and-systematics) · [Known data issues and guards](#known-data-issues-and-guards)
+- [Categories](#categories)
+- [Production](#production) · [Quick checks](#quick-checks) · [Troubleshooting](#troubleshooting)
+- [Statistical tools (combine)](#statistical-tools-combine) · [Open items](#open-items)
 
 ---
 
@@ -20,330 +33,394 @@ git clone --recursive git@github.com:eander63/azh_sl.git
 cd azh_sl
 ```
 
-`--recursive` matters: `columnflow`, `cmsdb`, and `muonscarekit` are submodules,
+`--recursive` matters: `columnflow`, `cmsdb` and `muonscarekit` are submodules,
 and columnflow has its own (`law`, `order`). If you forget it:
-`git submodule update --init --recursive`.
-
-Note `muonscarekit` is **pinned at commit 5541977** (see MUO below) — do not
-update it without re-checking the RandomSmearing/JSON compatibility.
+`git submodule update --init --recursive`. `muonscarekit` is pinned at commit
+**5541977**; do not update it without re-checking the JSON compatibility.
 
 ### Every session
 
-From the repo root, in a **fresh shell**:
+In a **fresh shell** (never one where you ran `cmsenv`, see [combine](#statistical-tools-combine)):
 
 ```bash
 cd /path/to/azh_sl
-
 export CF_DATA=/data/dust/user/$(whoami)/azh_data
-export CF_HTCONDOR_FLAVOR=naf_el9
 export CF_JOB_BASE=/data/dust/user/$(whoami)/azh_jobs
+export CF_HTCONDOR_FLAVOR=naf_el9
 export CF_WLCG_USE_CACHE=True
 export CF_WLCG_CACHE_ROOT=/data/dust/user/$(whoami)/azh_cache
 export CF_WLCG_CACHE_CLEANUP=False
-
+export TMPDIR=/data/dust/user/$(whoami)/azh_tmp                 # login-node /tmp is shared and small
+export X509_USER_PROXY=/data/dust/user/$(whoami)/.grid/x509up   # proxy on dust, not AFS
 source setup.sh
-source /cvmfs/grid.desy.de/etc/profile.d/grid-ui-env.sh
-voms-proxy-init --voms cms --valid 192:00
 ```
 
-- The exports must come **before** `source setup.sh` — they're read during setup.
-- The first run builds the software stack under `$CF_DATA/software` and is slow.
-  Later runs are fast.
-- Everything is written to `$CF_DATA`. No CERN EOS, no Tier-2 — `naf_el9` jobs
-  run on workers that mount `/data/dust`.
-- correctionlib and awkward only exist inside the columnflow sandbox. For a bare
-  `python3` check outside a `law run`, source a sandbox first, e.g.
-  `source modules/columnflow/sandboxes/venv_columnar.sh`.
+- The exports must come **before** `source setup.sh`.
+- The first run builds the software stack under `$CF_DATA/software` (slow).
+- Everything is written below `$CF_DATA`; batch jobs run on workers that mount `/data/dust`.
+- Tip: keep these lines in `~/azh_env.sh` and just `source ~/azh_env.sh`.
+- Check with `which law`: it must point into the repo, **not** to `/cvmfs/.../CMSSW_*`.
+
+### Credentials
+
+Three credentials, each with its own lifetime. Most production interruptions so far
+were one of them expiring.
+
+| Credential | Needed for | Lifetime | Renew |
+|---|---|---|---|
+| Kerberos ticket | HTCondor (submit, query) | 1 day, renewable ~2 days | `kinit && aklog` |
+| AFS token | reading the AFS home | with the ticket | `aklog` |
+| Grid proxy | reading NanoAOD via XRootD, DAS | max. 8 days | see below |
+
+```bash
+# grid proxy: in a subshell, so the grid environment does not leak into the analysis shell
+bash -c 'source /cvmfs/grid.desy.de/etc/profile.d/grid-ui-env.sh
+         export X509_USER_PROXY=/data/dust/user/$(whoami)/.grid/x509up
+         voms-proxy-init --voms cms --valid 192:00'
+openssl x509 -in "$X509_USER_PROXY" -noout -enddate
+
+# keep the Kerberos ticket alive for a long run (start in the shell that launches law)
+kinit && aklog && krenew -b -K 60 -t
+klist | grep -A1 krbtgt          # "renew until": a password kinit is needed before then
+```
+
+`krenew` renews the ticket cache of the shell it is started from (`$KRB5CCNAME`),
+which must be the cache of the running law process. Ticket caches live in the
+node-local `/tmp`, so they differ per node and session. **Never delete a
+`/tmp/krb5cc_*` file** belonging to a running law process; if it happens, recreate
+it with `KRB5CCNAME=<same path> kinit` at once.
 
 ---
 
 ## What runs
 
 ```
-cf.GetDatasetLFNs        find input NanoAOD files
+cf.GetDatasetLFNs       input NanoAOD files (validated DAS lookup, see below)
     ↓
-cf.CalibrateEvents       JEC/JER, muon + electron scale & smearing, jet-lepton cleaning
+cf.CalibrateEvents      JEC/JER (+ 11 JES sources), MET propagation, muon and electron
+                        scale & smearing (+ variations), guards for non-finite values
     ↓
-cf.SelectEvents          lepton / jet / trigger selection, MET filters, jet veto map
+cf.SelectEvents         triggers, MET filters, jet veto maps, ECAL bad-crystal veto,
+                        leptons, jets, b-tagging; MC weights (PU, PDF, scale, PS)
     ↓
-cf.ReduceEvents          drop rejected events and unused columns
+cf.ReduceEvents         keep selected events and the keep_columns
     ↓
-cf.MergeReducedEvents
+cf.MergeReducedEvents   merged reduced events (permanent)
     ↓
-cf.ProduceColumns        Z / H reconstruction, weights, categories
+cf.ProduceColumns       Z/H reconstruction, scale factors, b-tag weights, categories,
+                        normalization (permanent)
     ↓
-cf.CreateHistograms  →  cf.MergeHistograms  →  cf.PlotVariables1D
+cf.CreateHistograms → cf.MergeHistograms → cf.PlotVariables1D / datacards
 ```
 
-### Defaults
+Defaults (`azh/config/config_run3.py`): calibrator `skip_jecunc`, selector
+`default`, producer `default`, weight producer `all_weights`. These names are part
+of the store path; renaming them orphans the store.
 
-Set in `azh/config/config_run3.py` (~line 708). These name the files to read:
+### Store and versions
 
-| Setting | Value | Lives in |
-|---|---|---|
-| `default_calibrator` | `skip_jecunc` | `azh/calibration/default.py` |
-| `default_selector` | `default` | `azh/selection/default.py` |
-| `default_producer` | `default` | `azh/production/default.py` |
-| `default_weight_producer` | `all_weights` | `azh/trigger/weights.py` |
-| `default_categories` | `["cat_incl"]` | `azh/config/categories.py` |
-| `default_variables` | `["jet1_pt"]` | `azh/config/variables.py` |
+```
+$CF_DATA/cf_store/analysis_azh/{task}/{config}/{dataset}/{shift}/calib__.../sel__.../red__.../[prod__.../]{version}/
+```
 
-`law.cfg` sets `default_config: config_2022pre`, `default_dataset: tt_sl_powheg`.
+Path elements are *names*, not checksums of the code. Any change in behaviour needs
+a new `--version`; nothing forces it, and law will reuse a stale store. `--version`
+is mandatory on every `law run`.
 
-The names `skip_jecunc` / `default` / `default` are load-bearing — they appear in
-the store path, so renaming them orphans the existing store. Leave them ugly.
+---
 
-### Configs
+## Configs
 
-Eleven configs, five eras. Built in `azh/config/analysis_azh_run3.py`; the real
-content is `azh/config/config_run3.py`.
+Built in `azh/config/analysis_azh_run3.py`, content in `azh/config/config_run3.py`.
 
-| Config | Lumi (pb⁻¹) | NanoAOD | Signal |
-|---|---|---|---|
-| `config_2022pre` | 7990 | v12 | yes |
-| `config_2022post` | 26675 | v12 | yes |
-| `config_2023pre` | 18062 | v12 | yes |
-| `config_2023post` | 9693 | v12 | yes |
-| `config_2024` | 109948 | v15 | no |
+| Config | Era | Lumi (pb⁻¹, brilcalc) | NanoAOD | MC datasets | Data datasets |
+|---|---|---|---|---|---|
+| `config_2022pre` | 2022 preEE (C–D) | 7989.5 | v12 | 19 | 4 |
+| `config_2022post` | 2022 postEE (E–G) | 26674.9 | v12 | 19 | 6 |
+| `config_2023pre` | 2023 preBPix (C) | 17964.2 | v12 | 20 | 8 |
+| `config_2023post` | 2023 postBPix (D) | 9676.7 | v12 | 20 | 4 |
+| `config_2024` | 2024 (C–I) | 109710.3 | v15 | 27 | 14 |
 
-Each era has a `_limited` variant (1 file per dataset) for fast iteration;
-`config_2022pre` also has `config_2022pre_10files`. Config groups:
+Golden JSONs are pinned with absolute paths below `$CF_DATA/lumi/` (absolute
+paths keep the batch bundle hash stable). Luminosity uncertainties enter as
+`lumi_1/2/3`.
 
-- `--configs run3` — all five eras
-- `--configs run3_v12` — the four v12 eras, i.e. everything the AZH signal
-  samples exist for
+Each era has a `_limited` variant (1 file per dataset) for fast tests;
+`config_2022pre` also has `config_2022pre_10files`.
 
-2025/2026 are **not supported**: those cmsdb campaigns contain data PDs only,
-no MC.
+**Signal samples are not yet in the configs.** The AZH signal exists for the v12
+eras only (cmsdb `azh_run3`); 2024 has none.
 
-### 2024
+### 2024 specifics
 
-2024 is a single undivided era (no pre/post split), so `corr_postfix` is `""`
-and the era key is just `"2024"`. Three things differ structurally from
-2022/23, beyond the usual per-era correction values:
+- **b tagging:** no PNet/DeepJet working points from BTV; UParT is used.
+  `cfg.x.btag_default` carries the era's `{name, column, wp}`.
+- **Jet ID:** v15 NanoAOD has no `Jet_jetId`; it is rebuilt from `jetid.json`.
+- **Drell–Yan:** flavour-split samples (`dy_{ee,mumu,tautau}_m50toinf_amcatnlo`,
+  `dy_*_m10to50_powheg`); registered as `dy_ee/dy_mumu/dy_tautau` instead of
+  `dy_hf/dy_lf`.
+- **W+jets:** not included (only samples that need stitching exist).
+- **Primary datasets:** EGamma is `data_e_*`; both PDs carry the `egamma` tag.
 
-**b tagging.** BTV published no ParticleNet or DeepJet working points for 2024;
-the recommended tagger is UParT. `cfg.x.btag_default` carries the
-era-appropriate `{name, column, wp}` and is consumed by `jet_selection`,
-`higgs_reco`, `variables` and `keep_columns` instead of a hard-coded
-`btagPNetB`. For 2022/23 it resolves to ParticleNet medium — identical to the
-previous behaviour, so existing 22/23 stores stay valid and need no version
-bump. This matters for `sr_1b` / `sr_2b`, which are defined by b-jet count.
+---
 
-**Drell-Yan.** 2024 has no lepton-inclusive DY sample, so the three
-flavour-split ones (`dy_{ee,mumu,tautau}_m50toinf_amcatnlo` plus the `m10to50`
-powheg equivalents) are used instead. Note the low-mass generator therefore
-differs by era. These datasets are deliberately **not** tagged `is_dy`, because
-`dy_producer` needs `<base>_<njet>j_<hf|lf>` child processes that cmsdb does not
-define for the flavour-split processes. They instead get a plain `process_id`
-from their own leaf process, and the config registers `dy_ee` / `dy_mumu` /
-`dy_tautau` in place of `dy_hf` / `dy_lf`.
+## Physics choices
 
-**No signal.** The 2024 campaign ships no `azh.py`, so all `azh_htt_zll_*`
-entries are stripped from `process_names`. Anything resolving a signal process
-by name against `config_2024` will fail — use `--configs run3_v12`.
-
-Primary datasets: the EGamma PD is `data_e_*` in 2024, not `data_egamma_*`.
-Both get the `egamma` tag so `Trigger.applies_to_dataset` is unaffected. Eras
-run C–I. Sanity numbers: 43 datasets, 22 MC + 21 data.
-
-#### 2024 open items
-
-Settings transcribed from POG docs or a sister analysis but not checked against
-the actual files are collected per config in `cfg.x.unverified_settings` and
-logged as a warning at config build. Clear an entry once verified.
-
-| Item | What to do |
+| Topic | Choice |
 |---|---|
-| Trigger filter bits | v15 repacked the electron `TrigObj.filterBits`; `add_triggers_2024` uses bit 18 for Ele30 (v12 used bit 19, a *different* filter in v15). A wrong bit does not raise — check the trigger-matching turn-on vs. offline pT. |
-| `pu_sf` / pileup JSON | LUM may ship 2024 as `puWeights_BCDEFGHI.json.gz` rather than the plain name from `corr_tag`, and the Collisions24 PileUp area may be split per era-range. Check on `/cvmfs`. |
-| btag SF correction sets | `unifiedParTAK4_light` / `_comb` — confirm against the 2024 BTV correctionlib file. |
-| `muon_sf_*` era key | These pass `"2024"` straight into `muon_Z.json`; confirm MUO uses that string. |
-| `electron_ss_names`, `electron_sf_trig_names` | The `EGMScale_ElePTsplit_2024` / `2024Prompt` keys follow the 2022/23 pattern; introspect the 2024 EGM files. |
-| `channel_lumis` | Left at 1.0 (muon = egamma = nominal). Re-derive with brilcalc per PD if the two PDs do not run end-to-end. |
-| Luminosity | 109948 pb⁻¹ for runs 378981–386951 is the central recommendation, not locally brilcalc-verified. |
-| W+jets | Dropped for 2024 — only jet-binned madgraph (no 0j bin) and pt-binned amcatnlo exist, both needing stitching. Small in 2l/3l, but add it back before unblinding. |
-| DY hf/lf split | Needs `dy_{flav}_m50toinf_{0..3}j_{hf,lf}` processes in `modify_cmsdb_processes` plus a flavour-aware `base_proc_name` in `dy_producer`. Decide first whether 2024 DY should be njet-split at all. |
-| Single top | 2024 uses the `_lep_` t-channel samples; `_had_` omitted as it cannot pass a 2l/3l selection. |
-
-Note: the cmsdb `azh_run3` branch renamed `wwz_pythia` → `wwz_amcatnlo`
-(generator change, not just a rename) in the 2022preEE campaign. Diboson
-normalisation is not directly comparable across the submodule switch.
----
-
-## Running
-
-### Example
-
-```bash
-law run cf.PlotVariables1D \
-    --config config_2022pre \
-    --version v1 \
-    --datasets tt_sl_powheg,dy_m50toinf_amcatnlo,data_mu_c \
-    --variables m_z,n_jets \
-    --categories 2l__2mu \
-    --
-```
-
-### `--version` is mandatory
-
-There is no default version — omitting it raises
-`MissingParameterException: requires the 'version' parameter to be set`.
-`--print-status` also needs a `--version`.
-
-### Store paths hash names, not code
-
-```
-$CF_DATA/cf_store/analysis_azh/{task}/{config}/{dataset}/{shift}/{calib}/{version}/
-```
-
-Every element is a *name*, not a checksum of your source. So **pure code moves /
-renames-within-a-file are free** (the store stays valid), but **any behavioral
-change needs a `--version` bump** — nothing forces it for you, and the framework
-will happily reuse a stale store after a physics change. When you change
-`keep_columns`, the reduced store must be rebuilt: bump the version, or force it
-with `--cf.ReduceEvents-remove-output 0,a,y`.
+| Triggers | `HLT_IsoMu24` OR `HLT_Ele30_WPTight_Gsf` (decision only; MuonEG and dilepton triggers dropped) |
+| Electrons | MVA iso WP80; ECAL crack veto, supercluster η |
+| Muons | Tight ID + tight PF isolation |
+| Jets | AK4 PUPPI, TightLepVeto ID, \|η\| < 2.5, pT > 30 GeV, ΔR < 0.3 cleaning against leptons |
+| Candidate jets | `CandJet`: jets carrying all JES/JER variations, for events with ≥ 2 leptons above 8 GeV |
+| b tagging | PNet medium (2022/23), UParT (2024); fixed-WP scale factors with MC efficiency maps |
+| MET | PuppiMET everywhere |
+| Drell–Yan | NLO (amcatnlo); split into `dy_lf` / `dy_hf` by jet flavour (0j_lf 58%, 1j 28%, 2j 10%, ≥3j 4%) |
+| Zγ | not included (DY only); overlap with DY measured, decision with the PI |
+| Nonprompt | from MC |
+| Blinding | data in the signal region (3l + baseline + ≥ 1 b) is removed from all categories |
+| Extensions | only the nominal DAS key of each sample is used (`ext1` samples are not processed) |
 
 ---
 
-## Categories: validation vs. analysis in one store
+## Corrections and systematics
+
+### Shifts (separate passes through the chain)
+
+| Type | Shifts | Rerun from | Status |
+|---|---|---|---|
+| Lepton scale/resolution | `e_scale`, `e_smear`, `mu_scale`, `mu_resol` (up/down) | selection | **done** (v9) |
+| Jet energy scale | 11 regrouped sources: Absolute, Absolute_*era*, BBEC1, BBEC1_*era*, EC2, EC2_*era*, FlavorQCD, HF, HF_*era*, RelativeBal, RelativeSample_*era* (up/down) | production | to do |
+| Jet energy resolution | `jer` (up/down) | production | to do |
+| MET unclustered energy | up/down | production | to do |
+
+The jet and MET variations are already stored on `CandJet` and PuppiMET in the
+reduced events, so these passes only rerun `cf.ProduceColumns`.
+
+### Weights (in every pass, no rerun)
+
+Pileup; electron reco/ID/trigger SFs; muon ID/iso/trigger SFs (stat and syst);
+b-tag (bc and light, correlated and uncorrelated); luminosity; μR/μF and their
+envelope; PDF (see below); parton shower ISR/FSR.
+
+### b-tag efficiencies
+
+Fixed-WP method with efficiencies measured in our MC (`btag_wp_count_config`):
+pT bins 30/50/70/100/140/200/∞ GeV, **one |η| bin** (a barrel/endcap split left
+light jets above 200 GeV in the endcap with zero tagged jets). Efficiency groups:
+tt̄ + single top, tt̄X, DY, dibosons + W+jets + tribosons.
+
+### PDF uncertainties (`azh/production/theory.py`)
+
+| Layout | Set | Samples | Uncertainty |
+|---|---|---|---|
+| 103 weights | NNPDF3.1 NNLO, 5 flavours (LHA 325300) | most samples | Hessian PDF + αs |
+| 101 weights | NNPDF3.1 NNLO, 4 flavours (LHA 325500) | single-top t-channel, 2024 WWW/WWZ | Hessian PDF only (no αs members) |
+| none | n/a | LO pythia dibosons (`no_lhe_weights` tag) | no PDF/scale variation |
+
+Any other layout raises an error rather than producing a wrong uncertainty.
+2023 ttW has 8 instead of 9 scale weights; columnflow handles that.
+
+---
+
+## Known data issues and guards
+
+| Issue | Handling |
+|---|---|
+| Non-finite PuppiMET (e.g. 2022F, run 360927, lumi 1083, event 2217841979) | `met_finite_guard` sets all PuppiMET columns to −1; the selection step `met_finite` rejects these events (15 in all data) |
+| Non-finite MET unclustered variations | set to no variation |
+| Non-finite MuScaRe pT variations (seen in 2024 tt̄) | `lepton_variation_guard`: the varied pT falls back to the nominal pT (count printed per chunk) |
+| ECAL bad crystals in prompt reco 2022G / 2023C (runs 362433–367144) | event veto |
+| Electron scale in data incomplete before the fix (2023D Z peak at 88.8 GeV) | fixed; Z peaks now 90.75–91.25 GeV in all eras |
+| DAS errors stored as file names | `get_dataset_lfns` retries, accepts only `/store/...` paths, refuses lists shorter than cmsdb |
+| Outdated cmsdb file counts (2022preEE DY: 525 / 448 files) | overridden in the config's era-specific section |
+| Bad input files | `broken_files` aux list per dataset in cmsdb/config |
+
+Double counting is removed (`vv ⊃ wz`, `ttv ⊃ ttz, ttw`), and the LO WZ/ZZ pythia
+samples stand in for the NLO samples missing in cmsdb for 2022/23 (logged as
+`unverified_settings` at config build).
+
+---
+
+## Categories
 
 Three orthogonal axes (`azh/config/categories.py`, `azh/production/categories.py`):
 
 ```
-multiplicity:  2l (=100)  |  3l (=200)          validation vs analysis
-flavor:        2e (=10)   |  2mu (=20)          Z candidate flavor
-region:        wz_cr (=4000) | sr_1b (=5000) | sr_2b (=6000)   b-jet count (3l only)
+multiplicity:  2l (=100)  |  3l (=200)
+flavor:        2e (=10)   |  2mu (=20)                           Z candidate flavor
+region:        wz_cr (=4000) | sr_1b (=5000) | sr_2b (=6000)     b-jet count (3l only)
 ```
 
-IDs are additive (`3l__2e__sr_2b` = 6210). 13 combined leaves, built as three
-scoped 2-group `create_category_combinations` calls (not one 3-group call +
-skip_fn — columnflow's parent-finding ignores skip_fn, so skipping a mid-node
-crashes on the missing parent).
+IDs are additive (`3l__2e__sr_2b` = 6210).
 
-- **Validation** = `2l__2e`, `2l__2mu` — no baseline cuts, high-stat DY for
-  Z-peak / lepton-calibration checks.
-- **Analysis** = `3l__*__<region>` — full B2G-24-002 baseline (Z window, MET,
-  ≥4 jets) plus the b-jet region split.
+- **Validation:** `2l__2e`, `2l__2mu`: no baseline, high-statistics DY for Z-peak
+  and lepton calibration checks. Unblinded.
+- **Analysis:** `3l__*__<region>`: full baseline (Z window, MET, ≥ 4 jets) plus the
+  b-jet split. Signal regions are blinded in data.
 
-The selector is deliberately **conservative** (loose leptons pT>10, loose IDs,
-crack veto, SC-η, ≥2 loose jets); all tunable cuts (25/20/15 pT, tight IDs,
-4th-lepton veto, Min(mℓℓ), charge sum) live in categories so they can be
-retuned without reprocessing. Categorizers use hard `_require()` failures, not
-silent-empty masks.
+Tunable cuts live in the categories, so they can be retuned by rerunning
+production only.
 
 ---
 
-## POG corrections
+## Production
 
-All six audited against the jsonpog-integration JSONs and run end-to-end on data
-+ MC. Nominal only; systematics deferred. Verified with sane weight values
-(b-tag mean ≈ 1.00, pileup 0.17–1.64, lepton SFs ≈ 0.97–0.99).
+### Status of `v9`
 
-### LUM — done
-- Pileup via correctionlib (`azh/production/pileup.py`, reads `pu_sf`); profile
-  route (`mc_profile`/`data_profile`) fully removed. Closes the stale-2023
-  profile bug and the "pu_weight 0–160" pathology (now bounded 0.17–1.64).
-- Per era, one correction, run range matches (BCD/EFG/BC/D).
-- `pu.json` kept — required by columnflow `BundleExternalFiles`, not used to
-  build the weight.
-- Deferred: `minbias_xs` up/down (same JSON, "up"/"down").
+| Era | MC: nominal + 8 lepton passes | Data | Missing |
+|---|---|---|---|
+| 2022preEE | 19/19 | 4/4 | `data_singlemu_c` (early 2022C muons; needs cmsdb) |
+| 2022postEE | 19/19 | 6/6 | |
+| 2023preBPix | 20/20 | 8/8 | |
+| 2023postBPix | 20/20 | 4/4 | |
+| 2024 | 27/27 | 14/14 | |
 
-### EGM — done (ran data + MC)
-- Reco (RecoBelow20 / Reco20to75 / RecoAbove75) + ID (wp80iso) + trigger SFs,
-  all four eras. Low-pT reco (10–20) added for the pT>10 loose floor.
-- phi (2023) and supercluster-η handled automatically by stock `electron_weights`.
-- Scale & smearing → **eT-dependent** (POG-recommended): `electron_ss` in
-  `calibration/corrections.py`. SC-η = eta + deltaEtaSC, ElePTsplit scale/smear,
-  reproducible per-electron seed, <15 GeV pass-through. `external_files` →
-  `electronSS_EtDependent.json.gz`; per-era `EGMScale_ElePTsplit_*` /
-  `EGMSmearAndSyst_ElePTsplit_*`.
-- Deferred: `electron_loreco_weight_down` can dip very slightly negative
-  (~-1e-4) in the 10–20 GeV bin (large Zee background per EGM) — clamp at 0 or
-  accept when electron-reco systematics are enabled. Harmless for nominal.
+Permanent footprint: about **3.8 TB** (merged reduced events + produced columns).
+Data/MC first look (2023postBPix, 2l): m_ℓℓ data/MC ≈ 1.00 (μμ) and 0.98 (ee);
+DY under-predicts ≥ 3 jets; data excess in PuppiMET at 60–200 GeV (to investigate).
 
-### MUO — done (ran data + MC)
-- ID (`NUM_TightID_DEN_TrackerMuons`) + iso (`NUM_TightPFIso_DEN_TightID`) SFs.
-- Trigger SF fixed to plain `NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight`
-  (matches HLT_IsoMu24; was the IsoMu24-OR-highPt numerator).
-- SFs masked to pT≥15 (file bins start at 15; sub-15 muons get SF=1 and are cut
-  by `catid_3l`).
-- RECO SF correctly NOT applied (Run 3 SF≈1, POG provides none).
-- Scale & smearing: official **muonscarekit** (submodule pinned at **5541977**,
-  which generates the CB random itself — matches the no-RandomSmearing CVMFS
-  JSON). `rnd_gen="np"` (no ROOT), deterministic seed from (event, lumi, phi).
-  Replaced a hand-rolled CB inverse-CDF that had visible bugs.
-- Deferred: high-pT GE correction (pT>200) for high-mass signal points;
-  scale/iso systematics (`pt_scale_var`/`pt_resol_var` in the kit).
+### Running a production
 
-### JME — done (nominal; systematics deferred)
-- **JEC/JER**: `jet_type = "AK4PFPuppi"`, nominal only (`jec_nominal`, empty
-  uncertainty sources). AK4PFPuppi confirmed all four eras (Summer22_V2,
-  Summer22EE_V2, Summer23Prompt23, Summer23BPixPrompt23_V3).
-- **MET → PuppiMET** everywhere (baseline pT_miss, χ² top reco, uses/produces,
-  variables, keep_columns). PF MET is invalid with PUPPI jets.
-- **Endcap noise veto** on loose jets: 2.5<|η|<3.0 requires pT>50 (EE eta-spike).
-- **jetId**: v12 packing {0,2,6}; loose ≥2, tight ==6.
-- **Jet veto maps**: stock `jet_veto_map` applies `jetvetomap` (2022 EE water
-  leak) all eras, and for 2023postBPix folds in negated `jetvetomap_bpix` (FPix)
-  — the postBPix condition fires for our campaign. No override needed.
-- **Noise filters** reconciled to Run-3 rec: added `hfNoisyHitsFilter`,
-  uncommented `ecalBadCalibFilter`; HBHE filters removed (no longer needed).
-- Deferred: JEC uncertainty sources (Regrouped_* present in file), JER variations
-  (scaling method for 2.5<|η|<3); ecalBadCalib uses the stored flag (a remade
-  version may be recommended — revisit if MET tails look off).
+Settings in `~/azh_prod_vars.sh` (source after the environment):
 
-### BTV — done (ran; b-tag weight mean ≈ 1.00)
-- **DeepJet → ParticleNet** (POG-preferred, better Run-3 performance; ~85% vs
-  82% b-eff at medium WP). SR/CR split *is* b-multiplicity, so this directly
-  sharpens signal/control separation.
-- b-jet definition `Jet.btagPNetB > particlenet.medium` (per-era WP, values
-  file-verified: 0.245 / 0.2605 / 0.1917 / 0.1919).
-- SF via `particleNet_comb` + `particleNet_light` (`_comb`, not `_shape` — this
-  is a WP-count analysis, not a discriminant-shape one; `_comb` also exists in
-  all four eras whereas 2023 lacks `particleNet_mujets`).
-- `btagPNetB` + `hadronFlavour` kept through reduction for the SF.
+```bash
+SHIFTS="nominal,e_scale_*,e_smear_*,mu_scale_*,mu_resol_*"
+COMMON="--version v9 --workflow htcondor --cf.CalibrateEvents-workflow htcondor --cf.SelectEvents-workflow htcondor --cf.ReduceEvents-workflow htcondor --cf.MergeReducedEvents-workflow htcondor --cf.CalibrateEvents-htcondor-memory 9"
+# NAF allows 5000 queued jobs per user: keep (workers x 500) well below
+CAPS="--cf.CalibrateEvents-parallel-jobs 500 --cf.SelectEvents-parallel-jobs 500 --cf.ReduceEvents-parallel-jobs 500 --cf.MergeReducedEvents-parallel-jobs 500 --cf.ProduceColumns-parallel-jobs 500"
+```
 
-### TAU — N/A
-No hadronic taus in the final state; correctly absent from `external_files`.
+```bash
+source ~/azh_env.sh && source ~/azh_prod_vars.sh
+echo "${COMMON:0:20}"     # must print text: an empty variable silently drops --version etc.
+nohup law run cf.ProduceColumnsWrapper --configs config_2024 --datasets "dy_*" \
+    --shifts "$SHIFTS" $COMMON $CAPS --workers 3 > logs_condor/<name>.log 2>&1 &
+```
+
+- MC calibration needs **9 GB** (measured peak ~7.3 GB on 2024 tt̄); data runs with 4 GB.
+- Launch long runs inside `tmux` on one login node, and start `krenew` there.
+- Never run two law processes on the same tasks at once.
+
+### Disk: stage and clean up
+
+Temporaries (calibration, selection, unmerged reduced events) are several times the
+permanent outputs; running everything at once does not fit in 5 TB. Process in
+stages (by era, or by dataset for the large DY samples, `--workers 1` for the
+largest), and clean up each completed dataset immediately:
+
+```bash
+bash ~/azh_cleanup_complete.sh config_2024      # lists temporaries of datasets complete in all 9 passes
+xargs rm -rf < /data/dust/user/$(whoami)/del_complete.txt
+du -sh $CF_DATA                                 # real usage (my-dust-quota lags by hours)
+```
+
+**A full disk corrupts files** (see [Troubleshooting](#troubleshooting)). Stay below
+~85% and stop runs before the limit.
+
+### Helper scripts
+
+| Script | Purpose |
+|---|---|
+| `~/azh_env.sh` | environment setup |
+| `~/azh_prod_vars.sh` | `SHIFTS`, `COMMON`, `CAPS` |
+| `~/azh_status.sh` | credentials, law processes, queue, storage, logs, per-pass completeness |
+| `~/azh_cleanup_complete.sh` | lists temporaries of completed datasets |
+| `scripts/quick_checks.py` | metadata-only consistency check of the whole store |
+
+(Move the `~/azh_*.sh` scripts into `scripts/` so they are versioned with the code.)
 
 ---
 
-## Batched reprocess (next step)
+## Quick checks
 
-All the POG changes above plus the 3-lepton selection and category scheme are
-behavioral, so they land together in **one reprocess at a new `--version`** — the
-"conservative selector, tune in categories" design exists to make this survivable.
-Staged changes: pileup correctionlib swap, eT-dependent electron S&S,
-muonscarekit, PuppiMET, endcap jet cut, noise filters, ParticleNet b-tagging,
-3-lepton selection + 2l/3l categories.
+All read metadata or small samples only: minutes, not hours.
 
-After the reprocess: re-make the `2l__2e` / `2l__2mu` Z-validation plots and check
-whether the original ee Data/MC tilt is resolved (crack veto + SC-η +
-eT-dependent S&S should fix it).
+```bash
+source ~/azh_env.sh
+python scripts/quick_checks.py                       # all eras; exit code 1 on any FAIL
+```
+
+Per config, it checks that every merged and produced file is non-empty with a
+readable footer, that every MC dataset has all 9 passes and every data dataset
+nominal, that merged and produced row counts agree, that the lepton-shift passes
+are within ±5% of nominal in event count, that `normalization_weight` is finite and
+non-zero, and it prints data events per fb⁻¹ (≈ 1.38–1.46 M per fb⁻¹ in `v9`).
+
+Damage *inside* a file (corrupt data pages) is invisible to footer reads, but a
+completed `cf.ProduceColumns` has read all of its merged inputs, and filling
+histograms reads all produced outputs, so it surfaces there.
+
+Physics sanity checks with expected `v9` values (data, `2l` categories):
+
+| Check | Expected |
+|---|---|
+| Z peak, ee / μμ | 90.75 / 91.25 GeV in every era |
+| Duplicate events across Muon and EGamma PDs | 0 |
+| Data events in signal-region categories (IDs 5000–6999) | 0 |
+| min PuppiMET in selected events | ≥ 0 |
+| ee/μμ yield ratio | 0.64 (2022pre) falling to 0.49 (2024); reproduced by MC in 2023post |
 
 ---
 
-## Systematics (deferred, not started)
+## Troubleshooting
 
-`cfg.x.event_weights` entries are all `[]` and JEC `uncertainty_sources` is empty,
-so systematics are effectively off. The pieces that come from the same POG JSONs
-(lepton/b-tag SF up/down, JEC sources, JER, pileup up/down) are enabled by the
-`"up"`/`"down"` strings; theory (μR/μF, PDF, PS) come from LHE weights already in
-the store; luminosity and nonprompt are analysis-derived. Note the JES/JER
-migration across the b-jet SR/CR boundary is the main *migration effect* to get
-right, not just a nuisance. Also disabled but purposeful: `zpt_reweight`
-(DY NLO-shape fix, placeholder in `weights.py`), the `w_lepton` assignment bug
-(uses 3rd-hardest lepton not the one outside the Z pair — matters for χ² top reco).
+| Symptom | Cause | Fix |
+|---|---|---|
+| `id: dummy_job_id, error: unknown job id` | submission rejected: expired Kerberos ticket, or more than 5000 queued jobs | renew (`kinit && aklog`), or lower `--workers` / `parallel-jobs` |
+| `AUTHENTICATE ... Failed to authenticate` | expired Kerberos ticket | `kinit && aklog` on the law node, for the cache law uses |
+| `voms-proxy-info failed` / `Couldn't find a valid proxy` | proxy expired or unreadable (AFS) | new proxy on dust (see [Credentials](#credentials)) |
+| `tolerance exceeded` immediately, nothing submitted | stale job record from an earlier run | delete that workflow's `htcondor_jobs_*.json` (path: `law run <task> ... --print-output 0`) |
+| `JSONDecodeError: Expecting value` | empty job record (written during a full disk) | delete that empty `htcondor_jobs_*.json` |
+| `Parquet file size is 0 bytes` / `magic bytes not found` / `Couldn't deserialize thrift` | damaged output (full disk) | find with `find ... -size 0` and footer or full reads; delete; remove the record of the task that reads it; relaunch |
+| Held jobs, `Transfer output files failure ... Disk quota exceeded` | full disk | `condor_rm -constraint 'Owner == "<user>" && JobStatus == 5'` |
+| `task family 'cf.X' not found in index` | law index broken (full disk at setup) | `law index --verbose` |
+| `ImportError` from plotting; `law` under `/cvmfs/.../CMSSW_*` | CMSSW environment active | fresh shell without `cmsenv` |
+| `ENOSPC` in `/tmp` | shared login-node `/tmp` full | `TMPDIR` on dust |
+| `pgrep`, `jobs`, `condor_q` show nothing | different login node | `ssh` to the launch node; `condor_q -global` |
+| Lists in `/tmp` missing | `/tmp` is per node | write lists to `/data/dust/...` |
+| Connection drops during long commands | idle/remote timeouts | `tmux`; `ServerAliveInterval 60` in `~/.ssh/config`; `nohup` for long scans |
+
+**Recovering from a full disk:** stop all law processes and `condor_rm` all jobs;
+free space; find empty files (`find <store>/... <jobs>/... -size 0`), truncated
+parquet files (footer reads of recently written files) and empty job records;
+delete them; rebuild the law index if needed; relaunch.
 
 ---
 
-## Housekeeping notes
+## Statistical tools (combine)
 
-- `azh/production/trigger.py` is a WIP debug producer (`trig_ids`), registered in
-  `law.cfg` but never called in the chain — safe to remove.
-- `deepcsv` in `btag_working_points` (config_run3.py) is Run-2 vestigial, unused.
-- `analysis_azh_run3.py` still carries columnflow-template boilerplate comments.
+`CMSSW_16_0_0` (el9_amd64_gcc13) with HiggsAnalysis/CombinedLimit **v11.1.0** and
+CombineHarvester in `/data/dust/user/$(whoami)/CMSSW_16_0_0`. Use it **only in a
+separate shell** (`cmsenv` puts CMSSW's own `law` and Python first in the path).
+
+---
+
+## Open items
+
+**Production**
+- Jet/MET shift passes (26 production passes per MC dataset) → histograms → delete
+  the shifted production outputs, era by era.
+- Full data/MC plots for all eras with all uncertainties.
+
+**Waiting on cmsdb / the PI**
+- cmsdb fork: `data_singlemu_c` (2022C), tZq, NLO WZ/ZZ and tribosons (2022/23),
+  ttW (mg35x), theory cross sections.
+- 2023 ttZ (m > 50) extensions: 10× the nominal statistics (2023preBPix: 5 → 60
+  files); include?
+- Zγ, trigger turn-on (keep vs. plateau cut), signal samples, b-tag scheme.
+
+**Physics follow-ups**
+- DY correction at high jet multiplicity; PuppiMET excess at 60–200 GeV; ee/μμ
+  trend across eras in data/MC.
+- ML: available inputs are the kept columns (CandJet with PNet/UParT score,
+  leptons with ID/iso flags, PuppiMET, gen objects) plus produced columns; other
+  taggers, lepton MVA scores, taus/photons/fat jets would need a reprocessing,
+  so add them to `keep_columns` before the next one.
+
+**Housekeeping**
+- `azh/production/trigger.py` (debug producer, unused), `deepcsv` working points
+  (Run 2), template comments in `analysis_azh_run3.py`.
 
 ---
 
@@ -353,4 +430,5 @@ right, not just a nuisance. Also disabled but purposeful: `zpt_reweight`
 [law](https://github.com/riga/law) ·
 [order](https://github.com/riga/order) ·
 [cmsdb](https://github.com/uhh-cms/cmsdb) ·
-[muonscarekit](https://gitlab.cern.ch/cms-muonPOG/muonscarekit)
+[muonscarekit](https://gitlab.cern.ch/cms-muonPOG/muonscarekit) ·
+[NAF documentation](https://naf.desy.de)

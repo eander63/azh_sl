@@ -23,9 +23,13 @@ from azh.config.variables import add_variables
 from columnflow.config_util import (
     get_root_processes_from_campaign, get_shifts_from_sources
 )
-from azh.config.signals import AZH_SIGNAL_DATASETS, AZH_SIGNAL_PROCESSES
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
+# repository root. The pinned golden JSONs live in $CF_DATA/lumi/ and are
+# given as the LITERAL string "$CF_DATA/...": the external-files bundle hash
+# is computed from these strings, and CF_DATA has a different value inside
+# batch jobs, so an expanded path would change the hash there.
+repo_dir = os.path.dirname(os.path.dirname(thisdir))
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +40,16 @@ def modify_cmsdb_processes():
     decay_map = {
         "lf": {
             "name": "lf",
-            "id": 50,
+            # ids are ADDED to the parent's id; with 50/60 the children of
+            # neighbouring parents collided (dy_m50toinf_0j_lf == dy_m50toinf_hf
+            # == 51160), so use offsets far outside the cmsdb DY id range
+            "id": 500000,
             "label": "(lf)",
             "br": -1,
         },
         "hf": {
             "name": "hf",
-            "id": 60,
+            "id": 600000,
             "label": "(hf)",
             "br": -1,
         },
@@ -74,18 +81,32 @@ def get_dataset_lfns(
     Custom LFN retrieval using a global DAS query.
     Filters out broken files registered in cmsdb.
     """
-    import subprocess
+    import subprocess, time
     broken_files = dataset_inst[shift_inst.name].get_aux("broken_files", [])
     query = f"file dataset={dataset_key}"
-    result = subprocess.run(
-        ["/cvmfs/cms.cern.ch/common/dasgoclient", f"--query={query}"],
-        capture_output=True,
-        text=True,
-    )
-    lfns = [
-        line.strip() for line in result.stdout.strip().split("\n")
-        if line.strip() and line.strip() not in broken_files
-    ]
+    # DAS errors are printed to stdout; never store them as file names. Retry,
+    # accept only real LFNs, and refuse a list shorter than cmsdb expects.
+    err = ""
+    for attempt in range(4):
+        result = subprocess.run(
+            ["/cvmfs/cms.cern.ch/common/dasgoclient", f"--query={query}"],
+            capture_output=True,
+            text=True,
+        )
+        lines = [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+        bad = [line for line in lines if not line.startswith("/store/")]
+        if result.returncode == 0 and lines and not bad:
+            break
+        err = (bad[:1] or [result.stderr.strip()[:200] or f"exit code {result.returncode}"])[0]
+        time.sleep(10 * (attempt + 1))
+    else:
+        raise RuntimeError(f"DAS lookup failed for {dataset_key}: {err}")
+    lfns = [line for line in lines if line not in broken_files]
+    n_expected = dataset_inst[shift_inst.name].n_files
+    if len(lfns) < n_expected:
+        raise RuntimeError(f"DAS returned {len(lfns)} files for {dataset_key}, cmsdb expects {n_expected}")
+    if len(lfns) > n_expected:
+        print(f"WARNING: DAS has {len(lfns)} files for {dataset_key}, cmsdb lists {n_expected} (cmsdb outdated?)")
     return lfns
 
 def add_config(
@@ -128,7 +149,8 @@ def add_config(
 
     labels = {
         "tt": "$t\\bar{t}$",
-        "ttv": "$t\\bar{t}$ + V",
+        "tzq": "tZq",
+        "vvv": "VVV",
     }
 
     colors = {
@@ -136,10 +158,10 @@ def add_config(
         "dy_lf": "#FBFF36",
         "dy_ee": "#C7FF33",
         "dy_mumu": "#FBFF36",
-        "du_tautau": "#9ACD32",
+        "dy_tautau": "#9ACD32",
         "data": "#000000",  # black
         "tt": "#E04F21",  # red
-        "ttv": "#5E8FFC",  # blue
+        "tzq": "#5E8FFC",  # blue
         "ttz": "#6B375A",
         "ttw": "#346532",  
         "w_lnu": "#82FF28",  # green
@@ -147,34 +169,39 @@ def add_config(
         "higgs": "#984ea3",  # purple
         "st": "#3E00FB",  # dark purple
         "wz": "#FF6B9D",  # hot pink for WZ
-        "vv": "#B900FC",  # pink
+        "zz": "#B900FC",
+        "ww": "#7A00A6",
         "vvv": "#3E6676",
-        "azh_htt_zll_a1000_h600": "#C7FF33",
-        "azh_htt_zll_a1600_h1500": "#2FC917",
-        "azh_htt_zll_a650_h550": "#1752C9",
-        "azh_htt_zll_a2100_h1300": "#C9174D",
-        "azh_htt_zll_a1000_h330" : "#F74CD8",
-        "azh_htt_zll_a430_h330": "#EB973F",
         "other": "#999999",  # grey
     }
 
+    # Top-level plotting processes. No process may contain another one in this
+    # list (the old list had vv > wz and ttv > ttz/ttw, which double counts in
+    # stacked plots); tests/preflight_static.py checks this.
     process_names = [
         "dy_hf", "dy_lf", "tt",
-        "ttz", "ttw",
-        "ttv", "st", "w_lnu", "tth", "wz", "vv", "data",
-        *AZH_SIGNAL_PROCESSES,
+        "ttz", "ttw", "tth", "tzq",
+        "st", "w_lnu", "wz", "zz", "ww", "vvv", "data",
     ]
+    # processes that only exist once the cmsdb fork provides them
+    optional_processes = {"tzq", "vvv"}
 
-    # print(process_names)
     # 2024 has no lepton-inclusive DY sample and no hf/lf children for the
     # flavour-split ones, so register dy_ee / dy_mumu / dy_tautau instead of
     # dy_hf / dy_lf. See the dataset list and the is_dy tagging below.
-    # The 2024 campaign also ships no azh.py, so none of the signal processes
-    # exist there yet -- drop them rather than failing on procs.get().
     if year == 2024:
         process_names = [p for p in process_names if p not in ("dy_hf", "dy_lf")]
-        process_names = [p for p in process_names if not p.startswith("azh_")]
         process_names = ["dy_ee", "dy_mumu", "dy_tautau"] + process_names
+
+    def _has_proc(name):
+        try:
+            procs.get(name)
+            return True
+        except Exception:
+            return False
+
+    missing_processes = [p for p in process_names if p in optional_processes and not _has_proc(p)]
+    process_names = [p for p in process_names if p not in missing_processes]
 
     for process_name in process_names:
         cfg.add_process(procs.get(process_name))
@@ -205,126 +232,91 @@ def add_config(
     def if_not_era(*, values: list[str | None] | None = None, **kwargs) -> list[str]:
         return list(filter(bool, values or [])) if not _match_era(**kwargs) else []
 
-    dataset_names = [
-    # DY
-    # 2022/23: inclusive amcatnlo samples (no stitching needed).
-    # 2024: no lepton-inclusive DY was produced, so the three flavour-split
-    # samples are summed instead. m50toinf is amcatnlo as before; m10to50 only
-    # exists as powheg for 2024, so the low-mass generator differs by era.
-    *if_not_era(year=2024, values=[
-        "dy_m50toinf_amcatnlo",
-        "dy_m10to50_amcatnlo",
-    ]),
-    *if_era(year=2024, values=[
-        "dy_ee_m50toinf_amcatnlo",
-        "dy_mumu_m50toinf_amcatnlo",
-        "dy_tautau_m50toinf_amcatnlo",
-        "dy_ee_m10to50_powheg",
-        "dy_mumu_m10to50_powheg",
-        "dy_tautau_m10to50_powheg",
-    ]),
-
-    # TTbar
-        "tt_sl_powheg",
-        "tt_dl_powheg",
-        "tt_fh_powheg",
-
-    # TTZ
-        "ttz_zll_m4to50_amcatnlo",
-        "ttz_zll_m50toinf_amcatnlo",
-    # TTH
-        "tth_hbb_powheg",
-        "tth_hnonbb_powheg",
-
-    # Single top
-    # 2024 splits t-channel into leptonic / hadronic top decays; only the
-    # leptonic part can contribute to a 2l/3l selection.
-    *if_not_era(year=2024, values=[
-        "st_tchannel_t_4f_powheg",
-        "st_tchannel_tbar_4f_powheg",
-    ]),
-    *if_era(year=2024, values=[
-        "st_tchannel_t_lep_4f_powheg",
-        "st_tchannel_tbar_lep_4f_powheg",
-    ]),
-        "st_twchannel_t_sl_powheg",
-        "st_twchannel_tbar_sl_powheg",
-        "st_twchannel_t_dl_powheg",
-        "st_twchannel_tbar_dl_powheg",
-
-    # Diboson
-        "ww_pythia",
-        "wz_pythia",
-        "zz_pythia",
-
-    # W+jets
-    # 2024 has no inclusive w_lnu sample. The available replacements are
-    # jet-binned madgraph (1j-4j, no 0j bin) or pt-binned amcatnlo, both of
-    # which need stitching weights to be normalised correctly. Rather than ship
-    # a mis-normalised sample, W+jets is left out of 2024 for now -- it is a
-    # small background in the 2l/3l regions. See README "2024 open items".
-    *if_not_era(year=2024, values=[
-        "w_lnu_amcatnlo",
-    ]),
-
-    *if_era(year=2022, tag="preEE", values=[
-        "data_mu_c",
-        "data_mu_d",
-        "data_egamma_c",
-        "data_egamma_d",
-        "data_muoneg_c",
-        "data_muoneg_d",
-        "ttw_amcatnlo",
-        "wwz_amcatnlo",
-    ]),
-    *if_era(year=2022, tag="postEE", values=[
-        "data_mu_e",
-        "data_mu_f",
-        "data_mu_g",
-        "data_egamma_e",
-        "data_egamma_f",
-        "data_egamma_g",
-        "data_muoneg_e",
-        "data_muoneg_f",
-        "data_muoneg_g",
-    ]),
-    *if_era(year=2023, tag="preBPix", values=[
-        "data_mu_c1",
-        "data_mu_c2",
-        "data_mu_c3",
-        "data_mu_c4",
-        "data_egamma_c1",
-        "data_egamma_c2",
-        "data_egamma_c3",
-        "data_egamma_c4",
-        "data_muoneg_c1",
-        "data_muoneg_c2",
-        "data_muoneg_c3",
-        "data_muoneg_c4",
-    ]),
-    *if_era(year=2023, tag="postBPix", values=[
-        "data_mu_d1",
-        "data_mu_d2",
-        "data_egamma_d1",
-        "data_egamma_d2",
-        "data_muoneg_d1",
-        "data_muoneg_d2",
-    ]),
-    # 2024 runs C-I. Note the EGamma primary dataset is called "data_e_*" here,
-    # not "data_egamma_*" as in 2022/23 -- see the tagging block below.
-    *if_era(year=2024, values=[
-        *[f"data_mu_{e}" for e in "cdefghi"],
-        *[f"data_e_{e}" for e in "cdefghi"],
-        *[f"data_muoneg_{e}" for e in "cdefghi"],
-    ]),
-
-    # AZH signal. The 2024 campaign ships no azh.py, so this is guarded the
-    # same way the process list is stripped further down.
-    # DEFERRED: signal samples pending GrASP beyond 2023; the grid also asks for
-    # points absent from the campaigns (e.g. a500_h370). See fixes_round2.md §1.
-    # *if_not_era(year=2024, values=list(AZH_SIGNAL_DATASETS)),
+    # ------------------------------------------------------------------
+    # Datasets
+    # ------------------------------------------------------------------
+    # MC backgrounds follow AN-2022/158 Sec. 3 (Table 20 lists the SR yields):
+    # ttZ, ttW, ttH, tZq, WZ, ZZ, VVV, plus DY/ttbar/single top/W+jets as the
+    # nonprompt proxy (no data-driven fakes in this round).
+    #
+    # Several of these are not yet in the cmsdb fork for every era; the DAS
+    # keys are listed in PREFLIGHT_CHANGES.md. Rather than silently running
+    # without them, every name in `required_mc` is added when the campaign has
+    # it and otherwise recorded in cfg.x.missing_datasets, which
+    # tests/preflight_static.py reports as a FAIL.
+    required_mc = [
+        # DY: 2022/23 inclusive amcatnlo; 2024 only has flavour-split samples
+        # (m10to50 only as powheg there).
+        *if_not_era(year=2024, values=["dy_m50toinf_amcatnlo", "dy_m10to50_amcatnlo"]),
+        *if_era(year=2024, values=[
+            "dy_ee_m50toinf_amcatnlo", "dy_mumu_m50toinf_amcatnlo", "dy_tautau_m50toinf_amcatnlo",
+            "dy_ee_m10to50_powheg", "dy_mumu_m10to50_powheg", "dy_tautau_m10to50_powheg",
+        ]),
+        # ttbar
+        "tt_sl_powheg", "tt_dl_powheg", "tt_fh_powheg",
+        # ttZ (Z->ll); the MLL-50 ext1 samples are extra keys of the same dataset
+        "ttz_zll_m4to50_amcatnlo", "ttz_zll_m50toinf_amcatnlo",
+        # ttW (W->lnu, TTLNu-1Jets mg35x). Deliberately NOT the 2022preEE
+        # "ttw_amcatnlo": that dataset is TTLNu but is assigned the inclusive ttW
+        # cross section (0.690 pb instead of 0.225 pb), i.e. overscaled 3.07x.
+        "ttw_wlnu_amcatnlo",
+        # ttH
+        "tth_hbb_powheg", "tth_hnonbb_powheg",
+        # tZq (TZQB-Zto2L-4FS_MLL-30)
+        "tzq_zll_4f_amcatnlo",
+        # single top (2024 splits t-channel by top decay; only leptonic matters)
+        *if_not_era(year=2024, values=["st_tchannel_t_4f_powheg", "st_tchannel_tbar_4f_powheg"]),
+        *if_era(year=2024, values=["st_tchannel_t_lep_4f_powheg", "st_tchannel_tbar_lep_4f_powheg"]),
+        "st_twchannel_t_sl_powheg", "st_twchannel_tbar_sl_powheg",
+        "st_twchannel_t_dl_powheg", "st_twchannel_tbar_dl_powheg",
+        # dibosons: NLO powheg WZ->3lnu and ZZ->4l (with LHE weights); WW stays
+        # pythia (it only matters for the 2l region)
+        "wz_wlnu_zll_powheg", "zz_zll_zll_powheg", "ww_pythia",
+        # tribosons
+        "www_4f_amcatnlo", "wwz_4f_amcatnlo", "wzz_amcatnlo", "zzz_amcatnlo",
+        # W+jets: no inclusive sample in 2024 (jet/pt-binned ones need stitching)
+        *if_not_era(year=2024, values=["w_lnu_amcatnlo"]),
     ]
-    
+    # LO pythia dibosons, used only if the NLO samples are not in cmsdb yet
+    # (still reported as missing, so the substitution cannot go unnoticed)
+    mc_fallbacks = {"wz_wlnu_zll_powheg": "wz_pythia", "zz_zll_zll_powheg": "zz_pythia"}
+
+    # Data: Muon and EGamma PDs only. MuonEG is not used: with the single-lepton
+    # trigger OR it carries no events the other two do not (cross triggers were
+    # measured to add < 0.1% of the 3l acceptance on ttZ MC).
+    # 2022C: the Muon PD only starts at run 356426; runs 355862-356386 are in
+    # SingleMuon, which is required here (the trigger OR has no dimuon path, so
+    # DoubleMuon is not needed). Muon and SingleMuon cover disjoint runs.
+    required_data = [
+        *if_era(year=2022, tag="preEE", values=[
+            "data_singlemu_c", "data_mu_c", "data_mu_d", "data_egamma_c", "data_egamma_d",
+        ]),
+        *if_era(year=2022, tag="postEE", values=[
+            "data_mu_e", "data_mu_f", "data_mu_g", "data_egamma_e", "data_egamma_f", "data_egamma_g",
+        ]),
+        *if_era(year=2023, tag="preBPix", values=[
+            *[f"data_mu_c{i}" for i in range(1, 5)], *[f"data_egamma_c{i}" for i in range(1, 5)],
+        ]),
+        *if_era(year=2023, tag="postBPix", values=[
+            "data_mu_d1", "data_mu_d2", "data_egamma_d1", "data_egamma_d2",
+        ]),
+        # 2024: the EGamma PD is called data_e_* in cmsdb
+        *if_era(year=2024, values=[
+            *[f"data_mu_{e}" for e in "cdefghi"], *[f"data_e_{e}" for e in "cdefghi"],
+        ]),
+    ]
+
+    dataset_names = []
+    cfg.x.missing_datasets = []
+    for name in required_mc + required_data:
+        if campaign.has_dataset(name):
+            dataset_names.append(name)
+            continue
+        cfg.x.missing_datasets.append(name)
+        fallback = mc_fallbacks.get(name)
+        if fallback and campaign.has_dataset(fallback):
+            dataset_names.append(fallback)
+            cfg_unverified.append(f"{name} missing from cmsdb, using LO fallback {fallback}")
 
     for dataset_name in dataset_names:
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
@@ -332,19 +324,18 @@ def add_config(
             for info in dataset.info.values():
                 if info.n_files > limit_dataset_files:
                     info.n_files = limit_dataset_files
-        if dataset.name.startswith("tt"):
+        # ttbar only -- a plain startswith("tt") also caught ttZ, ttW and ttH
+        if dataset.name.startswith(("tt_sl", "tt_dl", "tt_fh")):
             dataset.add_tag({"is_ttbar"})
         if dataset.name.startswith("dy"):
             if not re.match(r"^dy_(ee|mumu|tautau)_", dataset.name):
                 dataset.add_tag({"is_dy"})
         if dataset.name.startswith("azh"):
             dataset.add_tag({"is_signal"})
-        if dataset.name.startswith("data_mu"):
+        if dataset.name.startswith(("data_mu", "data_singlemu")):
             dataset.add_tag("mu")
         if dataset.name.startswith("data_egamma") or dataset.name.startswith("data_e_"):
             dataset.add_tag("egamma")
-        if dataset.name.startswith("data_muoneg"):
-            dataset.add_tag({"mu", "egamma"})
         # For 2023, data JEC keys have no run-dependent segment in the JSON
         if dataset.name.startswith("data") and year == 2023:
             dataset.set_aux("jec_era", "")
@@ -357,7 +348,7 @@ def add_config(
     # Era-agnostic dataset patches (apply to every era)
     # ------------------------------------------------------------------
     # tag pythia diboson samples that have no LHEScaleWeight
-    for ds_name in ["ww_pythia", "wz_pythia", "zz_pythia"]:
+    for ds_name in ["ww_pythia", "wz_pythia", "zz_pythia"]:  # LO pythia, no LHE weights
         if cfg.has_dataset(ds_name):
             cfg.get_dataset(ds_name).add_tag("no_lhe_weights")
     # remove non-nominal dataset infos (extension, hdamp, tune variations)
@@ -373,6 +364,19 @@ def add_config(
         for info_name in list(ds.info.keys()):
             if info_name != "nominal":
                 del ds.info[info_name]
+
+    # 2022preEE DY: cmsdb file/event counts are outdated (DAS, Nov 2026: the
+    # nominal keys have 525 and 448 files); the cmsdb "extension" keys of these
+    # samples do not exist in DAS. Full config only (test configs keep their limit).
+    if cfg.name == "config_2022pre":
+        for ds_name, (n_files, n_events) in {
+            "dy_m50toinf_amcatnlo": (525, 93826598),
+            "dy_m10to50_amcatnlo": (448, 97571898),
+        }.items():
+            if cfg.has_dataset(ds_name):
+                info = cfg.get_dataset(ds_name).get_info("nominal")
+                info.n_files = n_files
+                info.n_events = n_events
 
     # ------------------------------------------------------------------
     # Era-specific dataset overrides
@@ -504,7 +508,7 @@ def add_config(
     # category groups for conveniently looping over certain categories
     # (used during plotting)
     cfg.x.category_groups = {
-        "default": ["incl"],
+        "default": ["cat_incl"],
     }
 
     # variable groups for conveniently looping over certain variables
@@ -522,7 +526,7 @@ def add_config(
     # selector step groups for conveniently looping over certain steps
     # (used in cutflow tasks)
     cfg.x.selector_step_groups = {
-        "default": ["azh"],
+        "default": ["met_filter", "ecal_bad_calib", "jet_veto_map", "json", "Lepton", "Jet", "trigger"],
     }
 
     cfg.x.selector_step_labels = {
@@ -535,88 +539,54 @@ def add_config(
     cfg.x.general_settings_groups = {
         "default_norm": {"shape_norm": True, "yscale": "log"},
     }
-    cfg.x.process_settings_groups = {
-        "Jet": r"$N_{jets}^{AK4} \geq 3$",
-    }
 
     cfg.x.variable_settings_groups = {
 
     }
 
-    # lumi values in inverse pb
-    # 2022preEE, 2022postEE, 2023preBPix, 2023postBPix all brilcalc verified (jun 29 2026)
+    # ------------------------------------------------------------------
+    # Luminosity (inverse pb)
+    # ------------------------------------------------------------------
+    # Recorded luminosity of exactly the runs this config processes, from
+    #   brilcalc lumi -c web --normtag normtag_PHYSICS.json -u /pb
+    #            -i <current golden JSON> --begin <first> --end <last>
+    # with the golden JSON pinned below (the post-TrkML2026-review version;
+    # the local files are md5-identical to the DQM certification server).
+    # First/last runs are the union of this config's Muon and EGamma datasets.
+    # Era B of each year is in the golden JSON but not processed, which is why
+    # the eras sum to less than LUM's year totals (34.75 / 28.40 / 110.11 /fb).
     #
-    # Uncertainties follow the LUM POG Run 3 covariance matrix (golden JSON):
-    #   L = 34.75 +- 0.48 (1.4%) [2022], 28.40 +- 0.36 (1.3%) [2023],
-    #       110.11 +- 1.77 (1.6%) [2024]; combined 173.26 +- 2.07 (1.2%).
-    # The per-year total is NOT a single nuisance: part of it comes from the vdM
-    # methodology and is common to all years, the rest is year-specific. Filing
-    # the whole thing under one 'correlated' key (as before) asserts 100%
-    # correlation and inflates the combined uncertainty.
+    #   config      runs            recorded /pb
+    #   2022pre     355862-357900     7989.5
+    #   2022post    359356-362760    26674.9
+    #   2023pre     367094-369694    17964.2   (was 18605: matched neither JSON)
+    #   2023post    369844-370790     9676.7   (was 9693: old JSON)
+    #   2024        379415-386951   109815.6 - 105.3 = 109710.3
     #
-    # Decomposing the POG covariance as R_ij = c_i c_j (correlated, one shared
-    # nuisance with year-dependent size) + delta_ij u_i^2 (uncorrelated) gives:
-    #                    2022       2023       2024
-    #   correlated      0.2676%    0.8746%    1.0244%
-    #   uncorrelated    1.3530%    0.9356%    1.2368%
-    #   quad. sum       1.3792%    1.2807%    1.6060%   (POG: 1.4 / 1.3 / 1.6%)
-    # This reproduces every element of the POG matrix, and hence the 1.2%
-    # combined figure, to machine precision. NOTE: with three years the rank-1
-    # off-diagonal solution is exact by construction (3 equations, 3 unknowns),
-    # so re-derive this if a fourth year is added.
+    # 2024: golden runs 386615-386617 (105.3 /pb) exist only in prompt-reco
+    # datasets, not in the MINIv6NANOv15 reprocessing used here, so no data
+    # event can come from them; they are subtracted.
     #
-    # Both eras of a given year share that year's nuisances -- the luminosity
-    # calibration is per-year, not per-era.
-    if year == 2022:
-        if campaign.x.EE == "pre":
-            cfg.x.luminosity = Number(7990, {
-                "lumi_13p6TeV_correlated": 0.002676j,
-                "lumi_13p6TeV_uncorrelated_2022": 0.013530j,
-            })
-        elif campaign.x.EE == "post":
-            cfg.x.luminosity = Number(26675, {
-                "lumi_13p6TeV_correlated": 0.002676j,
-                "lumi_13p6TeV_uncorrelated_2022": 0.013530j,
-            })
-    elif year == 2023:
-        if campaign.x.BPix == "pre":
-            cfg.x.luminosity = Number(18605, {
-                "lumi_13p6TeV_correlated": 0.008746j,
-                "lumi_13p6TeV_uncorrelated_2023": 0.009356j,
-            })
-        elif campaign.x.BPix == "post":
-            cfg.x.luminosity = Number(9693, {
-                "lumi_13p6TeV_correlated": 0.008746j,
-                "lumi_13p6TeV_uncorrelated_2023": 0.009356j,
-            })
-    elif year == 2024:
-        # 2024 golden-JSON integrated luminosity, runs 378981-386951.
-        # Not brilcalc-verified locally -- taken from the CMS 2024 recommendation.
-        cfg.x.luminosity = Number(109948, {
-            "lumi_13p6TeV_correlated": 0.010244j,
-            "lumi_13p6TeV_uncorrelated_2024": 0.012368j,
-        })
-    else:
-        raise NotImplementedError(f"Luminosity for year {year} is not defined.")
-
-    # Per-channel effective lumi for `channel_lumi_weight` (see
-    # production/channel_lumi_weight.py for derivation procedure).
-    # The 2022preEE numbers were derived with brilcalc against the golden
-    # JSON Cert_Collisions2022_355100_362760_Golden.json. For the other
-    # eras the muon and egamma PDs run end-to-end, so the ratio is ~1.0
-    # by default — re-derive with brilcalc per era to refine, then update
-    # below. Leaving any entry equal to ``nominal`` is a no-op (SF=1).
-    nominal = float(cfg.x.luminosity.nominal)
-    if year == 2022 and campaign.x.EE == "pre":
-        cfg.x.channel_lumis = {"muon": 7448.0, "egamma": 7989.5, "nominal": nominal}
-    elif year == 2022 and campaign.x.EE == "post":
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
-    elif year == 2023 and campaign.x.BPix == "pre":
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
-    elif year == 2023 and campaign.x.BPix == "post":
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
-    elif year == 2024:
-        cfg.x.channel_lumis = {"muon": nominal, "egamma": nominal, "nominal": nominal}
+    # Uncertainties: the LUM POG nuisances for a 2022+2023+2024 combination,
+    # verbatim (lnN, relative):
+    #   lumi_1: 2022 1.38%, 2023 0.17%, 2024 0.20%
+    #   lumi_2:             2023 1.27%, 2024 0.68%
+    #   lumi_3:                         2024 1.44%
+    # These reproduce the LUM covariance matrix. Both eras of a year share the
+    # year's values (the calibration is per year).
+    lumi_uncertainties = {
+        2022: {"lumi_1": 0.0138j},
+        2023: {"lumi_1": 0.0017j, "lumi_2": 0.0127j},
+        2024: {"lumi_1": 0.0020j, "lumi_2": 0.0068j, "lumi_3": 0.0144j},
+    }[year]
+    lumi_values = {
+        "2022preEE": 7989.5,
+        "2022postEE": 26674.9,
+        "2023preBPix": 17964.2,
+        "2023postBPix": 9676.7,
+        "2024": 109710.3,
+    }
+    cfg.x.luminosity = Number(lumi_values[era_key], lumi_uncertainties)
 
     # MET filters
     cfg.x.met_filters = {
@@ -627,8 +597,10 @@ def add_config(
     "Flag.BadPFMuonDzFilter",
     "Flag.hfNoisyHitsFilter",
     "Flag.eeBadScFilter",
-    "Flag.ecalBadCalibFilter",
-    # HBHENoiseFilter / HBHENoiseIsoFilter: removed, "no longer needed" in Run 3
+    # HBHENoiseFilter / HBHENoiseIsoFilter: not required in Run 3 (JME)
+    # Flag.ecalBadCalibFilter: applied as its own selection step
+    # ("ecal_bad_calib", selection/default.py) because for prompt-reco data in
+    # runs 362433-367144 it is replaced by the ECAL bad-crystal veto
     }
 
     # minimum bias cross section in mb (milli) for creating PU weights, values from
@@ -664,106 +636,54 @@ def add_config(
     if year == 2023:
         jer_campaign += f"_Run{'Cv1234' if campaign.has_tag('preBPix') else 'D'}"
 
-    # JES uncertainty sources.
-    #
-    # Era suffix used by JME for the era-specific Regrouped_* sources. This is
-    # the JERC postfix, NOT the bare year: the files contain
-    # Regrouped_Absolute_2022EE and Regrouped_Absolute_2023BPix. Verified
-    # against all five campaigns by tests/validate_configs.py.
+    # JES uncertainty sources: the full set of 27 independent sources (JME:
+    # "using the full set makes foreseeable combinations easier"; the AN
+    # analysis combines with the fully hadronic channel). Checked in every era:
+    # their quadrature sum reproduces "Total"; AbsoluteSample / AbsoluteFlavMap
+    # are identically zero and the SubTotal*/Total*/CorrelationGroup*/Flavor
+    # variants are sums or alternatives, so none of them is added.
+    # JES uncertainty sources: JME's 11 regrouped sources, as in AN-2022/158
+    # Table 22 -- six correlated across years and five per year. The per-year
+    # sources carry the era in their name (e.g. Regrouped_Absolute_2022EE), so
+    # they are uncorrelated between eras by construction.
     jec_era = f"{year}{jerc_postfix}"
-
-    JEC_SOURCES_TOTAL = ["Total"]
-    JEC_SOURCES_REDUCED = [
-        # correlated across years
-        "Regrouped_Absolute",
-        "Regrouped_BBEC1",
-        "Regrouped_EC2",
-        "Regrouped_FlavorQCD",
-        "Regrouped_HF",
-        "Regrouped_RelativeBal",
-        # era-specific
-        f"Regrouped_Absolute_{jec_era}",
-        f"Regrouped_BBEC1_{jec_era}",
-        f"Regrouped_EC2_{jec_era}",
-        f"Regrouped_HF_{jec_era}",
-        f"Regrouped_RelativeSample_{jec_era}",
+    jec_uncertainty_sources = [
+        *[f"Regrouped_{src}" for src in ("Absolute", "BBEC1", "EC2", "FlavorQCD", "HF", "RelativeBal")],
+        *[f"Regrouped_{src}_{jec_era}" for src in ("Absolute", "BBEC1", "EC2", "HF", "RelativeSample")],
     ]
-    jec_uncertainty_sources = JEC_SOURCES_TOTAL
+    # nothing to suffix in the datacard: the per-year names are already per era
+    cfg.x.jec_per_year_sources = set()
 
-    # print(jerc_campaign)
-    if not jerc_postfix == "BPix":
-        cfg.x.jec = DotDict.wrap({
-            "campaign": jerc_campaign,
-            "version": {
-                2016: "V7", 2017: "V5", 2018: "V5", 2022: "V4", 2023: "V4", 2024: "V5",
-            }[year],
-            "jet_type": jet_type,
-            "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
-            "levels_for_type1_met": ["L1FastJet"],
-            "uncertainty_sources": jec_uncertainty_sources,
-        })
-    else:
-        cfg.x.jec = DotDict.wrap({
-            "campaign": jerc_campaign,
-            "version": {
-                2016: "V7", 2017: "V5", 2018: "V5", 2022: "V4", 2023: "V4", 2024: "V5",
-            }[year],
-            "jet_type": jet_type,
-            "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
-            "levels_for_type1_met": ["L1FastJet"],
-            "uncertainty_sources": jec_uncertainty_sources,
-        })
+    # keyed by jet collection, as columnflow expects (the un-keyed form is a
+    # deprecated fallback)
+    cfg.x.jec = DotDict.wrap({"Jet": {
+        "campaign": jerc_campaign,
+        "version": {2022: "V4", 2023: "V4", 2024: "V5"}[year],
+        "jet_type": jet_type,
+        # L3Absolute is identity; order as in the JME compound correction
+        "levels": ["L1FastJet", "L2Relative", "L3Absolute", "L2L3Residual"],
+        # L1FastJet_AK4PFPuppi is identically 1 (checked 2022, 2024), so the
+        # Type-1 propagation is the full correction relative to raw
+        "levels_for_type1_met": ["L1FastJet"],
+        "uncertainty_sources": jec_uncertainty_sources,
+    }})
 
     # JER
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
-    cfg.x.jer = DotDict.wrap({
+    # keyed by jet collection, as columnflow expects; only JERConfig fields
+    # may appear inside (columnflow builds the dataclass from this dict)
+    cfg.x.jer = DotDict.wrap({"Jet": {
         "campaign": jer_campaign,
-            "version": {2022: "JRV2", 2023: "JRV3", 2024: "JRV2"}[year],
+        "version": {2022: "JRV2", 2023: "JRV3", 2024: "JRV2"}[year],
         "jet_type": jet_type,
-    })
+    }})
+    # SFUncertainty is ABSOLUTE (SF_up = SF + unc): checked against the older
+    # payloads with explicit nom/up/down for Summer22, Summer22EE (JRV2) and
+    # Summer23, Summer23BPix (JRV3); the relative form fails everywhere.
+    # Summer24 has no reference payload -- same format assumed, awaiting JME.
+    # Read by patches/cf031-jer-additive.patch.
+    cfg.x.jer_sf_unc_mode = "additive"
 
-
-    # JEC uncertainty sources propagated to btag scale factors
-    # (names derived from contents in BTV correctionlib file)
-    cfg.x.btag_sf_jec_sources = [
-        "",  # total
-        "Absolute",
-        "AbsoluteMPFBias",
-        "AbsoluteScale",
-        "AbsoluteStat",
-        f"Absolute_{year}",
-        "BBEC1",
-        f"BBEC1_{year}",
-        "EC2",
-        f"EC2_{year}",
-        "FlavorQCD",
-        "Fragmentation",
-        "HF",
-        f"HF_{year}",
-        "PileUpDataMC",
-        "PileUpPtBB",
-        "PileUpPtEC1",
-        "PileUpPtEC2",
-        "PileUpPtHF",
-        "PileUpPtRef",
-        "RelativeBal",
-        "RelativeFSR",
-        "RelativeJEREC1",
-        "RelativeJEREC2",
-        "RelativeJERHF",
-        "RelativePtBB",
-        "RelativePtEC1",
-        "RelativePtEC2",
-        "RelativePtHF",
-        "RelativeSample",
-        f"RelativeSample_{year}",
-        "RelativeStatEC",
-        "RelativeStatFSR",
-        "RelativeStatHF",
-        "SinglePionECAL",
-        "SinglePionHCAL",
-        "TimePtEta",
-    ]
 
     # b-tag working points
     # BTV published no ParticleNet / DeepJet working points for 2024; the
@@ -813,7 +733,7 @@ def add_config(
         },
     })
 
-    # Era-appropriate tagger, consumed by jet_selection / higgs_reco / variables
+    # Era-appropriate tagger, consumed by jet_selection / production/jets.py / variables
     # instead of hard-coding a discriminator column. For 2022/23 this resolves to
     # exactly the previous behaviour (ParticleNet medium), so existing stores stay
     # valid and no version bump is needed for those configs.
@@ -862,7 +782,7 @@ def add_config(
     cfg.x.default_custom_style_config = "default"
 
     cfg.x.btag_wp_count_config = BTagWPCountConfig(
-        jet_name="Jet",
+        jet_name="CandJet",
         btag_column=cfg.x.btag_default.column,
         btag_wps={"medium": cfg.x.btag_default.wp},
         pt_edges=(30, 50, 70, 100, 140, 200, 300, 10_000),
@@ -872,30 +792,45 @@ def add_config(
     # Only the medium WP is corrected: catid_sr_1b / sr_2b / wz_cr all split on
     # medium-WP counts (AN Table 16). Adding working points the analysis never
     # cuts on would only dilute the per-bin statistics of the efficiency map.
+    # Efficiency groups are built from the datasets actually in this config:
+    # columnflow raises on a group member that is not a config dataset
+    # (production/cms/btag.py), which crashed every 2024 single-top dataset.
+    def _group(*prefixes):
+        return [d.name for d in cfg.datasets if d.is_mc and d.name.startswith(prefixes)]
+    btag_dataset_groups = [g for g in (
+        # small samples are merged with kinematically similar ones so that no
+        # efficiency bin is empty: single top with ttbar, W+jets with dibosons
+        _group("tt_", "st_"),
+        _group("ttz_", "ttw_", "tth_", "tzq_"),
+        _group("dy_"),
+        _group("wz_", "zz_", "ww_", "www_", "wwz_", "wzz_", "zzz_", "w_lnu"),
+    ) if g]
+
     cfg.x.btag_wp_sf_config = SplitBTagWPSFConfig(
-        jet_name="Jet",
+        jet_name="CandJet",
+        # efficiency-map binning (must be a subset of btag_wp_count_config's
+        # edges): c jets above 200 GeV are too rare for two bins there, and the
+        # limited configs (one file per dataset) use one bin per flavour: with
+        # 1 file, even light-jet mistags at high pT can have zero tagged jets
+        pt_edges=(30, 10_000) if limit_dataset_files else (30, 50, 70, 100, 140, 200, 10_000),
+        # one |eta| bin everywhere: with a barrel/endcap split, light jets above
+        # 200 GeV in the endcap had zero tagged jets even in the ttbar group
+        abs_eta_edges=(0.0, 2.5),
         btag_column=cfg.x.btag_default.column,
         correction_set=btag_cs_heavy,
         correction_set_light=btag_cs_light,
         btag_wps={"medium": cfg.x.btag_default.wp},
         weight_name="btag_weight",
-        # Start with the variations every era supports; widen once these are
-        # confirmed to produce histograms that differ from nominal.
+        # BTV multi-era scheme: b/c and light separately, each split into a
+        # component correlated across eras and one uncorrelated (per era in the
+        # datacard). "bc_"/"light_" prefixes are resolved by SplitBTagWPCorrector.
         systs={
-            "up_correlated": "up_correlated",
-            "down_correlated": "down_correlated",
-            "up_uncorrelated": "up_uncorrelated",
-            "down_uncorrelated": "down_uncorrelated",
+            f"{flav}_{d}_{kind}": f"{flav}_{d}_{kind}"
+            for flav in ("bc", "light")
+            for d in ("up", "down")
+            for kind in ("correlated", "uncorrelated")
         },
-        dataset_groups=[
-            ["tt_sl_powheg", "tt_dl_powheg", "tt_fh_powheg"],
-            ["dy_m50toinf_amcatnlo", "dy_m10to50_amcatnlo"],
-            ["st_tchannel_t_4f_powheg", "st_tchannel_tbar_4f_powheg",
-             "st_twchannel_t_sl_powheg", "st_twchannel_tbar_sl_powheg",
-             "st_twchannel_t_dl_powheg", "st_twchannel_tbar_dl_powheg"],
-            ["ttz_zll_m4to50_amcatnlo", "ttz_zll_m50toinf_amcatnlo"],
-            ["ww_pythia", "zz_pythia", "wz_pythia"],
-        ],
+        dataset_groups=btag_dataset_groups,
     )
 
     # names of electron correction sets and working points
@@ -905,48 +840,31 @@ def add_config(
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "wp80iso")
-        # TODO: UNVERIFIED -- the 2022preEE file names its scale correction
-        # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
-        # too. List the keys in this era's electronSS_EtDependent.json.gz before
-        # processing it; electron_ss_setup now reports them on failure.
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022postEE", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2022Re-recoBCD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2022Re-recoBCD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2022Re-recoBCD", "wp80iso")
-        # VERIFIED against Run3-22CDSep23-Summer22-NanoAODv12/2025-12-15/
-        # electronSS_EtDependent.json.gz: the scale correction carries an era
-        # suffix, 'SmearAndSyst' is a generic alias for EGMSmearAndSyst_ElePT_2022
-        # and needs none. The previous value here was the 2024 name, which does
-        # not exist in this file (correctionlib raised a bare "IndexError: map::at").
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2022preEE", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2023postBPix":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptD", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptD", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptD", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptD", "wp80iso")
-        # TODO: UNVERIFIED -- the 2022preEE file names its scale correction
-        # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
-        # too. List the keys in this era's electronSS_EtDependent.json.gz before
-        # processing it; electron_ss_setup now reports them on failure.
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023postBPIX", "SmearAndSyst")
     elif f"{year}{corr_postfix}" == "2023preBPix":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2023PromptC", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2023PromptC", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2023PromptC", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2023PromptC", "wp80iso")
-        # TODO: UNVERIFIED -- the 2022preEE file names its scale correction
-        # EGMScale_ElePTsplit_<era>, so this 2024 name is very likely wrong here
-        # too. List the keys in this era's electronSS_EtDependent.json.gz before
-        # processing it; electron_ss_setup now reports them on failure.
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2023preBPIX", "SmearAndSyst")
     elif era_key == "2024":
         cfg.x.electron_sf_names = ("Electron-ID-SF", "2024Prompt", "RecoAbove75")
         cfg.x.electron_sf_mid_names = ("Electron-ID-SF", "2024Prompt", "Reco20to75")
         cfg.x.electron_sf_loreco_names = ("Electron-ID-SF", "2024Prompt", "RecoBelow20")
         cfg.x.electron_sf_id_names = ("Electron-ID-SF", "2024Prompt", "wp80iso")
-        cfg.x.electron_ss_names = ("EGMScale_ElePTsplit_2024", "SmearAndSyst")
+
+    # electron scale & smearing (electronSS_EtDependent.json.gz, every era):
+    # data use the compound "Scale" (all six stages), MC the plain
+    # "SmearAndSyst" (smearing + escale/esmear uncertainties)
+    cfg.x.electron_ss_names = ("Scale", "SmearAndSyst")
 
     # names of muon correction sets and working points
     # (used in the muon producer)
@@ -960,8 +878,8 @@ def add_config(
     # 2024 extends to 10. Masking above the true floor silently assigns SF = 1
     # to muons that do have a measured scale factor.
     cfg.x.muon_sf_pt_min = 10.0 if year == 2024 else 15.0
-    # era-branched HLT electron SF. VERIFY the period string AND the HLT category
-    # ("HLT_SF_Ele30_MVAiso80ID") against electronHlt.json per era (introspection cmd).
+    # era-branched HLT electron SF / efficiency keys (verified against
+    # electronHlt.json: Path HLT_SF_Ele30_MVAiso80ID exists in every era)
     if f"{year}{corr_postfix}" == "2022preEE":
         cfg.x.electron_sf_trig_names = ("Electron-HLT-SF", "2022Re-recoBCD", "HLT_SF_Ele30_MVAiso80ID")
     elif f"{year}{corr_postfix}" == "2022postEE":
@@ -974,10 +892,9 @@ def add_config(
         cfg.x.electron_sf_trig_names = (
             "Electron-HLT-SF", "2024Prompt", "HLT_SF_Ele30_MVAiso80ID",
         )
-    cfg.x.top_pt_reweighting_params = {
-        "a": 0.0615,
-        "b": -0.0005,
-    }
+    # HLT efficiency eta input: supercluster eta (as for the other EGM SFs)
+    # until EGM confirms what "electron eta" in electronHlt.json means
+    cfg.x.electron_hlt_use_sc_eta = True
 
     # helper to add column aliases for both shifts of a source
     def add_aliases(shift_source: str, aliases: Set[str], selection_dependent: bool):
@@ -1011,10 +928,8 @@ def add_config(
     # register shifts
     # TODO: make shifts year-dependent
     cfg.add_shift(name="nominal", id=0)
-    cfg.add_shift(name="tune_up", id=1, type="shape", tags={"disjoint_from_nominal"})
-    cfg.add_shift(name="tune_down", id=2, type="shape", tags={"disjoint_from_nominal"})
-    cfg.add_shift(name="hdamp_up", id=3, type="shape", tags={"disjoint_from_nominal"})
-    cfg.add_shift(name="hdamp_down", id=4, type="shape", tags={"disjoint_from_nominal"})
+    # tune / hdamp variations need dedicated samples, whose infos are removed
+    # above; they are not registered until those samples are wired in
     cfg.add_shift(name="minbias_xs_up", id=7, type="shape")
     cfg.add_shift(name="minbias_xs_down", id=8, type="shape")
     # what enters the event weight is the per-process-normalized column, so the
@@ -1024,84 +939,69 @@ def add_config(
         {"normalized_pu_weight": "normalized_pu_weight_{direction}"},
         selection_dependent=False,
     )
-    cfg.add_shift(name="top_pt_up", id=9, type="shape")
-    cfg.add_shift(name="top_pt_down", id=10, type="shape")
-    add_aliases("top_pt", {"top_pt_weight": "top_pt_weight_{direction}"}, selection_dependent=False)
 
-    cfg.add_shift(name="e_sf_up", id=40, type="shape")
-    cfg.add_shift(name="e_sf_down", id=41, type="shape")
-    cfg.add_shift(name="e_trig_sf_up", id=42, type="shape")
-    cfg.add_shift(name="e_trig_sf_down", id=43, type="shape")
-    add_aliases("e_trig_sf", {"electron_trig_weight": "electron_trig_weight_{direction}"}, selection_dependent=False)
-    cfg.add_shift(name="mu_trig_sf_up", id=53, type="shape")
-    cfg.add_shift(name="mu_trig_sf_down", id=54, type="shape")
-    add_aliases("mu_trig_sf", {"muon_trig_weight": "muon_trig_weight_{direction}"}, selection_dependent=False)
+    # trigger SF (production/trigger_weights.py): one event-level weight, three
+    # independent variations
+    for i, src in enumerate(("e_trig", "mu_trig_stat", "mu_trig_syst")):
+        cfg.add_shift(name=f"{src}_up", id=42 + 2 * i, type="shape")
+        cfg.add_shift(name=f"{src}_down", id=43 + 2 * i, type="shape")
+        add_aliases(src, {"trigger_weight": f"trigger_weight_{src}_" + "{direction}"}, selection_dependent=False)
 
-    # AN-2022/158 Table 22 uses a single shape nuisance per lepton flavour
-    # (CMS_eff_e, CMS_eff_m), correlated across years, covering reco + ID (+ iso).
-    # We follow that grouping here: every electron SF column moves coherently
-    # under 'e_sf', every muon SF column under 'muon'. Coherent motion is the
-    # conservative choice (reco and ID are independent measurements, so a proper
-    # treatment would add them in quadrature). To split them later, register a
-    # new shift source and move the relevant entries out of these dicts.
-    #
-    # Column names follow azh/production/weights.py: the base electron_weights /
-    # muon_weights producers are derived once per SF, and each derivative emits
-    # <weight_name>{,_up,_down} unconditionally.
+    # Lepton efficiency SFs. Reco and ID are separate measurements and hence
+    # separate nuisances (EGM: uncorrelated; decorrelated per era in the
+    # datacard, see cfg.x.shift_correlations). The three reco pT bins are one
+    # measurement and move together.
+    cfg.add_shift(name="e_reco_up", id=40, type="shape")
+    cfg.add_shift(name="e_reco_down", id=41, type="shape")
     add_aliases(
-        "e_sf",
-        {
-            w: f"{w}_{{direction}}"
-            for w in [
-                "electron_weight",         # reco, pT >= 75
-                "electron_mid_weight",     # reco, 20 <= pT < 75
-                "electron_loreco_weight",  # reco, 10 <= pT < 20
-                "electron_id_weight",      # MVA WP80iso ID
-            ]
-        },
+        "e_reco",
+        {w: f"{w}_{{direction}}" for w in ["electron_weight", "electron_mid_weight", "electron_loreco_weight"]},
         selection_dependent=False,
     )
+    cfg.add_shift(name="e_id_up", id=48, type="shape")
+    cfg.add_shift(name="e_id_down", id=49, type="shape")
+    add_aliases("e_id", {"electron_id_weight": "electron_id_weight_{direction}"}, selection_dependent=False)
 
-    cfg.add_shift(name="muon_up", id=51, type="shape")
-    cfg.add_shift(name="muon_down", id=52, type="shape")
-    # NOTE: the previous alias targeted 'muon_weight', which this analysis never
-    # produces -- weights.py derives split TightID / TightPFIso producers instead,
-    # so the alias silently did nothing.
-    add_aliases(
-        "muon",
-        {
-            w: f"{w}_{{direction}}"
-            for w in [
-                "muon_id_weight",   # TightID SF
-                "muon_iso_weight",  # TightPFIso SF
-            ]
-        },
-        selection_dependent=False,
-    )
+    # Muon ID / iso: MUO wants stat (per era) and syst (correlated) separately
+    # (production/muon_sf.py writes <w>_{stat,syst}_{up,down})
+    for i, (src, col, kind) in enumerate((
+        ("mu_id_stat", "muon_id_weight", "stat"),
+        ("mu_id_syst", "muon_id_weight", "syst"),
+        ("mu_iso_stat", "muon_iso_weight", "stat"),
+        ("mu_iso_syst", "muon_iso_weight", "syst"),
+    )):
+        cfg.add_shift(name=f"{src}_up", id=50 + 2 * i, type="shape")
+        cfg.add_shift(name=f"{src}_down", id=51 + 2 * i, type="shape")
+        add_aliases(src, {col: f"{col}_{kind}_" + "{direction}"}, selection_dependent=False)
 
-    btag_uncs = []
-    for i, unc in enumerate(btag_uncs):
-        cfg.add_shift(name=f"btag_{unc}_up", id=100 + 2 * i, type="shape")
-        cfg.add_shift(name=f"btag_{unc}_down", id=101 + 2 * i, type="shape")
+    # Lepton momentum scale / resolution (calibration/corrections.py writes the
+    # varied pt columns for MC). These change which leptons pass the pT floor,
+    # so they are selection dependent: the selector registers them and
+    # Calibrate -> Select -> Reduce reruns per shift (8 passes in total).
+    for i, (src, coll, var) in enumerate((
+        ("e_scale", "Electron", "scale"),
+        ("e_smear", "Electron", "smear"),
+        ("mu_scale", "Muon", "scale"),
+        ("mu_resol", "Muon", "resol"),
+    )):
+        cfg.add_shift(name=f"{src}_up", id=300 + 2 * i, type="shape")
+        cfg.add_shift(name=f"{src}_down", id=301 + 2 * i, type="shape")
+        # no column aliases: the selector applies these shifts itself
+        # (selection/lepton_shift.py); aliasing a collection column made
+        # ReduceEvents write the full, unfiltered collection for the shift
+        add_aliases(src, {}, selection_dependent=True)
+    cfg.x.lepton_shift_sources = ["e_scale", "e_smear", "mu_scale", "mu_resol"]
 
-    # b-tag fixed-WP scale factor uncertainties. BTV splits these into a piece
-    # correlated across years (method/hadronisation) and one that is not (the
-    # per-year measurement statistics), so they are two nuisances rather than one.
-    # Column names come from BTagWPSFConfig.systs: btag_weight_<direction>_<kind>.
-    cfg.add_shift(name="btag_correlated_up", id=61, type="shape")
-    cfg.add_shift(name="btag_correlated_down", id=62, type="shape")
-    add_aliases(
-        "btag_correlated",
-        {"btag_weight": "btag_weight_{direction}_correlated"},
-        selection_dependent=False,
-    )
-    cfg.add_shift(name="btag_uncorrelated_up", id=63, type="shape")
-    cfg.add_shift(name="btag_uncorrelated_down", id=64, type="shape")
-    add_aliases(
-        "btag_uncorrelated",
-        {"btag_weight": "btag_weight_{direction}_uncorrelated"},
-        selection_dependent=False,
-    )
+    # b-tag fixed-WP SF uncertainties (BTV, more than one era): btag_bc_* and
+    # btag_light_*, each correlated (across eras) and uncorrelated (per era).
+    # Columns come from SplitBTagWPSFConfig.systs: btag_weight_<flav>_<dir>_<kind>.
+    for i, (flav, kind) in enumerate((
+        ("bc", "correlated"), ("bc", "uncorrelated"), ("light", "correlated"), ("light", "uncorrelated"),
+    )):
+        src = f"btag_{flav}_{kind}"
+        cfg.add_shift(name=f"{src}_up", id=61 + 2 * i, type="shape")
+        cfg.add_shift(name=f"{src}_down", id=62 + 2 * i, type="shape")
+        add_aliases(src, {"btag_weight": f"btag_weight_{flav}_" + "{direction}" + f"_{kind}"}, selection_dependent=False)
 
     cfg.add_shift(name="mur_up", id=201, type="shape")
     cfg.add_shift(name="mur_down", id=202, type="shape")
@@ -1114,42 +1014,58 @@ def add_config(
     cfg.add_shift(name="pdf_up", id=207, type="shape")
     cfg.add_shift(name="pdf_down", id=208, type="shape")
 
-    for unc in ["mur", "muf", "murmuf_envelope", "pdf"]:
+    # parton shower (PSWeight), normalized per process
+    cfg.add_shift(name="isr_up", id=209, type="shape")
+    cfg.add_shift(name="isr_down", id=210, type="shape")
+    cfg.add_shift(name="fsr_up", id=211, type="shape")
+    cfg.add_shift(name="fsr_down", id=212, type="shape")
+    # luminosity as a weight (plots only; the datacard uses cfg.x.luminosity)
+    cfg.add_shift(name="lumi_up", id=213, type="shape")
+    cfg.add_shift(name="lumi_down", id=214, type="shape")
+    add_aliases("lumi", {"lumi_weight": "lumi_weight_{direction}"}, selection_dependent=False)
+
+    # PDF + alpha_s: the NNPDF3.1 pdfas members are alpha_s = 0.116 / 0.120
+    # (+-0.002, LHAPDF member files); rescale to the PDF4LHC +-0.0015
+    cfg.x.pdf_alphas_scale = 0.0015 / 0.002
+
+    for unc in ["mur", "muf", "murmuf_envelope", "pdf", "isr", "fsr"]:
         add_aliases(
             unc,
             {f"normalized_{unc}_weight": f"normalized_{unc}_weight_" + "{direction}"},
             selection_dependent=False,
         )
 
+    # JES / JER / MET unclustered: production-level shifts. jet_selection keeps
+    # every jet that passes the analysis pT cut in any variation, and nothing at
+    # selection cuts on MET, so only ProduceColumns (and histogramming) reruns;
+    # the producer registers these shifts (production/default.py).
     with open(os.path.join(thisdir, "jec_sources.yaml"), "r") as f:
         all_jec_sources = yaml.load(f, yaml.Loader)["names"]
-    for jec_source in cfg.x.jec["uncertainty_sources"]:
+    # the varied jet mass is rebuilt in production from the varied pT
+    jet_met_aliases = {
+        "CandJet.pt": "CandJet.pt_{name}",
+        "PuppiMET.pt": "PuppiMET.pt_{name}",
+        "PuppiMET.phi": "PuppiMET.phi_{name}",
+    }
+    for jec_source in cfg.x.jec.Jet.uncertainty_sources:
         idx = all_jec_sources.index(jec_source)
         cfg.add_shift(name=f"jec_{jec_source}_up", id=5000 + 2 * idx, type="shape")
         cfg.add_shift(name=f"jec_{jec_source}_down", id=5001 + 2 * idx, type="shape")
-        add_aliases(
-            f"jec_{jec_source}",
-            {
-                "Jet.pt": "Jet.pt_{name}",
-                "Jet.mass": "Jet.mass_{name}",
-                # Type-1 propagation targets PuppiMET (see calibration/corrections.py)
-                "PuppiMET.pt": "PuppiMET.pt_{name}",
-                "PuppiMET.phi": "PuppiMET.phi_{name}",
-            },
-            selection_dependent=True,
-        )
+        add_aliases(f"jec_{jec_source}", jet_met_aliases, selection_dependent=False)
 
-    cfg.add_shift(name="jer_up", id=6000, type="shape", tags={"selection_dependent"})
-    cfg.add_shift(name="jer_down", id=6001, type="shape", tags={"selection_dependent"})
+    cfg.add_shift(name="jer_up", id=6000, type="shape")
+    cfg.add_shift(name="jer_down", id=6001, type="shape")
+    add_aliases("jer", jet_met_aliases, selection_dependent=False)
+
+    cfg.add_shift(name="met_unclustered_up", id=6002, type="shape")
+    cfg.add_shift(name="met_unclustered_down", id=6003, type="shape")
     add_aliases(
-        "jer",
-        {
-            "Jet.pt": "Jet.pt_{name}",
-            "Jet.mass": "Jet.mass_{name}",
-            "PuppiMET.pt": "PuppiMET.pt_{name}",
-            "PuppiMET.phi": "PuppiMET.phi_{name}",
-        },
-        selection_dependent=True,
+        "met_unclustered",
+        {"PuppiMET.pt": "PuppiMET.pt_unclustered_{direction}", "PuppiMET.phi": "PuppiMET.phi_unclustered_{direction}"},
+        selection_dependent=False,
+    )
+    cfg.x.production_shift_sources = (
+        [f"jec_{src}" for src in cfg.x.jec.Jet.uncertainty_sources] + ["jer", "met_unclustered"]
     )
 
     def make_jme_filename(jme_aux, sample_type, name, era=None):
@@ -1245,8 +1161,8 @@ def add_config(
     if year == 2022 and campaign.x.EE == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
-                "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2022_355100_362760_Golden.json", "v2"),  # noqa
+                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileup_JSON.txt", "v1"),
@@ -1255,8 +1171,8 @@ def add_config(
     elif year == 2022 and campaign.x.EE == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
-                "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2022_355100_362760_Golden.json", "v2"),  # noqa
+                "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
                 "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),
@@ -1265,7 +1181,7 @@ def add_config(
     elif year == 2023 and campaign.x.BPix == "pre":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2023_366442_370790_Golden.json", "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1275,7 +1191,7 @@ def add_config(
     elif year == 2023 and campaign.x.BPix == "post":
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2023_366442_370790_Golden.json", "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1285,7 +1201,7 @@ def add_config(
     elif year == 2024:
         cfg.x.external_files.update(DotDict.wrap({
             "lumi": {
-                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json", "v1"),  # noqa
+                "golden": ("/data/dust/user/eranders/azh_data/lumi/Cert_Collisions2024_378981_386951_Golden.json", "v2"),  # noqa
                 "normtag": ("/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json", "v1"),
             },
             "pu": {
@@ -1309,22 +1225,20 @@ def add_config(
             "mc_weight", "PV.npvs", "process_id", "category_ids", "deterministic_seed",
             # weight-related columns
             "pu_weight*", "pdf_weight*",
-            "murmuf_envelope_weight*", "mur_weight*", "muf_weight*",
+            "murmuf_envelope_weight*", "mur_weight*", "muf_weight*", "isr_weight*", "fsr_weight*",
             "btag_weight*",
             "Pileup.nTrueInt",
             "LHEScaleWeight",
-            "GenPart.*",
-        } | set(  # Jets
-            f"{jet_obj}.{field}"
-            for jet_obj in ["Jet"]
-            for field in ["pt", "eta", "phi", "mass", "genJetIdx", cfg.x.btag_default.column, "hadronFlavour", "rawFactor", "btagDeepFlavQG"]  # noqa
-        ) | set(  # BJets
-            f"{jet_obj}.{field}"
-            for jet_obj in ["BJet"]
-            for field in [
-                "pt", "eta", "phi", "mass", cfg.x.btag_default.column, "hadronFlavour",
-            ]
-        )
+        } | {
+            # candidate jets with their JES / JER varied pT, and the varied MET
+            # (production-level shifts); without them the aliases fall back to
+            # nominal SILENTLY. The full Jet collection is not kept.
+            "CandJet.*",
+            "PuppiMET.pt_*", "PuppiMET.phi_*",
+            # muon impact parameters and the WP90 flag: tight-lepton variants can
+            # be studied in production without reprocessing
+            "Muon.dxy", "Muon.dz", "Electron.dxy", "Electron.dz", "Electron.mvaIso_WP90",
+        }
           | set(  # Muons
             f"{mu_obj}.{field}"
             for mu_obj in ["Muon"]
@@ -1345,7 +1259,10 @@ def add_config(
             f"{gen_jet_obj}.{field}"
             for gen_jet_obj in ["GenJet"]
             for field in ["pt", "eta", "phi", "mass", "hadronFlavour"]
-        )
+        ) | {
+            # dressed generator leptons: dy_producer removes them from the gen jets
+            "GenDressedLepton.pt", "GenDressedLepton.eta", "GenDressedLepton.phi",
+        }
     )
 
     # event weight columns as keys in an ordered dict, mapped to shift instances they depend on
@@ -1357,25 +1274,18 @@ def add_config(
     # An empty list therefore means "computed, stored, but never varied".
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
-        "btag_weight": get_shifts("btag_correlated", "btag_uncorrelated"),
-        "channel_lumi_weight": [],        # per-channel lumi correction (muon: x0.9344, ee: x1.0023)
-        "electron_trig_weight": get_shifts("e_trig_sf"),
-        # muon_Z.json HLT SFs valid down to ~15 GeV
-        "muon_trig_weight": get_shifts("mu_trig_sf"),
-        "electron_weight": get_shifts("e_sf"),            # electron reco above 75
-        "electron_mid_weight": get_shifts("e_sf"),        # electron reco 20-75
-        "electron_loreco_weight": get_shifts("e_sf"),     # electron reco 10-20
-        "electron_id_weight": get_shifts("e_sf"),         # electron MVA WP80iso
-        "muon_id_weight": get_shifts("muon"),             # TightID SF
-        "muon_iso_weight": get_shifts("muon"),            # TightPFIso SF
-        # split_btag_weights is called in weights.py and 'btag_weight*' is kept
-        # through reduction, but the column was never listed here -- so the b-tag
-        # scale factor was computed, stored, and then silently dropped from the
-        # event weight. This is a nominal-yield fix, not a systematics one.
-        # Shift list stays empty: the fork's split_btag_weights hardcodes
-        # btag_uncs = {} and produces only 'btag_weight', so no varied columns
-        # exist yet (see cfg.x.btag_sf_jec_sources for the intended source list).
+        "btag_weight": get_shifts(
+            "btag_bc_correlated", "btag_bc_uncorrelated", "btag_light_correlated", "btag_light_uncorrelated",
+        ),
+        "trigger_weight": get_shifts("e_trig", "mu_trig_stat", "mu_trig_syst"),
+        "electron_weight": get_shifts("e_reco"),          # electron reco above 75
+        "electron_mid_weight": get_shifts("e_reco"),      # electron reco 20-75
+        "electron_loreco_weight": get_shifts("e_reco"),   # electron reco 10-20
+        "electron_id_weight": get_shifts("e_id"),         # electron MVA WP80iso
+        "muon_id_weight": get_shifts("mu_id_stat", "mu_id_syst"),     # TightID SF
+        "muon_iso_weight": get_shifts("mu_iso_stat", "mu_iso_syst"),  # TightPFIso SF
         "normalized_pu_weight": get_shifts("minbias_xs"),
+        "lumi_weight": get_shifts("lumi"),
     })
 
     # Dataset-level weights. These live here rather than in cfg.x.event_weights
@@ -1386,38 +1296,26 @@ def add_config(
         if not dataset.is_mc:
             continue
         dataset_weights = {}
-        # NOTE: previously guarded on dataset.x("is_ttbar", False), but is_ttbar is
-        # set as a *tag*, so that expression was False for every dataset and the top
-        # pT weight was computed but never applied.
-        if dataset.has_tag("is_ttbar"):
-            # The weight itself IS applied (it is a correction, not an option).
-            # The *nuisance* is parked at [] pending a decision on the prescription:
-            # gen_top.py currently builds the variations as w*1.5 / w*0.5, a flat
-            # multiplicative factor. That is a pure +-50% rate change on ttbar with
-            # zero shape content (measured total-yield ratio: exactly 1.500000),
-            # whereas AN-2022/158 Sec. 9.1 l. 709 and Table 25 specify 'topPtRew' as
-            # a SHAPE nuisance whose magnitude is the full weight, i.e. the variation
-            # spans "reweighting applied" vs "not applied" (w -> 1 and w -> w^2).
-            # Enabling this before the prescription is settled would put a large,
-            # shapeless rate nuisance on the dominant background.
-            # TODO: restore get_shifts("top_pt") once the method is agreed.
-            dataset_weights["top_pt_weight"] = []
+        # Top pT reweighting is OFF: no Run 3 prescription has been agreed yet.
+        # When it comes back, apply it to tt_* only (the is_ttbar tag), never to
+        # ttZ / ttW / ttH, and normalize it so the inclusive ttbar yield is kept.
         # pythia dibosons have no LHEScaleWeight/LHEPdfWeight branch
         if not dataset.has_tag("no_lhe_weights"):
             for unc in ["mur", "muf", "murmuf_envelope", "pdf"]:
                 dataset_weights[f"normalized_{unc}_weight"] = get_shifts(unc)
+        if not dataset.has_tag("no_ps_weights"):
+            for unc in ["isr", "fsr"]:
+                dataset_weights[f"normalized_{unc}_weight"] = get_shifts(unc)
         if dataset_weights:
             dataset.x.event_weights = dataset_weights
 
-    # v2: selection stats now book per-process sums for the pileup, scale and PDF
-    # weight variations, so cf.SelectEvents and everything downstream must rerun.
-    prod_version = "v5"
-
-    # Version of required tasks
-    # v1: jet_energy now runs jec_full (uncertainty sources) instead of jec_nominal
-    # for MC, so CalibrateEvents writes additional Jet.pt_jec_*/Jet.mass_jec_*
-    # columns and its outputs are no longer compatible with v0.
-    calib_version = "v1"
+    # Versions of the stored task outputs. Bumped for the pre-flight patch set:
+    # calibration (compound EGM scale, lepton momentum variations, v15 jet ID,
+    # MET unclustered, ECAL veto, no lepton subtraction), selection (triggers,
+    # Delta R cleaning, candidate jets, PDF/PS sums) and production all changed,
+    # so nothing from v1 / v5 may be reused.
+    prod_version = "v6"
+    calib_version = "v2"
     cfg.x.versions = {
         "cf.CalibrateEvents": calib_version,
         "cf.SelectEvents": prod_version,
@@ -1430,13 +1328,49 @@ def add_config(
         "cf.ProduceColumns": prod_version,
     }
 
-    # Override NLO DY xsec with NNLO prediction (DYTurbo + NNPDF 3.1)
-    # NLO from amcatnlo: 6275 pb; NNLO: ~6688 pb (k=1.066)
-    # Reference: SMP-22-017 uses NNLO normalization
-    if cfg.has_process("dy_m50toinf"):
-        cfg.get_process("dy_m50toinf").set_xsec(13.6, Number(6688.0, {"tot": 0.02j}))
-    if cfg.has_process("dy_m10to50"):
-        cfg.get_process("dy_m10to50").set_xsec(13.6, Number(21050.0, {"tot": 0.02j}))
+    # Every process a dataset belongs to must be known to the config: columnflow's
+    # normalization looks up the process ids booked in the selection stats. The
+    # inclusive DY processes (dy_m50toinf, dy_m10to50) are only parents of the
+    # hf/lf plotting processes, so they are registered here (not for plotting;
+    # dy_producer moves DY events to the hf/lf leaves in production).
+    for dataset in cfg.datasets:
+        for proc in dataset.processes:
+            if not cfg.has_process(proc.name):
+                cfg.add_process(proc)
+
+    # DY stays at the NLO cross sections from cmsdb in every era (6282.6 pb for
+    # m50, 19768.5 pb for m10to50; the 2024 flavour-split samples sum to the
+    # same). The former NNLO override here never applied (it looked up
+    # "dy_m50toinf", which is not a config process) and was removed: the group
+    # will derive its own DY correction from the 2l region.
+
+    # Correlation of every shift source for the datacard (combine correlates
+    # nuisances by NAME, so this decides the naming):
+    #   "all"        same nuisance in every era
+    #   "year"       one per data-taking year (2022pre/post share one)
+    #   "era"        one per config
+    #   "plots_only" not a datacard shape nuisance (lumi is an lnN from
+    #                cfg.x.luminosity)
+    # EGM: uncorrelated -> "era". MUO: syst correlated, stat per era. BTV:
+    # correlated / uncorrelated. JME: JES per the source's year correlation,
+    # JER and unclustered per era. Theory: correlated. tests/preflight_static.py
+    # FAILs on any registered shift source missing here.
+    cfg.x.shift_correlations = {
+        "minbias_xs": "all",
+        "lumi": "plots_only",
+        "e_reco": "era", "e_id": "era", "e_trig": "era", "e_scale": "era", "e_smear": "era",
+        "mu_id_stat": "era", "mu_iso_stat": "era", "mu_trig_stat": "era",
+        "mu_id_syst": "all", "mu_iso_syst": "all", "mu_trig_syst": "all",
+        "mu_scale": "era", "mu_resol": "era",
+        "btag_bc_correlated": "all", "btag_light_correlated": "all",
+        "btag_bc_uncorrelated": "era", "btag_light_uncorrelated": "era",
+        "mur": "all", "muf": "all", "murmuf_envelope": "all", "pdf": "all", "isr": "all", "fsr": "all",
+        "jer": "era", "met_unclustered": "era",
+        **{
+            f"jec_{src}": ("year" if src in cfg.x.jec_per_year_sources else "all")
+            for src in cfg.x.jec.Jet.uncertainty_sources
+        },
+    }
 
     add_variables(cfg)
     add_categories_selection(cfg)
@@ -1445,23 +1379,25 @@ def add_config(
     # after producer init. @call_once_on_config makes the later producer call a no-op.
     add_categories_production(cfg)
 
-    # unblinded group: all 0b leaf categories. Data is blinded in >=1 b-jet
-    # regions, so plots of data use --categories unblinded. MC/inference may
-    # still use the 1b/2b SR leaves, which remain defined.
+    # SR blinding (production/default.py): data events in 3l + baseline +
+    # >= 1 b-jet are removed from every category. The data/MC-comparable
+    # categories are those that exclude the SR by construction: the 2l region
+    # and the 0-b WZ control region.
+    cfg.x.blind_sr_data = True
+
     def _walk_cats(cats):
         for c in cats:
             yield c
             yield from _walk_cats(c.categories)
-    cfg.x.category_groups["unblinded"] = sorted(
-        {c.name for c in _walk_cats(cfg.categories) if "0bjets" in c.name.split("__")}
-    )
+
+    def _sel(c):
+        return set(c.selection) if isinstance(c.selection, (list, tuple)) else {c.selection}
+    cfg.x.category_groups["unblinded"] = sorted({
+        c.name for c in _walk_cats(cfg.categories) if _sel(c) & {"catid_2l", "catid_wz_cr"}
+    })
     # add_cutflow_variables(cfg)
-    if year == 2022:
-        from azh.config.triggers import add_triggers_2022
-        add_triggers_2022(cfg)
-    if year == 2024:
-        from azh.config.triggers import add_triggers_2024
-        add_triggers_2024(cfg)
+    from azh.config.triggers import add_triggers
+    add_triggers(cfg)
 
     # surface everything that still needs checking against the real files
     if cfg_unverified:
@@ -1471,6 +1407,4 @@ def add_config(
         )
     cfg.x.unverified_settings = cfg_unverified
 
-    # only produce cutflow features when number of dataset_files is limited (used in selection module)
-    cfg.x.do_cutflow_features = bool(limit_dataset_files) and limit_dataset_files <= 10
     return cfg

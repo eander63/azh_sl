@@ -10,7 +10,7 @@ What's fixed here (and costs a reprocess to change):
 
   * pT > 10 floor. Sits below the paper's 4th-lepton veto threshold
     (an additional lepton with pT > 10 GeV vetoes the event).
-  * Electron acceptance |ScEta| < 2.5 with the ECAL crack 1.44-1.56 removed
+  * Electron acceptance |ScEta| < 2.5 with the ECAL crack 1.4442-1.5560 removed
     (B2G-24-002: electrons in the barrel/endcap transition are discarded).
     ScEta = Electron.eta + Electron.deltaEtaSC -- this is also the variable the
     EGM scale/smearing and ID scale factors are binned in.
@@ -36,8 +36,8 @@ np = maybe_import("numpy")
 # --- fixed acceptance constants (changing these costs a reprocess) ----------
 PT_FLOOR = 10.0  # below the paper's 4th-lepton veto (10 GeV)
 ELE_ETA_MAX = 2.5
-ELE_CRACK_LO = 1.44  # ECAL barrel/endcap transition, lower edge
-ELE_CRACK_HI = 1.56  # ECAL barrel/endcap transition, upper edge
+ELE_CRACK_LO = 1.4442  # ECAL barrel/endcap transition (AN-2022/158 l. 489)
+ELE_CRACK_HI = 1.5560
 MUO_ETA_MAX = 2.4
 MUO_ISO_LOOSE = 0.25
 

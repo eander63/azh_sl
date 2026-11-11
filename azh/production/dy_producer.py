@@ -46,7 +46,7 @@ def get_process_id_from_masks(
 
 
 @producer(
-    uses={"GenJet.{pt,eta,hadronFlavour}"},
+    uses={"GenJet.{pt,eta,phi,hadronFlavour}", "GenDressedLepton.{pt,eta,phi}"},
     produces={"process_id"},
 )
 def dy_producer(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -58,9 +58,19 @@ def dy_producer(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
     # n_partons = events.LHE.NpNLO
 
-    genjet_mask = (events.GenJet["pt"] >= 20) & (abs(events.GenJet["eta"]) < 2.4)
-    genjet = events.GenJet[genjet_mask]
-    hf_genjet_mask = (genjet.hadronFlavour == 4) | (genjet.hadronFlavour == 5)
+    # GenJets are clustered from all stable particles except neutrinos, so the
+    # Z-decay leptons form gen jets themselves: without this cleaning almost every
+    # DY event counted >= 2 jets and the 0-jet bin was empty. Remove gen jets
+    # within Delta R < 0.4 of a dressed generator lepton with pT > 10 GeV.
+    gj = events.GenJet
+    gl = events.GenDressedLepton
+    gl = gl[gl["pt"] > 10]
+    j, lep = ak.unzip(ak.cartesian([gj, gl], axis=1, nested=True))
+    dphi = (j["phi"] - lep["phi"] + np.pi) % (2 * np.pi) - np.pi
+    lepton_free = ak.all(np.sqrt((j["eta"] - lep["eta"]) ** 2 + dphi ** 2) >= 0.4, axis=2)
+    genjet_mask = (gj["pt"] >= 20) & (abs(gj["eta"]) < 2.4) & lepton_free
+    genjet = gj[genjet_mask]
+    hf_genjet_mask = (genjet["hadronFlavour"] == 4) | (genjet["hadronFlavour"] == 5)
     is_hf = ak.any(hf_genjet_mask, axis=1)
 
     # hf_genjets = genjet[hf_genjet_mask]

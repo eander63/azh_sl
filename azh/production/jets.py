@@ -1,0 +1,66 @@
+"""
+Analysis jets, built in production so the JES/JER variations are
+production-level shifts.
+
+ReduceEvents keeps the Delta R-cleaned candidate jets (CandJet: |eta| < 2.5,
+TightLepVeto, pT > 30 in at least one variation; built in calibration). Here
+the pT cut is applied to CandJet.pt as ProduceColumns sees it -- which, under a
+jec_* or jer_* shift, is the aliased varied pT. The varied mass is rebuilt as
+mass * pt / pt_nominal (a JES/JER shift scales pT and mass alike). Everything that depends on the jet
+selection (n_jet, n_bjet, the AnaJet collection for plotting, and the b-tag SF
+jet mask) is derived from analysis_jet_mask() so the definitions cannot drift.
+
+Why produced copies are needed for plotting: for a producer-registered shift,
+ProduceColumns has local_shift = <shift> (aliases applied) but CreateHistograms
+has local_shift = nominal (checked with --print-status). Variables must
+therefore read AnaJet.* / met_* rather than Jet.* / PuppiMET.* from the
+reduced events, which would silently stay nominal.
+"""
+
+from columnflow.columnar_util import set_ak_column
+from columnflow.production import Producer, producer
+from columnflow.util import maybe_import
+
+from azh.selection.jet_selection import JET_PT_MIN
+
+ak = maybe_import("awkward")
+np = maybe_import("numpy")
+
+ANA_JET_FIELDS = ("pt", "eta", "phi", "mass")
+
+
+def analysis_jet_mask(events: ak.Array) -> ak.Array:
+    """Analysis jets among the kept candidates: pT > 30 GeV (shift-aware via aliases)."""
+    return ak.fill_none(events.CandJet["pt"] > JET_PT_MIN, False)
+
+
+@producer(
+    uses={f"CandJet.{f}" for f in ANA_JET_FIELDS} | {"CandJet.pt_nominal", "PuppiMET.pt", "PuppiMET.phi"},
+    produces={"n_jet", "n_bjet", *{f"AnaJet.{f}" for f in ANA_JET_FIELDS}, "AnaJet.btag", "met_pt", "met_phi"},
+)
+def analysis_jets(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    btag = self.config_inst.x.btag_default
+    mask = analysis_jet_mask(events)
+    jets = events.CandJet[mask]
+    jets = jets[ak.argsort(jets["pt"], axis=1, ascending=False)]
+    # varied mass from the varied pT (identical to nominal when not shifted)
+    jets = ak.with_field(jets, jets["mass"] * jets["pt"] / jets["pt_nominal"], "mass")
+
+    events = set_ak_column(events, "n_jet", ak.num(jets["pt"], axis=1))
+    events = set_ak_column(events, "n_bjet", ak.sum(jets[btag.column] >= btag.wp, axis=1))
+    for f in ANA_JET_FIELDS:
+        events = set_ak_column(events, f"AnaJet.{f}", jets[f])
+    events = set_ak_column(events, "AnaJet.btag", jets[btag.column])
+
+    # MET as ProduceColumns sees it (aliased under JES/JER/unclustered shifts).
+    # CreateHistograms runs these shifts with local_shift = nominal, so a
+    # variable reading PuppiMET.pt from the reduced events would stay nominal;
+    # plotting variables must use these produced columns instead.
+    events = set_ak_column(events, "met_pt", events.PuppiMET.pt)
+    events = set_ak_column(events, "met_phi", events.PuppiMET.phi)
+    return events
+
+
+@analysis_jets.init
+def analysis_jets_init(self: Producer, **kwargs) -> None:
+    self.uses.add(f"CandJet.{self.config_inst.x.btag_default.column}")

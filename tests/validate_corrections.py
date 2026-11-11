@@ -292,7 +292,7 @@ def validate_config(cfg, rep):
         if path:
             cs, raw, names_in_file = load(path)
             keys = names_in_file
-            jec = cfg.x.jec
+            jec = cfg.x.jec.get("Jet", cfg.x.jec)  # keyed by jet collection
             for source in jec["uncertainty_sources"]:
                 key = f"{jec['campaign']}_{jec['version']}_MC_{source}_{jec['jet_type']}"
                 (rep.ok if key in keys else rep.error)(
@@ -304,7 +304,7 @@ def validate_config(cfg, rep):
                 if key not in keys:
                     rep.error(f"JEC level {level}: {key!r} not in file")
 
-            jer = cfg.x.jer
+            jer = cfg.x.jer.get("Jet", cfg.x.jer)  # keyed by jet collection
             res = f"{jer['campaign']}_{jer['version']}_MC_PtResolution_{jer['jet_type']}"
             sf = f"{jer['campaign']}_{jer['version']}_MC_ScaleFactor_{jer['jet_type']}"
             unc = f"{jer['campaign']}_{jer['version']}_MC_SFUncertainty_{jer['jet_type']}"
@@ -334,9 +334,9 @@ def validate_config(cfg, rep):
         if path:
             cs, _, names_in_file = load(path)
             # v0.3.1 / f1173d2: the fixed-WP producer replaced cfg.x.btag_sf with
-        # btag_wp_sf_config, which names the heavy and light correction sets
-        # separately and carries the systematic values in `systs`.
-        btag = cfg.x("btag_wp_sf_config", None)
+            # btag_wp_sf_config, which names the heavy and light correction sets
+            # separately and carries the systematic values in `systs`.
+            btag = cfg.x("btag_wp_sf_config", None)
             if btag is not None:
                 for name in (btag.correction_set, btag.correction_set_light):
                     (rep.ok if name in names_in_file else rep.error)(

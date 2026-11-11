@@ -331,9 +331,8 @@ def default(self):
     #
     # This loop is taken from the columnflow template and works unmodified
     # because config_run3.py already builds `cfg.x.luminosity` as an
-    # order.Number carrying named uncertainties -- `lumi_13p6TeV_correlated`
-    # and `lumi_13p6TeV_uncorrelated_<year>` -- decomposed from the LUM POG
-    # Run 3 covariance matrix.
+    # order.Number carrying the LUM POG nuisances `lumi_1`, `lumi_2`, `lumi_3`
+    # with their per-year values.
     #
     # That decomposition is why this must stay a loop rather than a single
     # hard-coded lnN: the shared (vdM methodology) component and the year-local
@@ -368,12 +367,8 @@ def default(self):
     # ONLY sources that are both registered AND actually varied appear here.
     # Three registered sources are deliberately absent:
     #
-    #   top_pt  -- the shift exists, but `dataset.x.event_weights["top_pt_weight"]`
-    #              is `[]`, so all_weights never declares it and the "up"
-    #              histogram comes back bit-identical to nominal. The
-    #              prescription is also unsettled (AN Sec. 9.1 l. 709 specifies
-    #              a full-weight shape variation; gen_top.py currently does a
-    #              flat x1.5 / x0.5, which is a pure rate effect).
+    #   top_pt  -- top pT reweighting is switched off (no agreed Run 3
+    #              prescription); the shift and gen_top.py were removed.
     #   btag_*  -- the loop that registers these iterates over an empty
     #              `btag_uncs` list, so no such shift exists yet.
     #   tune, hdamp -- registered but tagged `disjoint_from_nominal`; they need
@@ -392,28 +387,17 @@ def default(self):
     # channels are not yet consistent. Settle the convention with them before
     # anyone runs a combination -- mismatched names silently decorrelate
     # nuisances that should be shared.
+    # Built from cfg.x.shift_correlations, the single place where each shift's
+    # correlation is decided (config_run3.py): "all" -> no suffix, "year" ->
+    # _<year>, "era" -> _<era>. Theory sources are added per process below;
+    # "plots_only" sources (lumi) are not shape nuisances.
+    theory_sources = {"mur", "muf", "murmuf_envelope", "pdf", "isr", "fsr"}
+    year = self.config_inst.campaign.x.year
+    suffix = {"all": "", "year": f"_{year}", "era": f"_{era}"}
     experimental_shapes = {
-        # Lepton reco + ID (+iso) efficiency. AN Table 22 uses ONE nuisance per
-        # flavor, correlated across years, hence no era suffix. config_run3.py
-        # matches this: every electron SF column moves coherently under `e_sf`
-        # and every muon SF column under `muon`.
-        "CMS_eff_e": "e_sf",
-        "CMS_eff_m": "muon",
-        # Trigger efficiency. AN Table 22 has these uncorrelated across years.
-        f"CMS_eff_e_trigger_{era}": "e_trig_sf",
-        f"CMS_eff_m_trigger_{era}": "mu_trig_sf",
-        # Pileup: minimum-bias cross section varied by ~+-4.6%
-        # (AN Sec. 9.1 ll. 754-760). Uncorrelated across years.
-        f"CMS_pileup_{era}": "minbias_xs",
-        # JES. Currently the single "Total" source, because
-        # `jec_uncertainty_sources = JEC_SOURCES_TOTAL` in config_run3.py.
-        # AN Sec. 9.1 ll. 734-738 requires the 11-source reduced set (6
-        # correlated across years, 5 not). When you switch to
-        # JEC_SOURCES_REDUCED, replace this single entry with one parameter per
-        # source and drop the era suffix from the six correlated ones.
-        f"CMS_scale_j_Total_{era}": "jec_Total",
-        # JER. AN Table 22: uncorrelated across years.
-        f"CMS_res_j_{era}": "jer",
+        f"CMS_{src}{suffix[kind]}": src
+        for src, kind in self.config_inst.x.shift_correlations.items()
+        if kind in suffix and src not in theory_sources
     }
     for param_name, shift_source in experimental_shapes.items():
         self.add_parameter(
@@ -449,7 +433,7 @@ def default(self):
         if p not in NO_LHE_WEIGHT_PROCESSES
     ]
     for proc in theory_processes:
-        for unc in ["mur", "muf", "pdf"]:
+        for unc in ["mur", "muf", "pdf", "isr", "fsr"]:
             param_name = f"CMS_{unc}_{proc}"
             self.add_parameter(
                 param_name,

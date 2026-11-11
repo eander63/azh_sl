@@ -10,28 +10,6 @@ np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
 
-def add_feature_variables(config: od.Config) -> None:
-    """
-    Adds variables to a *config* that are produced as part of the `features` producer.
-    """
-
-    # Event properties
-    config.add_variable(
-        name="n_jet",
-        expression="cutflow.n_jet",
-        binning=(12, -0.5, 11.5),
-        x_title=r"Number of jets ($p_{T}$ > 30 GeV, $|\eta| < 2.5$)",
-        discrete_x=True,
-    )
-
-    # jj features
-    config.add_variable(
-        name="deltaR_jj",
-        binning=(40, 0, 5),
-        x_title=r"$\Delta R(j_{1},j_{2})$",
-    )
-
-
 def add_variables(config: od.Config) -> None:
     """
     Adds all variables to a *config* that are present after `ReduceEvents`
@@ -81,32 +59,19 @@ def add_variables(config: od.Config) -> None:
 
     config.add_variable(
         name="jets_pt",
-        expression="Jet.pt",
+        expression="AnaJet.pt",
         binning=(40, 0, 400),
         unit="GeV",
         x_title="$p_{T}$ of all jets",
     )
 
-    config.add_variable(
-        name="n_jets",
-        expression="n_jets",
-        binning=(12, -0.5, 11.5),
-        x_title="Number of jets",
-    )
 
-    config.add_variable(
-        name="n_bjets",
-        expression="n_bjets",
-        binning=(5, -0.5, 4.5),
-        unit="GeV",
-        x_title="Number of bjets",
-    )
 
     # discriminator column is era-dependent: ParticleNet (2022/23) vs UParT (2024)
     _btag = config.x.btag_default
     config.add_variable(
         name="jets_btag",
-        expression=f"Jet.{_btag.column}",
+        expression="AnaJet.btag",
         binning=(20, 0, 1),
         unit="",
         x_title=f"b tag score ({_btag.name})",
@@ -127,47 +92,11 @@ def add_variables(config: od.Config) -> None:
         x_title=r"$m_{\ell\ell}$ [GeV] (wide)",
     )
     config.add_variable(
-        name="m_h",
-        expression="m_h",
-        binning=(50, 0, 2500),
-        unit="GeV",
-        x_title="Invariant mass of the reconstructed H",
-    )
-    config.add_variable(
-        name="m_a",
-        expression="m_a",
-        binning=(40, 0, 2000),
-        unit="GeV",
-        x_title="Invariant mass of the reconstructed A",
-    )
-    config.add_variable(
-        name="del_m",
-        expression="del_m",
-        binning=(40, 0, 2000),
-        unit="GeV",
-        x_title="Mass difference between H and A",
-    )
-    config.add_variable(
         name="pt_z",
         expression="pt_z",
         binning=(10, 0, 700),
         unit="GeV",
         x_title="Transverse momentum of Z boson",
-    )
-
-    # pt_z x del_m product feature (callable expression -> declare its input
-    # columns via aux["inputs"], otherwise the plotting task loads neither).
-    # del_m is sentineled to -1 outside the >=4-jet reco (see higgs_reco.py),
-    # so those events give a negative product and fall in the underflow.
-    # NOTE: binning is a placeholder -- retune once you see the distribution.
-    config.add_variable(
-        name="pt_z_x_del_m",
-        expression=lambda events: events.pt_z * events.del_m,
-        aux={"inputs": {"pt_z", "del_m"}},
-        null_value=EMPTY_FLOAT,
-        binning=(40, 0.0, 700000.0),
-        unit=r"GeV$^{2}$",
-        x_title=r"$p_{T}^{Z} \times \Delta m$",
     )
 
     config.add_variable(
@@ -186,24 +115,11 @@ def add_variables(config: od.Config) -> None:
         x_title=r"$p_{T}^{Z}$ [GeV]",
     )
 
-    config.add_variable(
-        name="delta_b_z",
-        expression="delta_b_z",
-        binning=(50, 0, 10),
-        unit="",
-        x_title="Distance between b and Z",
-    )
 
     config.add_variable(
-        name="PNN_output",
-        expression="PNN.output",
-        binning=(10, 0, 1),
-        unit="",
-        x_title="PNN output score",
-    )
-    config.add_variable(
         name="PuppiMET",
-        expression="PuppiMET.pt",
+        # produced copy (production/jets.py): follows the JES/JER/unclustered shifts
+        expression="met_pt",
         binning=(20, 0, 400),
         unit="",
         x_title="PuppiMET $p_{T}$",
@@ -216,32 +132,26 @@ def add_variables(config: od.Config) -> None:
         unit="",
         x_title="Event category",
     )
+    # analysis jet counts (production/jets.py; follow the JES/JER shifts)
     config.add_variable(
-        name="deltaPhi_MET_Jet1",
-        expression="deltaPhi_MET_Jet1",
-        binning=(40, -3.2, 3.2),
-        unit="",
-        x_title=r"$\Delta \phi$ (MET,Jet1) ",
+        name="n_jet",
+        expression="n_jet",
+        binning=(12, -0.5, 11.5),
+        x_title=r"Number of jets ($p_{T}$ > 30 GeV, $|\eta| < 2.5$)",
+        discrete_x=True,
     )
     config.add_variable(
-        name="deltaPhi_MET_Jet2",
-        expression="deltaPhi_MET_Jet2",
-        binning=(40, -3.2, 3.2),
-        unit="",
-        x_title=r"$\Delta \phi$ (MET,Jet2) ",
+        name="n_bjet",
+        expression="n_bjet",
+        binning=(6, -0.5, 5.5),
+        x_title=r"Number of b-tagged jets (medium WP)",
+        discrete_x=True,
     )
-    config.add_variable(
-        name="deltaPhi_MET_Jet3",
-        expression="deltaPhi_MET_Jet3",
-        binning=(40, -3.2, 3.2),
-        unit="",
-        x_title=r"$\Delta \phi$ (MET,Jet3) ",
-    )
-    # Jets (3 pt-leading jets)
+    # analysis jets (AnaJet, pT-ordered)
     for i in range(6):
         config.add_variable(
             name=f"jet{i + 1}_pt",
-            expression=f"Jet.pt[:,{i}]",
+            expression=f"AnaJet.pt[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(40, 0.0, 400.0),
             unit="GeV",
@@ -249,21 +159,21 @@ def add_variables(config: od.Config) -> None:
         )
         config.add_variable(
             name=f"jet{i + 1}_eta",
-            expression=f"Jet.eta[:,{i}]",
+            expression=f"AnaJet.eta[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(50, -2.5, 2.5),
             x_title=r"Jet %i $\eta$" % (i + 1),
         )
         config.add_variable(
             name=f"jet{i + 1}_phi",
-            expression=f"Jet.phi[:,{i}]",
+            expression=f"AnaJet.phi[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(40, -3.2, 3.2),
             x_title=r"Jet %i $\phi$" % (i + 1),
         )
         config.add_variable(
             name=f"jet{i + 1}_mass",
-            expression=f"Jet.mass[:,{i}]",
+            expression=f"AnaJet.mass[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(40, 0, 200),
             unit="GeV",
@@ -308,20 +218,6 @@ def add_variables(config: od.Config) -> None:
         x_title=r"Number of b-tagged jets ($p_{T}$ > 30 GeV, $|\eta| < 2.5$)",
     )
     config.add_variable(
-        name="n_jet_loose",
-        expression="cutflow.n_jet_loose",
-        binning=(12, -0.5, 11.5),
-        x_title=r"Number of jets ($p_{T}$ > 15 GeV, $|\eta| < 4.7$)",
-        discrete_x=True,
-    )
-    config.add_variable(
-        name="cf_n_jet_loose",
-        expression="cutflow.n_jet_loose",
-        binning=(12, -0.5, 11.5),
-        x_title=r"Number of jets ($p_{T}$ > 15 GeV, $|\eta| < 4.7$)",
-        discrete_x=True,
-    )
-    config.add_variable(
         name="cf_n_ele",
         expression="cutflow.n_ele_tight",
         binning=(5, -0.5, 4.5),
@@ -335,13 +231,13 @@ def add_variables(config: od.Config) -> None:
     )
     config.add_variable(
         name="cf_n_muo",
-        expression="cutflow.n_muo",
+        expression="cutflow.n_muo_tight",
         binning=(5, -0.5, 4.5),
         x_title=r"Number of muons ($p_{T}$ > 20 GeV, $|\eta| < 2.4$ + tight Id)",
     )
     config.add_variable(
         name="cf_n_muo_loose",
-        expression="cutflow.n_muo_tight",
+        expression="cutflow.n_muo_loose",
         binning=(5, -0.5, 4.5),
         x_title=r"Number of muons ($p_{T}$ > 10 GeV, $|\eta| < 2.4$, tightId + iso < 0.15)",
     )
@@ -365,22 +261,6 @@ def add_variables(config: od.Config) -> None:
             expression=f"cutflow.lep{i + 1}_eta",
             binning=(50, -2.5, 2.5),
             x_title=rf"lepton {i + 1} $\eta$",
-        )
-
-    for i in range(4):
-        config.add_variable(
-            name=f"cf_jet{i + 1}_pt",
-            expression=f"cutflow.jet{i + 1}_pt",
-            binning=(40, 0.0, 400.0),
-            unit="GeV",
-            x_title=rf"jet {i + 1} $p_{{T}}$",
-        )
-
-        config.add_variable(
-            name=f"cf_jet{i + 1}_eta",
-            expression=f"cutflow.jet{i + 1}_eta",
-            binning=(50, -2.5, 2.5),
-            x_title=rf"jet {i + 1} $\eta$",
         )
 
     # ── 3-lepton variables ──
